@@ -1,12 +1,13 @@
-﻿using AutoEvent.Interfaces;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace AutoEvent.Games.Football;
+
 public class BallComponent : MonoBehaviour
 {
-    private SphereCollider sphere;
-    private Rigidbody rigid;
     internal static float BallSpeedBoost = 1f;
+    private Rigidbody rigid;
+    private SphereCollider sphere;
+
     private void Start()
     {
         sphere = gameObject.AddComponent<SphereCollider>();

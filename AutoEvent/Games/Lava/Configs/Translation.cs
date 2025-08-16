@@ -1,6 +1,7 @@
 ﻿using AutoEvent.Interfaces;
 
 namespace AutoEvent.Games.Lava;
+
 public class Translation : EventTranslation
 {
     public string Start { get; set; } = "<size=100><color=red>{time}</color></size>\nTake weapons and climb up.";

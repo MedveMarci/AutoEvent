@@ -1,9 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using CommandSystem;
+#if EXILED
 using Exiled.Permissions.Extensions;
+#else
+using LabApi.Features.Permissions;
+#endif
 
 namespace AutoEvent.Commands;
 
@@ -13,11 +16,13 @@ public class Translations : ICommand, IUsageProvider
     public string[] Aliases { get; } = [];
     public string Description => "Change plugin's language";
 
-    public string[] Usage { get; } = [];
-
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
     {
+#if EXILED
         if (!sender.CheckPermission("ev.language"))
+#else
+        if (!sender.HasPermissions("ev.language"))
+#endif
         {
             response = "<color=red>You do not have permission to use this command!</color>";
             return false;
@@ -26,7 +31,7 @@ public class Translations : ICommand, IUsageProvider
         if (arguments.Count == 0)
             goto syntax;
 
-        string arg0 = arguments.At(0).ToLower();
+        var arg0 = arguments.At(0).ToLower();
         if (arg0 == "list")
         {
             if (arguments.Count != 1)
@@ -38,11 +43,9 @@ public class Translations : ICommand, IUsageProvider
             response = "List of translations:\n";
             try
             {
-                foreach (string language in ConfigManager.LanguageByCountryCodeDictionary.Values.Distinct()
+                foreach (var language in ConfigManager.LanguageByCountryCodeDictionary.Values.Distinct()
                              .ToList())
-                {
                     response += $"{language}\n";
-                }
             }
             catch (Exception e)
             {
@@ -64,7 +67,7 @@ public class Translations : ICommand, IUsageProvider
 
             try
             {
-                string language = arguments.At(1).ToLower();
+                var language = arguments.At(1).ToLower();
                 /*
                 if (language == "english" || language == "default")
                 {
@@ -80,7 +83,7 @@ public class Translations : ICommand, IUsageProvider
                     return false;
                 }
 
-                string countryCode = ConfigManager.LanguageByCountryCodeDictionary
+                var countryCode = ConfigManager.LanguageByCountryCodeDictionary
                     .FirstOrDefault(x => x.Value == language).Key;
 
                 _ = ConfigManager.LoadTranslationFromAssembly(countryCode);
@@ -102,4 +105,6 @@ public class Translations : ICommand, IUsageProvider
                    "ev language load [language] - set language (restart will be required)\n";
         return true;
     }
+
+    public string[] Usage { get; } = [];
 }

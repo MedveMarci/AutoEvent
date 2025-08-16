@@ -2,53 +2,68 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AdminToys;
-using UnityEngine;
-using PlayerRoles;
-using InventorySystem.Items.Pickups;
-using PlayerStatsSystem;
 using AutoEvent.API;
 using AutoEvent.API.Enums;
+using InventorySystem.Items.Pickups;
+using Mirror;
+using PlayerRoles;
+using PlayerRoles.Ragdolls;
+using PlayerStatsSystem;
+using ProjectMER.Features;
+using ProjectMER.Features.Serializable;
+using UnityEngine;
+using JailbirdItem = InventorySystem.Items.Jailbird.JailbirdItem;
+using Object = UnityEngine.Object;
+using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
+using Random = UnityEngine.Random;
+
+#if EXILED
+using Player = Exiled.API.Features.Player;
+using Item = Exiled.API.Features.Items.Item;
+using Map = Exiled.API.Features.Map;
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features.Items;
-using PlayerRoles.Ragdolls;
-using Mirror;
-using ProjectMER.Features;
-using ProjectMER.Features.Serializable;
-using Item = Exiled.API.Features.Items.Item;
-using JailbirdItem = InventorySystem.Items.Jailbird.JailbirdItem;
-using Map = Exiled.API.Features.Map;
-using Object = UnityEngine.Object;
-using Player = Exiled.API.Features.Player;
+
+#else
+using InventorySystem.Items.Firearms;
+using CustomPlayerEffects;
+using LabApi.Features.Wrappers;
+#endif
 
 namespace AutoEvent;
+
 public static class Extensions
 {
-    public static bool JailbirdIsInvincible { get; set; } = true;
-    public static List<JailbirdItem> InvincibleJailbirds { get; set; } = new();
     public enum LoadoutCheckMethods
     {
         HasRole,
         HasSomeItems,
-        HasAllItems,
+        HasAllItems
     }
 
-    public static bool HasLoadout(this Player ply, List<Loadout> loadouts, LoadoutCheckMethods checkMethod = LoadoutCheckMethods.HasRole)
+    public static Dictionary<Player, AmmoMode> InfiniteAmmoList = new();
+    public static bool JailbirdIsInvincible { get; set; } = true;
+    public static List<JailbirdItem> InvincibleJailbirds { get; set; } = new();
+
+    public static bool HasLoadout(this Player ply, List<Loadout> loadouts,
+        LoadoutCheckMethods checkMethod = LoadoutCheckMethods.HasRole)
     {
         switch (checkMethod)
         {
             case LoadoutCheckMethods.HasRole:
                 return loadouts.Any(loadout => loadout.Roles.Any(role => role.Key == ply.Role));
             case LoadoutCheckMethods.HasAllItems:
-                return loadouts.Any(loadout => loadout.Items.All(item => ply.Items.Select(itm => itm.Type).Contains(item)));
+                return loadouts.Any(loadout =>
+                    loadout.Items.All(item => ply.Items.Select(itm => itm.Type).Contains(item)));
             case LoadoutCheckMethods.HasSomeItems:
-                return loadouts.Any(loadout => loadout.Items.Any(item => ply.Items.Select(itm => itm.Type).Contains(item)));
+                return loadouts.Any(loadout =>
+                    loadout.Items.Any(item => ply.Items.Select(itm => itm.Type).Contains(item)));
         }
 
         return false;
     }
-    
+
     public static void GiveLoadout(this Player player, List<Loadout> loadouts, LoadoutFlags flags = LoadoutFlags.None)
     {
         Loadout loadout;
@@ -60,26 +75,25 @@ public static class Extensions
 
         foreach (var loadout1 in loadouts.Where(x => x.Chance <= 0))
             loadout1.Chance = 1;
-        
-        int totalChance = loadouts.Sum(x => x.Chance);
-        
-        for (int i = 0; i < loadouts.Count - 1; i++)
-        {
-            if (UnityEngine.Random.Range(0, totalChance) <= loadouts[i].Chance)
+
+        var totalChance = loadouts.Sum(x => x.Chance);
+
+        for (var i = 0; i < loadouts.Count - 1; i++)
+            if (Random.Range(0, totalChance) <= loadouts[i].Chance)
             {
                 loadout = loadouts[i];
                 goto assignLoadout;
             }
-        }
+
         loadout = loadouts[loadouts.Count - 1];
         assignLoadout:
         GiveLoadout(player, loadout, flags);
     }
-    
+
     public static void GiveLoadout(this Player player, Loadout loadout, LoadoutFlags flags = LoadoutFlags.None)
     {
-        RoleTypeId role = RoleTypeId.None;
-        RoleSpawnFlags respawnFlags = RoleSpawnFlags.None;
+        var role = RoleTypeId.None;
+        var respawnFlags = RoleSpawnFlags.None;
         if (loadout.Roles is not null && loadout.Roles.Count > 0 && !flags.HasFlag(LoadoutFlags.IgnoreRole))
         {
             if (flags.HasFlag(LoadoutFlags.UseDefaultSpawnPoint))
@@ -90,23 +104,19 @@ public static class Extensions
             if (loadout.Roles.Count == 1)
             {
                 role = loadout.Roles.First().Key;
-                goto assignRole;
             }
             else
             {
-                List<KeyValuePair<RoleTypeId, int>> list = loadout.Roles.ToList<KeyValuePair<RoleTypeId, int>>();
-                int roleTotalChance = list.Sum(x => x.Value);
-                for (int i = 0; i < list.Count - 1; i++)
-                {
-                    if (UnityEngine.Random.Range(0, roleTotalChance) <= list[i].Value)
+                var list = loadout.Roles.ToList();
+                var roleTotalChance = list.Sum(x => x.Value);
+                for (var i = 0; i < list.Count - 1; i++)
+                    if (Random.Range(0, roleTotalChance) <= list[i].Value)
                     {
                         role = list[i].Key;
                         goto assignRole;
                     }
-                }
 
                 role = list[list.Count - 1].Key;
-                goto assignRole;
             }
 
             assignRole:
@@ -117,64 +127,67 @@ public static class Extensions
                     LogLevel.Error, true);
                 role = AutoEvent.Singleton.Config.LobbyRole;
             }
-
+#if EXILED
             player.Role.Set(role, respawnFlags);
+#else
+            player.SetRole(role, flags: respawnFlags);
+#endif
         }
-        if (!flags.HasFlag(LoadoutFlags.DontClearDefaultItems))
-        {
-            player.ClearInventory();
-        }
+
+        if (!flags.HasFlag(LoadoutFlags.DontClearDefaultItems)) player.ClearInventory();
 
         if (loadout.Items is not null && loadout.Items.Count > 0 && !flags.HasFlag(LoadoutFlags.IgnoreItems))
-        {
             foreach (var item in loadout.Items)
             {
+#if EXILED
                 if (flags.HasFlag(LoadoutFlags.IgnoreWeapons) && item.IsWeapon())
+#else
+                if (flags.HasFlag(LoadoutFlags.IgnoreWeapons) && item is Firearm)
+#endif
                     continue;
 
                 player.AddItem(item);
             }
-        }
 
-        if ((loadout.InfiniteAmmo != AmmoMode.None && !flags.HasFlag(LoadoutFlags.IgnoreInfiniteAmmo)) || flags.HasFlag(LoadoutFlags.ForceInfiniteAmmo) || flags.HasFlag(LoadoutFlags.ForceEndlessClip))
-        {
-            player.GiveInfiniteAmmo(AmmoMode.InfiniteAmmo);
-        }
-        if(loadout.Health != 0 && !flags.HasFlag(LoadoutFlags.IgnoreHealth))
+        if ((loadout.InfiniteAmmo != AmmoMode.None && !flags.HasFlag(LoadoutFlags.IgnoreInfiniteAmmo)) ||
+            flags.HasFlag(LoadoutFlags.ForceInfiniteAmmo) ||
+            flags.HasFlag(LoadoutFlags.ForceEndlessClip)) player.GiveInfiniteAmmo(AmmoMode.InfiniteAmmo);
+        if (loadout.Health != 0 && !flags.HasFlag(LoadoutFlags.IgnoreHealth))
             player.Health = loadout.Health;
-        if (loadout.Health == -1 && !flags.HasFlag(LoadoutFlags.IgnoreGodMode))
-        {
-            player.IsGodModeEnabled = true;
-        }
+        if (loadout.Health == -1 && !flags.HasFlag(LoadoutFlags.IgnoreGodMode)) player.IsGodModeEnabled = true;
 
-        if (loadout.ArtificialHealth is not null && loadout.ArtificialHealth.MaxAmount > 0 && !flags.HasFlag(LoadoutFlags.IgnoreAHP))
-        {
-            loadout.ArtificialHealth.ApplyToPlayer(player);
-        }
-        
+        if (loadout.ArtificialHealth is not null && loadout.ArtificialHealth.MaxAmount > 0 &&
+            !flags.HasFlag(LoadoutFlags.IgnoreAHP)) loadout.ArtificialHealth.ApplyToPlayer(player);
+
         if (!flags.HasFlag(LoadoutFlags.IgnoreStamina) && loadout.Stamina != 0)
         {
             player.ReferenceHub.playerStats.GetModule<StaminaStat>().ModifyAmount(loadout.Stamina);
         }
         else
         {
+#if EXILED
             player.IsUsingStamina = false;
+#else
+            player.EnableEffect<Invigorated>();
+#endif
         }
 
-        if (loadout.Size != Vector3.one && !flags.HasFlag(LoadoutFlags.IgnoreSize))
-        {
-            player.Scale = loadout.Size;
-        }
-        
+        if (loadout.Size != Vector3.one && !flags.HasFlag(LoadoutFlags.IgnoreSize)) player.Scale = loadout.Size;
+
         if (loadout.Effects is not null && loadout.Effects.Count > 0 && !flags.HasFlag(LoadoutFlags.IgnoreEffects))
-        {
             foreach (var effect in loadout.Effects)
             {
+#if EXILED
                 player.EnableEffect(effect.Type, effect.Intensity, effect.Duration);
+#else
+                var effectType = Type.GetType($"CustomPlayerEffects.{effect}");
+                if (effectType != null && typeof(StatusEffectBase).IsAssignableFrom(effectType))
+                    player.EnableEffect((StatusEffectBase)Activator.CreateInstance(effectType), effect.Intensity,
+                        effect.Duration);
+#endif
             }
-        }
     }
-    
+
     public static void SetPlayerAhp(this Player player, float amount, float limit = 75, float decay = 1.2f,
         float efficacy = 0.7f, float sustain = 0, bool persistant = false)
     {
@@ -183,41 +196,47 @@ public static class Extensions
         player.ReferenceHub.playerStats.GetModule<AhpStat>()
             .ServerAddProcess(amount, limit, decay, efficacy, sustain, persistant);
     }
-    
-    public static Dictionary<Player, AmmoMode> InfiniteAmmoList = new Dictionary<Player, AmmoMode>();
+
     public static void GiveInfiniteAmmo(this Player player, AmmoMode ammoMode)
     {
         if (ammoMode == AmmoMode.None)
-        {
-            if (InfiniteAmmoList is null || InfiniteAmmoList.Count < 1 || !InfiniteAmmoList.ContainsKey(player))
+            if (InfiniteAmmoList is null || InfiniteAmmoList.Count < 1 || !InfiniteAmmoList.Remove(player))
                 return;
-            InfiniteAmmoList.Remove(player);
-            return;
-        }
-        
-        if (InfiniteAmmoList.ContainsKey(player))
-        {
-            InfiniteAmmoList[player] = ammoMode;
-        }
-        else
-        {
-            InfiniteAmmoList.Add(player, ammoMode);
-        }
-        
+
+        InfiniteAmmoList[player] = ammoMode;
+#if EXILED
         foreach (AmmoType ammoType in Enum.GetValues(typeof(AmmoType)))
         {
             if (ammoType == AmmoType.None)
                 continue;
-            
+
             player.SetAmmo(ammoType, 100);
         }
+#else
+        foreach (ItemType ammoType in Enum.GetValues(typeof(ItemType)))
+        {
+            if (ammoType == ItemType.None)
+                continue;
+
+            if (!nameof(ammoType).Contains("Ammo"))
+                return;
+
+            player.SetAmmo(ammoType, 100);
+        }
+#endif
     }
 
     public static void TeleportEnd()
     {
-        foreach (Player player in Player.List)
+#if EXILED
+        foreach (var player in Player.List)
         {
             player.Role.Set(AutoEvent.Singleton.Config.LobbyRole);
+#else
+        foreach (var player in Player.ReadyList)
+        {
+            player.SetRole(AutoEvent.Singleton.Config.LobbyRole);
+#endif
             player.GiveInfiniteAmmo(AmmoMode.None);
             player.IsGodModeEnabled = false;
             player.Scale = new Vector3(1, 1, 1);
@@ -225,7 +244,7 @@ public static class Extensions
             player.ClearInventory();
         }
     }
-    
+
     public static bool IsExistsMap(string schematicName, out string response)
     {
         try
@@ -252,20 +271,20 @@ public static class Extensions
                 return false;
             }
         }
-        
+
         // The MER is not installed
         response = $"You need to download the 'ProjectMER' to run this mini-game.\n" +
                    $"Read the installation instruction in the github.";
         return false;
     }
-    
+
     public static MapObject LoadMap(string schematicName, Vector3 pos, Quaternion rot, Vector3 scale)
     {
         try
         {
             var schematicObject = ObjectSpawner.SpawnSchematic(schematicName, pos, rot, scale);
 
-            return new MapObject()
+            return new MapObject
             {
                 AttachedBlocks = schematicObject.AttachedBlocks.ToList(),
                 GameObject = schematicObject.gameObject
@@ -282,8 +301,8 @@ public static class Extensions
 
     public static GameObject CreatePlatformByParent(GameObject parent, Vector3 position)
     {
-        PrimitiveObjectToy prim = parent.GetComponent<PrimitiveObjectToy>();
-        var obj = ObjectSpawner.SpawnPrimitive(new SerializablePrimitive()
+        var prim = parent.GetComponent<PrimitiveObjectToy>();
+        var obj = ObjectSpawner.SpawnPrimitive(new SerializablePrimitive
         {
             PrimitiveType = prim.PrimitiveType,
             Position = position,
@@ -294,7 +313,7 @@ public static class Extensions
         NetworkServer.Spawn(obj.gameObject);
         return obj.gameObject;
     }
-    
+
     public static void UnLoadMap(MapObject mapObject)
     {
         mapObject.Destroy();
@@ -302,37 +321,46 @@ public static class Extensions
 
     public static void CleanUpAll()
     {
-        foreach (var item in Object.FindObjectsOfType<ItemPickupBase>())
-        {
-            Object.Destroy(item.gameObject);
-        }
+        foreach (var item in Object.FindObjectsOfType<ItemPickupBase>()) Object.Destroy(item.gameObject);
 
-        foreach (var ragdoll in Object.FindObjectsOfType<BasicRagdoll>())
-        {
-            Object.Destroy(ragdoll.gameObject);
-        }
+        foreach (var ragdoll in Object.FindObjectsOfType<BasicRagdoll>()) Object.Destroy(ragdoll.gameObject);
     }
 
     public static void Broadcast(string text, ushort time)
     {
+#if EXILED
         Map.ClearBroadcasts();
         Map.Broadcast(time, text);
+#else
+        Server.ClearBroadcasts();
+        Server.SendBroadcast(text, time);
+#endif
     }
 
     public static void GrenadeSpawn(Vector3 pos, float scale = 1f, float fuseTime = 1f, float radius = 1f)
     {
-        ExplosiveGrenade grenade = (ExplosiveGrenade)Item.Create(ItemType.GrenadeHE);
+#if EXILED
+        var grenade = (ExplosiveGrenade)Item.Create(ItemType.GrenadeHE);
         grenade.Scale = new Vector3(scale, scale, scale);
         grenade.FuseTime = fuseTime;
         grenade.MaxRadius = radius;
         grenade.SpawnActive(pos);
+#else
+        var grenade =
+            Pickup.Create(ItemType.GrenadeHE, pos, Quaternion.identity, new Vector3(scale, scale, scale)) as
+                ExplosiveGrenadeProjectile;
+        if (grenade == null) return;
+        grenade.MaxRadius = radius;
+        grenade.Base._fuseTime = fuseTime;
+        grenade.Spawn();
+#endif
     }
 
     public static AudioPlayer PlayAudio(string fileName, byte volume, bool isLoop)
     {
         if (!AudioClipStorage.AudioClips.ContainsKey(fileName))
         {
-            string filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, fileName);
+            var filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, fileName);
             DebugLogger.LogDebug($"{filePath}");
             if (!AudioClipStorage.LoadClip(filePath, fileName))
             {
@@ -340,34 +368,28 @@ public static class Extensions
                 return null;
             }
         }
-        
-        AudioPlayer audioPlayer = AudioPlayer.CreateOrGet($"AutoEvent-Global", onIntialCreation: (p) =>
+
+        var audioPlayer = AudioPlayer.CreateOrGet("AutoEvent-Global", onIntialCreation: p =>
         {
-            Speaker speaker = p.AddSpeaker($"AutoEvent-Main-{fileName}", isSpatial: false, maxDistance: 5000f);
+            var speaker = p.AddSpeaker($"AutoEvent-Main-{fileName}", isSpatial: false, maxDistance: 5000f);
             speaker.Volume = volume * (AutoEvent.Singleton.Config.Volume / 100f);
         });
 
         audioPlayer.SendSoundGlobally = true;
         audioPlayer.AddClip(fileName, loop: isLoop);
-        
+
         return audioPlayer;
     }
-    
+
     public static void PlayPlayerAudio(AudioPlayer audioPlayer, Player player, string fileName, byte volume)
     {
-        if (audioPlayer is null)
-        {
-            DebugLogger.LogDebug($"[PlayPlayerAudio] The AudioPlayer is null");
-        }
+        if (audioPlayer is null) DebugLogger.LogDebug("[PlayPlayerAudio] The AudioPlayer is null");
 
-        if (player is null)
-        {
-            DebugLogger.LogDebug($"[PlayPlayerAudio] The player is null");
-        }
-        
+        if (player is null) DebugLogger.LogDebug("[PlayPlayerAudio] The player is null");
+
         if (!AudioClipStorage.AudioClips.ContainsKey(fileName))
         {
-            string filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, fileName);
+            var filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, fileName);
             DebugLogger.LogDebug($"{filePath}");
             if (!AudioClipStorage.LoadClip(filePath, fileName))
             {
@@ -375,53 +397,42 @@ public static class Extensions
                 return;
             }
         }
-        
+
         audioPlayer.AddClip(fileName);
     }
-    
+
     public static void PauseAudio(AudioPlayer audioPlayer)
     {
-        if (audioPlayer is null)
-        {
-            DebugLogger.LogDebug($"[PauseAudio] The AudioPlayer is null");
-        }
+        if (audioPlayer is null) DebugLogger.LogDebug("[PauseAudio] The AudioPlayer is null");
 
         try
         {
-            int clipId = audioPlayer.ClipsById.Keys.First();
-            if (audioPlayer.TryGetClip(clipId, out AudioClipPlayback clip))
-            {
-                clip.IsPaused = true;
-            }
+            var clipId = audioPlayer.ClipsById.Keys.First();
+            if (audioPlayer.TryGetClip(clipId, out var clip)) clip.IsPaused = true;
         }
-        catch {}
+        catch
+        {
+        }
     }
-    
+
     public static void ResumeAudio(AudioPlayer audioPlayer)
     {
-        if (audioPlayer is null)
-        {
-            DebugLogger.LogDebug($"[PauseAudio] The AudioPlayer is null");
-        }
+        if (audioPlayer is null) DebugLogger.LogDebug("[PauseAudio] The AudioPlayer is null");
 
         try
         {
-            int clipId = audioPlayer.ClipsById.Keys.First();
-            if (audioPlayer.TryGetClip(clipId, out AudioClipPlayback clip))
-            {
-                clip.IsPaused = false;
-            }
+            var clipId = audioPlayer.ClipsById.Keys.First();
+            if (audioPlayer.TryGetClip(clipId, out var clip)) clip.IsPaused = false;
         }
-        catch {}
+        catch
+        {
+        }
     }
-    
+
     public static void StopAudio(AudioPlayer audioPlayer)
     {
-        if (audioPlayer is null)
-        {
-            DebugLogger.LogDebug($"[StopAudio] The AudioPlayer is null");
-        }
-        
+        if (audioPlayer is null) DebugLogger.LogDebug("[StopAudio] The AudioPlayer is null");
+
         try
         {
             audioPlayer.RemoveAllClips();

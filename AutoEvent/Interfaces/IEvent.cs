@@ -1,12 +1,11 @@
-﻿namespace AutoEvent.Interfaces
+﻿namespace AutoEvent.Interfaces;
+
+public interface IEvent
 {
-    public interface IEvent
-    {
-        string Name { get; }
-        string Description { get; }
-        string Author { get; }
-        string CommandName { get; }
-        void StartEvent(); 
-        void StopEvent();
-    }
+    string Name { get; }
+    string Description { get; }
+    string Author { get; }
+    string CommandName { get; }
+    void StartEvent();
+    void StopEvent();
 }

@@ -1,29 +1,40 @@
 ﻿using System;
 using AutoEvent.Interfaces;
 using CommandSystem;
+#if EXILED
 using Exiled.API.Features;
 using Exiled.Permissions.Extensions;
+#else
+using LabApi.Features.Console;
+using LabApi.Features.Permissions;
+#endif
 
 namespace AutoEvent.Commands;
+
 public class Volume : ICommand, IUsageProvider
 {
     public string Command => nameof(Volume);
     public string Description => "Set the global music volume, takes on 1 argument - the volume from 0%-200%";
     public string[] Aliases => [];
-    public string[] Usage => ["Volume %"];
+
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
         try
         {
+#if EXILED
             if (!sender.CheckPermission("ev.volume"))
+#else
+            if (!sender.HasPermissions("ev.volume"))
+#endif
             {
                 response = "<color=red>You do not have permission to use this command!</color>";
                 return false;
             }
-            
+
             if (arguments.Count != 1)
             {
-                response = $"The current volume is {AutoEvent.Singleton.Config.Volume}%. Please specify the new volume from 0% - 200% to set it!";
+                response =
+                    $"The current volume is {AutoEvent.Singleton.Config.Volume}%. Please specify the new volume from 0% - 200% to set it!";
                 return false;
             }
 
@@ -32,23 +43,32 @@ public class Volume : ICommand, IUsageProvider
                 response = "The mini-game is not running!";
                 return false;
             }
-            
-            float newVolume = float.Parse(arguments.At(0));
+
+            var newVolume = float.Parse(arguments.At(0));
             if (AutoEvent.EventManager.CurrentEvent is IEventSound eventSound)
             {
-                eventSound.SoundInfo.AudioPlayer.TryGetSpeaker($"AutoEvent-Main-{eventSound.SoundInfo.SoundName}", out Speaker speaker);
+                eventSound.SoundInfo.AudioPlayer.TryGetSpeaker($"AutoEvent-Main-{eventSound.SoundInfo.SoundName}",
+                    out var speaker);
                 speaker.Volume *= newVolume;
             }
 
-            response = $"The volume has been set!";
+            response = "The volume has been set!";
             return true;
         }
         catch (Exception e)
         {
-            response = $"Could not set the volume due to an error. This could be a bug. Ensure audio is playing while using this command.";
-            Log.Warn($"An error has occured while trying to set the volume.");
+            response =
+                "Could not set the volume due to an error. This could be a bug. Ensure audio is playing while using this command.";
+#if EXILED
+            Log.Warn("An error has occured while trying to set the volume.");
             Log.Debug($"{e}");
+#else
+            Logger.Warn("An error has occured while trying to set the volume.");
+            Logger.Debug($"{e}");
+#endif
             return false;
         }
     }
+
+    public string[] Usage => ["Volume %"];
 }

@@ -3,9 +3,14 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
-using Exiled.API.Enums;
+using Exiled.API.Features;
 using PlayerRoles;
 using UnityEngine;
+#if EXILED
+using Exiled.API.Enums;
+#else
+using CustomPlayerEffects;
+#endif
 
 namespace AutoEvent.Games.Airstrike;
 
@@ -14,53 +19,60 @@ public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null)
-        {
-            AvailableMaps = new List<MapChance>();
-        }
+        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
 
         if (AvailableMaps.Count < 1)
         {
             AvailableMaps.Add(new MapChance(50, new MapInfo("DeathParty", new Vector3(0f, 40f, 0f))));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("DeathParty_Xmas2024", new Vector3(0f, 40f, 0f)), SeasonFlags.Christmas));
+            AvailableMaps.Add(new MapChance(50, new MapInfo("DeathParty_Xmas2024", new Vector3(0f, 40f, 0f)),
+                SeasonFlags.Christmas));
         }
     }
-    
+
     [Description("Should grenades spawn on top of randomly chosen players. This will not apply on the last round.")]
     public bool TargetPlayers { get; set; } = false;
 
     [Description("If true, players will respawn as chaos, and get to lob grenades at people who are still alive.")]
     public bool RespawnPlayersWithGrenades { get; set; } = false;
 
-    [Description("The amount of rounds that this gamemode lasts. The last round is always a super big grenade.")] 
+    [Description("The amount of rounds that this gamemode lasts. The last round is always a super big grenade.")]
     public int Rounds { get; set; } = 5;
 
-    [Description("If enabled the minigame will end when there is only one player left. Otherwise it will end when everyone dies, or the rounds (configurable) are over.")] 
+    [Description(
+        "If enabled the minigame will end when there is only one player left. Otherwise it will end when everyone dies, or the rounds (configurable) are over.")]
     public bool LastPlayerAliveWins { get; set; } = true;
-    
+
     [Description("A list of loadouts.")]
     public List<Loadout> Loadouts { get; set; } = new()
     {
-        new Loadout()
+        new Loadout
         {
-            Roles = new Dictionary<RoleTypeId, int>()
+            Roles = new Dictionary<RoleTypeId, int>
             {
-                { RoleTypeId.ClassD, 100 },
+                { RoleTypeId.ClassD, 100 }
             },
-            Effects = new() { new (EffectType.FogControl, 0) }
+#if EXILED
+            Effects = new List<Effect> { new(EffectType.FogControl, 0) }
+#else
+            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 0, Duration = 0 }]
+#endif
         }
     };
-    
+
     [Description("A list of failure loadouts.")]
     public List<Loadout> FailureLoadouts { get; set; } = new()
     {
-        new Loadout()
+        new Loadout
         {
-            Roles = new Dictionary<RoleTypeId, int>()
+            Roles = new Dictionary<RoleTypeId, int>
             {
-                { RoleTypeId.ChaosConscript, 100 },
+                { RoleTypeId.ChaosConscript, 100 }
             },
-            Effects = new() { new (EffectType.FogControl, 0) }
+#if EXILED
+            Effects = new List<Effect> { new(EffectType.FogControl, 0) }
+#else
+            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 0, Duration = 0 }]
+#endif
         }
     };
 }

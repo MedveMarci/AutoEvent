@@ -4,25 +4,26 @@ using AdminToys;
 using UnityEngine;
 
 namespace AutoEvent.Games.MusicalChairs;
+
 public class Functions
 {
     public static List<GameObject> GeneratePlatforms(int count, GameObject parent, Vector3 position)
     {
-        float radius = 0.35f * count;
-        float angleCount = 360f / count;
-        List<GameObject> platformes = new List<GameObject>();
+        var radius = 0.35f * count;
+        var angleCount = 360f / count;
+        var platformes = new List<GameObject>();
 
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
-            float angle = i * angleCount;
-            float radians = angle * Mathf.Deg2Rad;
+            var angle = i * angleCount;
+            var radians = angle * Mathf.Deg2Rad;
 
-            float x = position.x + radius * Mathf.Cos(radians);
-            float z = position.z + radius * Mathf.Sin(radians);
-            Vector3 pos = new Vector3(x, parent.transform.position.y, z);
-            
+            var x = position.x + radius * Mathf.Cos(radians);
+            var z = position.z + radius * Mathf.Sin(radians);
+            var pos = new Vector3(x, parent.transform.position.y, z);
+
             // Creating a platform by copying the parent
-            GameObject platform = Extensions.CreatePlatformByParent(parent, pos);
+            var platform = Extensions.CreatePlatformByParent(parent, pos);
             platformes.Add(platform);
         }
 
@@ -34,30 +35,27 @@ public class Functions
         if (platforms.Count == 0)
             return new List<GameObject>();
 
-        for (int i = playerCount; i <= platforms.Count;)
+        for (var i = playerCount; i <= platforms.Count;)
         {
-            GameObject lastPlatform = platforms.Last();
+            var lastPlatform = platforms.Last();
             Object.Destroy(lastPlatform);
             platforms.Remove(lastPlatform);
         }
 
-        int count = platforms.Count;
-        float radius = 0.35f * count;
-        float angleCount = 360f / count;
+        var count = platforms.Count;
+        var radius = 0.35f * count;
+        var angleCount = 360f / count;
 
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
-            float angle = i * angleCount;
-            float radians = angle * Mathf.Deg2Rad;
+            var angle = i * angleCount;
+            var radians = angle * Mathf.Deg2Rad;
 
-            float x = position.x + radius * Mathf.Cos(radians);
-            float z = position.z + radius * Mathf.Sin(radians);
-            Vector3 pos = new Vector3(x, platforms[i].transform.position.y, z);
+            var x = position.x + radius * Mathf.Cos(radians);
+            var z = position.z + radius * Mathf.Sin(radians);
+            var pos = new Vector3(x, platforms[i].transform.position.y, z);
 
-            if (platforms[i].TryGetComponent(out PrimitiveObjectToy primitiveObject))
-            {
-                primitiveObject.Position = pos;
-            }
+            if (platforms[i].TryGetComponent(out PrimitiveObjectToy primitiveObject)) primitiveObject.Position = pos;
         }
 
         return platforms;

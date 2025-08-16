@@ -1,64 +1,80 @@
-﻿using MEC;
+﻿#if EXILED
+using Exiled.API.Enums;
+using Exiled.API.Features;
+#else
+using LabApi.Features.Wrappers;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API.Enums;
-using UnityEngine;
 using AutoEvent.Interfaces;
-using Exiled.API.Enums;
-using Exiled.API.Features;
+using MEC;
 using PlayerRoles;
+using UnityEngine;
+using Player = Exiled.Events.Handlers.Player;
 using Random = UnityEngine.Random;
 
 namespace AutoEvent.Games.CounterStrike;
+
 public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 {
+    private EventHandler _eventHandler;
+    internal GameObject BombObject;
+    internal List<GameObject> BombPoints;
+    internal BombState BombState;
+    internal List<GameObject> Buttons;
+    internal TimeSpan RoundTime;
     public override string Name { get; set; } = "Counter-Strike";
     public override string Description { get; set; } = "Fight between terrorists and counter-terrorists";
     public override string Author { get; set; } = "RisottoMan";
     public override string CommandName { get; set; } = "cs";
     protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Disable;
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.Default | EventFlags.IgnoreDroppingItem;
+
     public MapInfo MapInfo { get; set; } = new()
-    { 
-        MapName = "de_dust2", 
+    {
+        MapName = "de_dust2",
         Position = new Vector3(0, 30, 30)
     };
+
     public SoundInfo SoundInfo { get; set; } = new()
-    { 
-        SoundName = "Survival.ogg", 
+    {
+        SoundName = "Survival.ogg",
         Volume = 10,
         Loop = false
     };
-    private EventHandler _eventHandler;
-    internal BombState BombState;
-    internal GameObject BombObject;
-    internal TimeSpan RoundTime;
-    internal List<GameObject> BombPoints;
-    internal List<GameObject> Buttons;
+
     protected override void RegisterEvents()
     {
         _eventHandler = new EventHandler(this);
-        Exiled.Events.Handlers.Player.SearchingPickup += _eventHandler.OnSearchingPickup;
+#if EXILED
+        Player.SearchingPickup += _eventHandler.OnSearchingPickup;
+#else
+        PlayerEvents.SearchingPickup += _eventHandler.OnSearchingPickup;
+#endif
     }
 
     protected override void UnregisterEvents()
     {
-        Exiled.Events.Handlers.Player.SearchingPickup -= _eventHandler.OnSearchingPickup;
+#if EXILED
+        Player.SearchingPickup -= _eventHandler.OnSearchingPickup;
+#else
+        PlayerEvents.SearchingPickup -= _eventHandler.OnSearchingPickup;
+#endif
         _eventHandler = null;
     }
 
     protected override void OnStart()
     {
-        BombObject = new();
-        Buttons = new();
+        BombObject = new GameObject();
+        Buttons = new List<GameObject>();
         BombState = BombState.NoPlanted;
         RoundTime = new TimeSpan(0, 0, Config.TotalTimeInSeconds);
         List<GameObject> ctSpawn = new();
         List<GameObject> tSpawn = new();
 
-        foreach (GameObject gameObject in MapInfo.Map.AttachedBlocks)
-        {
+        foreach (var gameObject in MapInfo.Map.AttachedBlocks)
             switch (gameObject.name)
             {
                 case "Spawnpoint_Counter": ctSpawn.Add(gameObject); break;
@@ -66,28 +82,34 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
                 case "Bomb": BombObject = gameObject; break;
                 case "Spawnpoint_Bomb": Buttons.Add(gameObject); break;
             }
-        }
 
         var count = 0;
-        foreach (Player player in Player.List)
+#if EXILED
+        foreach (var player in Exiled.API.Features.Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             if (count % 2 == 0)
             {
                 player.GiveLoadout(Config.NTFLoadouts);
-                player.Position = ctSpawn.RandomItem().transform.position + new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
+                player.Position = ctSpawn.RandomItem().transform.position +
+                                  new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
             }
             else
             {
                 player.GiveLoadout(Config.ChaosLoadouts);
-                player.Position = tSpawn.RandomItem().transform.position + new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
+                player.Position = tSpawn.RandomItem().transform.position +
+                                  new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
             }
+
             count++;
         }
     }
-    
+
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (int time = 20; time > 0; time--)
+        for (var time = 20; time > 0; time--)
         {
             Extensions.Broadcast($"<size=100><color=red>{time}</color></size>", 1);
             yield return Timing.WaitForSeconds(1f);
@@ -103,26 +125,36 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override bool IsRoundDone()
     {
-        var ctCount = Player.List.Count(r => r.IsNTF);
-        var tCount = Player.List.Count(r => r.IsCHI);
+#if EXILED
+        var ctCount = Exiled.API.Features.Player.List.Count(r => r.IsNTF);
+        var tCount = Exiled.API.Features.Player.List.Count(r => r.IsCHI);
+#else
+        var ctCount = Player.ReadyList.Count(r => r.IsNTF);
+        var tCount = Player.ReadyList.Count(r => r.IsChaos);
+#endif
 
-        return !((tCount > 0 || BombState == BombState.Planted) && 
-            ctCount > 0 && 
-            RoundTime.TotalSeconds != 0);
+        return !((tCount > 0 || BombState == BombState.Planted) &&
+                 ctCount > 0 &&
+                 RoundTime.TotalSeconds != 0);
     }
 
     protected override void ProcessFrame()
     {
-        var ctCount = Player.List.Count(r => r.IsNTF);
-        var tCount = Player.List.Count(r => r.IsCHI);
+#if EXILED
+        var ctCount = Exiled.API.Features.Player.List.Count(r => r.IsNTF);
+        var tCount = Exiled.API.Features.Player.List.Count(r => r.IsCHI);
+#else
+        var ctCount = Player.ReadyList.Count(r => r.IsNTF);
+        var tCount = Player.ReadyList.Count(r => r.IsChaos);
+#endif
         var time = $"{RoundTime.Minutes:00}:{RoundTime.Seconds:00}";
 
         // Counts the time until the end of the round and changes according to the actions of the players
         TimeCounter();
 
         // Shows all players their missions
-        string ctTask = string.Empty;
-        string tTask = string.Empty;
+        var ctTask = string.Empty;
+        var tTask = string.Empty;
         if (BombState == BombState.NoPlanted)
         {
             ctTask = Translation.NoPlantedCounter;
@@ -135,30 +167,29 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         }
 
         // Output of missions to broadcast and killboard to hints
-        foreach (Player player in Player.List)
+        foreach (var player in Exiled.API.Features.Player.List)
         {
-            string text = Translation.Cycle.
-                Replace("{name}", Name).
-                Replace("{task}", player.Role == RoleTypeId.NtfSpecialist ? ctTask : tTask).
-                Replace("{ctCount}", ctCount.ToString()).
-                Replace("{tCount}", tCount.ToString()).
-                Replace("{time}", time);
+            var text = Translation.Cycle.Replace("{name}", Name)
+                .Replace("{task}", player.Role == RoleTypeId.NtfSpecialist ? ctTask : tTask)
+                .Replace("{ctCount}", ctCount.ToString()).Replace("{tCount}", tCount.ToString())
+                .Replace("{time}", time);
 
             player.ClearBroadcasts();
+#if EXILED
             player.Broadcast(1, text);
+#else
+            player.SendBroadcast(text, 1);
+#endif
         }
     }
-    
+
     protected void TimeCounter()
     {
         RoundTime -= TimeSpan.FromSeconds(1);
 
         if (BombState == BombState.Planted)
         {
-            if (RoundTime.TotalSeconds == 0)
-            {
-                BombState = BombState.Exploded;
-            }
+            if (RoundTime.TotalSeconds == 0) BombState = BombState.Exploded;
         }
         else if (BombState == BombState.Defused)
         {
@@ -168,16 +199,26 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override void OnFinished()
     {
-        var ctCount = Player.List.Count(r => r.IsNTF);
-        var tCount = Player.List.Count(r => r.IsCHI);
+#if EXILED
+        var ctCount = Exiled.API.Features.Player.List.Count(r => r.IsNTF);
+        var tCount = Exiled.API.Features.Player.List.Count(r => r.IsCHI);
+#else
+        var ctCount = Player.ReadyList.Count(r => r.IsNTF);
+        var tCount = Player.ReadyList.Count(r => r.IsChaos);
+#endif
 
-        string text = string.Empty;
+        var text = string.Empty;
         if (BombState == BombState.Exploded)
         {
-            foreach (Player player in Player.List)
+            foreach (var player in Exiled.API.Features.Player.List)
             {
-                if (player.IsAlive) 
+                if (player.IsAlive)
+#if EXILED
                     player.Kill(DamageType.Explosion);
+#else
+                    player.Damage(new ExplosionDamageHandler(new Footprint(Player.Host?.ReferenceHub), Vector3.back,
+                        1000, 100, ExplosionType.Grenade));
+#endif
             }
 
             text = Translation.PlantedWin;

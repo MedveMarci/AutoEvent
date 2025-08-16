@@ -1,8 +1,9 @@
 ﻿namespace AutoEvent.Games.HideAndSeek;
-enum EventState
+
+internal enum EventState
 {
     SelectPlayers,
     TagPeriod,
     KillTaggers,
-    PlayerBreak,
+    PlayerBreak
 }

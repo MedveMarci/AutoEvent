@@ -2,13 +2,13 @@
 using UnityEngine;
 
 namespace AutoEvent.API;
+
 public class DifficultyItem
 {
     public DifficultyItem()
     {
-        
     }
-    
+
     public DifficultyItem(float start, float end)
     {
         StartingValue = start;
@@ -31,12 +31,12 @@ public class DifficultyItem
 
     private float _getLinearValue(Vector2 point1, Vector2 point2, int x)
     {
-        var dx = point2.x - point1.x;  //This part has problem in your code
+        var dx = point2.x - point1.x; //This part has problem in your code
         if (dx == 0)
             return float.NaN;
         var m = (point2.y - point1.y) / dx;
-        var b = point1.y - (m * point1.x);
+        var b = point1.y - m * point1.x;
 
-        return m*x + b;
+        return m * x + b;
     }
 }

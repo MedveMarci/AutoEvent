@@ -1,5 +1,6 @@
 ﻿namespace AutoEvent.Games.Versus;
-enum EventState
+
+internal enum EventState
 {
     Waiting,
     ChooseScientist,

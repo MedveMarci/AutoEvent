@@ -21,7 +21,7 @@ public class SchematicMerPatch
                 return false;
             }
         }
-        
+
         return true;
     }
 }

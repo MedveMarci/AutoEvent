@@ -1,48 +1,65 @@
-﻿using MEC;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
-using Exiled.API.Features;
+using MEC;
 using UnityEngine;
 using Utils.NonAllocLINQ;
+#if EXILED
+using Exiled.API.Features;
+#else
+using LabApi.Features.Wrappers;
+#endif
 
 namespace AutoEvent.Games.GunGame;
+
 public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
+    private Player _winner;
     public override string Name { get; set; } = "Gun Game";
     public override string Description { get; set; } = "Cool GunGame on the Shipment map from MW19";
     public override string Author { get; set; } = "RisottoMan/code & xleb.ik/map";
     public override string CommandName { get; set; } = "gungame";
-    public MapInfo MapInfo { get; set; } = new()
-    {
-        MapName = "Shipment", 
-        Position = new Vector3(0, 40f, 0f)
-    };
-    public SoundInfo SoundInfo { get; set; } = new()
-    { 
-        SoundName = "ClassicMusic.ogg", 
-        Volume = 5
-    };
     protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Enable;
     private EventHandler _eventHandler { get; set; }
     internal List<Vector3> SpawnPoints { get; private set; }
     internal Dictionary<Player, Stats> PlayerStats { get; set; }
-    private Player _winner;
+
+    public MapInfo MapInfo { get; set; } = new()
+    {
+        MapName = "Shipment",
+        Position = new Vector3(0, 40f, 0f)
+    };
+
+    public SoundInfo SoundInfo { get; set; } = new()
+    {
+        SoundName = "ClassicMusic.ogg",
+        Volume = 5
+    };
 
     protected override void RegisterEvents()
     {
         PlayerStats = new Dictionary<Player, Stats>();
 
         _eventHandler = new EventHandler(this);
+#if EXILED
         Exiled.Events.Handlers.Player.Dying += _eventHandler.OnDying;
         Exiled.Events.Handlers.Player.Joined += _eventHandler.OnJoined;
+#else
+        PlayerEvents.Dying += _eventHandler.OnDying;
+        PlayerEvents.Joined += _eventHandler.OnJoined;
+#endif
     }
 
     protected override void UnregisterEvents()
     {
+#if EXILED
         Exiled.Events.Handlers.Player.Dying -= _eventHandler.OnDying;
         Exiled.Events.Handlers.Player.Joined -= _eventHandler.OnJoined;
+#else
+        PlayerEvents.Dying -= _eventHandler.OnDying;
+        PlayerEvents.Joined -= _eventHandler.OnJoined;
+#endif
         _eventHandler = null;
     }
 
@@ -51,18 +68,13 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _winner = null;
         SpawnPoints = new List<Vector3>();
 
-        foreach(var point in MapInfo.Map.AttachedBlocks.Where(x => x.name == "Spawnpoint"))
-        {
+        foreach (var point in MapInfo.Map.AttachedBlocks.Where(x => x.name == "Spawnpoint"))
             SpawnPoints.Add(point.transform.position);
-        }
 
         var count = 0;
-        foreach (Player player in Player.List)
+        foreach (var player in Player.List)
         {
-            if (!PlayerStats.ContainsKey(player))
-            {
-                PlayerStats.Add(player, new Stats(0));
-            }
+            if (!PlayerStats.ContainsKey(player)) PlayerStats.Add(player, new Stats(0));
 
             player.ClearInventory();
             player.GiveLoadout(Config.Loadouts, LoadoutFlags.IgnoreWeapons | LoadoutFlags.IgnoreGodMode);
@@ -74,7 +86,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (int time = 10; time > 0; time--)
+        for (var time = 10; time > 0; time--)
         {
             Extensions.Broadcast($"<size=100><color=red>{time}</color></size>", 1);
             yield return Timing.WaitForSeconds(1f);
@@ -83,10 +95,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void CountdownFinished()
     {
-        foreach (var player in Player.List.Where(r => r.IsAlive))
-        {
-            _eventHandler.GetWeaponForPlayer(player);
-        }
+        foreach (var player in Player.List.Where(r => r.IsAlive)) _eventHandler.GetWeaponForPlayer(player);
     }
 
     protected override bool IsRoundDone()
@@ -94,27 +103,25 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         // Winner is not null &&
         // Over one player is alive && 
         // Elapsed time is smaller than 10 minutes (+ countdown)
-        return !(_winner == null && Enumerable.Count(Player.List, r => r.IsAlive) > 1 && EventTime.TotalSeconds < 600);
+        return !(_winner == null && Player.List.Count(r => r.IsAlive) > 1 && EventTime.TotalSeconds < 600);
     }
-        
+
     protected override void ProcessFrame()
     {
         var leaderStat = PlayerStats.OrderByDescending(r => r.Value.kill).FirstOrDefault();
-        List<GunRole> gunsInOrder = Config.Guns.OrderByDescending(x => x.KillsRequired).ToList();
-        GunRole leadersWeapon = gunsInOrder.FirstOrDefault(x => leaderStat.Value.kill >= x.KillsRequired);
-        foreach (Player pl in Player.List)
+        var gunsInOrder = Config.Guns.OrderByDescending(x => x.KillsRequired).ToList();
+        var leadersWeapon = gunsInOrder.FirstOrDefault(x => leaderStat.Value.kill >= x.KillsRequired);
+        foreach (var pl in Player.List)
         {
-            PlayerStats.TryGetValue(pl, out Stats stats);
+            PlayerStats.TryGetValue(pl, out var stats);
             if (stats.kill >= Config.Guns.OrderByDescending(x => x.KillsRequired).FirstOrDefault()!.KillsRequired)
-            {
                 _winner = pl;
-            }
 
-            int kills = _eventHandler._playerStats[pl].kill;
-            ListExtensions.TryGetFirstIndex(gunsInOrder, x => kills >= x.KillsRequired, out int indexOfFirst);
+            var kills = _eventHandler._playerStats[pl].kill;
+            gunsInOrder.TryGetFirstIndex(x => kills >= x.KillsRequired, out var indexOfFirst);
 
-            string nextGun = "";
-            int killsNeeded = 0; 
+            var nextGun = "";
+            var killsNeeded = 0;
             if (indexOfFirst <= 0)
             {
                 killsNeeded = gunsInOrder[0].KillsRequired + 1 - kills;
@@ -131,12 +138,19 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 killsNeeded = gunsInOrder[indexOfFirst - 1].KillsRequired - kills;
                 nextGun = gunsInOrder[indexOfFirst - 1].Item.ToString();
             }
+
             pl.ClearBroadcasts();
-            pl.Broadcast(1, Translation.Cycle.
-                Replace("{name}", Name).
-                Replace("{gun}", nextGun).
-                Replace("{kills}", $"{killsNeeded}").Replace("{leadnick}", leaderStat.Key.Nickname).
-                Replace("{leadgun}", $"{(leadersWeapon is null ? nextGun : leadersWeapon.Item)}"));
+#if EXILED
+            pl.Broadcast(1,
+                Translation.Cycle.Replace("{name}", Name).Replace("{gun}", nextGun).Replace("{kills}", $"{killsNeeded}")
+                    .Replace("{leadnick}", leaderStat.Key.Nickname).Replace("{leadgun}",
+                        $"{(leadersWeapon is null ? nextGun : leadersWeapon.Item)}"));
+#else
+            pl.SendBroadcast(
+                Translation.Cycle.Replace("{name}", Name).Replace("{gun}", nextGun).Replace("{kills}", $"{killsNeeded}")
+                    .Replace("{leadnick}", leaderStat.Key.Nickname).Replace("{leadgun}",
+                        $"{(leadersWeapon is null ? nextGun : leadersWeapon.Item)}"), 1);
+#endif
         }
     }
 
@@ -144,22 +158,16 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         if (_winner != null)
         {
-            string text = Translation.Winner.
-                Replace("{name}", Name).
-                Replace("{winner}", _winner.Nickname);
+            var text = Translation.Winner.Replace("{name}", Name).Replace("{winner}", _winner.Nickname);
             Extensions.Broadcast(text, 10);
         }
         else
         {
-            string text = Translation.Winner.
-                Replace("{name}", Name).
-                Replace("{winner}", Player.List.First(r => r.IsAlive).Nickname);
+            var text = Translation.Winner.Replace("{name}", Name)
+                .Replace("{winner}", Player.List.First(r => r.IsAlive).Nickname);
             Extensions.Broadcast(text, 10);
         }
-        
-        foreach (var player in Player.List)
-        {
-            player.ClearInventory();
-        }
+
+        foreach (var player in Player.List) player.ClearInventory();
     }
 }

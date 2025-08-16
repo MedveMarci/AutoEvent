@@ -1,7 +1,8 @@
-﻿using AutoEvent.API.Season.Enum;
-using System;
+﻿using System;
+using AutoEvent.API.Season.Enum;
 
 namespace AutoEvent.API.Season;
+
 public class SeasonStyle
 {
     public string Text { get; set; }

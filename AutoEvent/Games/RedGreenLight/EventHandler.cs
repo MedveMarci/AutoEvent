@@ -1,39 +1,57 @@
-﻿using MEC;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using MEC;
+using UnityEngine;
+#if EXILED
 using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
-using UnityEngine;
 using DamageType = Exiled.API.Enums.DamageType;
+#else
+using LabApi.Features.Wrappers;
+using PlayerStatsSystem;
+#endif
 
 namespace AutoEvent.Games.Light;
+
 public class EventHandler
 {
-    private Plugin _plugin;
+    private readonly Plugin _plugin;
+
     public EventHandler(Plugin plugin)
     {
         _plugin = plugin;
     }
 
+#if EXILED
     public void OnHurt(HurtEventArgs ev)
     {
-        if (ev.DamageHandler.Type == DamageType.Explosion)
-        {
-            ev.DamageHandler.Damage = 0;
-        }
+        if (ev.DamageHandler.Type is DamageType.Explosion) ev.DamageHandler.Damage = 0;
     }
+#else
+    public void OnHurt(PlayerHurtEventArgs ev)
+    {
+        if (ev.DamageHandler is ExplosionDamageHandler explosionDamageHandler) explosionDamageHandler.Damage = 0;
+    }
+#endif
 
+#if EXILED
     public void OnTogglingNoclip(TogglingNoClipEventArgs ev)
+#else
+    public void OnTogglingNoclip(PlayerTogglingNoclipEventArgs ev)
+#endif
     {
         if (!_plugin.Config.IsEnablePush)
             return;
+#if EXILED
+        var transform = ev.Player.CameraTransform.transform;
+#else
+        var transform = ev.Player.Camera.transform;
+#endif
+        var ray = new Ray(transform.position + transform.forward * 0.1f, transform.forward);
 
-        Transform transform = ev.Player.CameraTransform.transform;
-        var ray = new Ray(transform.position + (transform.forward * 0.1f), transform.forward);
-
-        if (!Physics.Raycast(ray, out RaycastHit hit, 1.7f))
+        if (!Physics.Raycast(ray, out var hit, 1.7f))
             return;
 
-        Player target = Player.Get(hit.collider.transform.root.gameObject);
+        var target = Player.Get(hit.collider.transform.root.gameObject);
         if (target == null || ev.Player == target)
             return;
 
@@ -49,17 +67,21 @@ public class EventHandler
 
     private IEnumerator<float> PushPlayer(Player player, Player target)
     {
-        Vector3 pushed = player.CameraTransform.transform.forward * 1.7f;
-        Vector3 endPos = target.Position + new Vector3(pushed.x, 0, pushed.z);
-        int layerAsLayerMask = 0;
+#if EXILED
+        var pushed = player.CameraTransform.transform.forward * 1.7f;
+#else
+        var pushed = player.Camera.transform.forward * 1.7f;
+#endif
+        var endPos = target.Position + new Vector3(pushed.x, 0, pushed.z);
+        var layerAsLayerMask = 0;
 
-        for (int x = 1; x < 8; x++)
-            layerAsLayerMask |= (1 << x);
+        for (var x = 1; x < 8; x++)
+            layerAsLayerMask |= 1 << x;
 
-        for (int i = 1; i < 15; i++)
+        for (var i = 1; i < 15; i++)
         {
-            float movementAmount = 1.7f / 15;
-            Vector3 newPos = Vector3.MoveTowards(target.Position, endPos, movementAmount);
+            var movementAmount = 1.7f / 15;
+            var newPos = Vector3.MoveTowards(target.Position, endPos, movementAmount);
 
             if (Physics.Linecast(target.Position, newPos, layerAsLayerMask))
                 yield break;

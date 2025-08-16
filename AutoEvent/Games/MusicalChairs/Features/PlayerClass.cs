@@ -1,6 +1,5 @@
-﻿using UnityEngine;
+﻿namespace AutoEvent.Games.MusicalChairs;
 
-namespace AutoEvent.Games.MusicalChairs;
 public class PlayerClass
 {
     public float Angle { get; set; }
