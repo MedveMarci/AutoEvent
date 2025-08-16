@@ -1,18 +1,21 @@
 ﻿#if EXILED
+using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 #else
 using LabApi.Features.Wrappers;
+using LabApi.Events.Handlers;
 #endif
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
+using Footprinting;
 using MEC;
 using PlayerRoles;
+using PlayerStatsSystem;
 using UnityEngine;
-using Player = Exiled.Events.Handlers.Player;
 using Random = UnityEngine.Random;
 
 namespace AutoEvent.Games.CounterStrike;
@@ -85,7 +88,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
         var count = 0;
 #if EXILED
-        foreach (var player in Exiled.API.Features.Player.List)
+        foreach (var player in Player.List)
 #else
         foreach (var player in Player.ReadyList)
 #endif
@@ -126,8 +129,8 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     protected override bool IsRoundDone()
     {
 #if EXILED
-        var ctCount = Exiled.API.Features.Player.List.Count(r => r.IsNTF);
-        var tCount = Exiled.API.Features.Player.List.Count(r => r.IsCHI);
+        var ctCount = Player.List.Count(r => r.IsNTF);
+        var tCount = Player.List.Count(r => r.IsCHI);
 #else
         var ctCount = Player.ReadyList.Count(r => r.IsNTF);
         var tCount = Player.ReadyList.Count(r => r.IsChaos);
@@ -141,8 +144,8 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     protected override void ProcessFrame()
     {
 #if EXILED
-        var ctCount = Exiled.API.Features.Player.List.Count(r => r.IsNTF);
-        var tCount = Exiled.API.Features.Player.List.Count(r => r.IsCHI);
+        var ctCount = Player.List.Count(r => r.IsNTF);
+        var tCount = Player.List.Count(r => r.IsCHI);
 #else
         var ctCount = Player.ReadyList.Count(r => r.IsNTF);
         var tCount = Player.ReadyList.Count(r => r.IsChaos);
@@ -167,7 +170,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         }
 
         // Output of missions to broadcast and killboard to hints
-        foreach (var player in Exiled.API.Features.Player.List)
+        foreach (var player in Player.List)
         {
             var text = Translation.Cycle.Replace("{name}", Name)
                 .Replace("{task}", player.Role == RoleTypeId.NtfSpecialist ? ctTask : tTask)
@@ -200,8 +203,8 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     protected override void OnFinished()
     {
 #if EXILED
-        var ctCount = Exiled.API.Features.Player.List.Count(r => r.IsNTF);
-        var tCount = Exiled.API.Features.Player.List.Count(r => r.IsCHI);
+        var ctCount = Player.List.Count(r => r.IsNTF);
+        var tCount = Player.List.Count(r => r.IsCHI);
 #else
         var ctCount = Player.ReadyList.Count(r => r.IsNTF);
         var tCount = Player.ReadyList.Count(r => r.IsChaos);
@@ -210,7 +213,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         var text = string.Empty;
         if (BombState == BombState.Exploded)
         {
-            foreach (var player in Exiled.API.Features.Player.List)
+            foreach (var player in Player.List)
             {
                 if (player.IsAlive)
 #if EXILED

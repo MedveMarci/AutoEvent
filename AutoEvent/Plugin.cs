@@ -5,6 +5,7 @@ using HarmonyLib;
 #if EXILED
 using Exiled.API.Features;
 #else
+using LabApi.Features;
 using LabApi.Features.Wrappers;
 using LabApi.Loader.Features.Paths;
 using LabApi.Loader.Features.Plugins;
@@ -28,9 +29,9 @@ public class AutoEvent :
     public override string Description => "";
 #endif
 
-    public override Version Version => Version.Parse("9.13.0");
+    public override Version Version => Version.Parse("9.14.0");
 #if EXILED
-    public override Version RequiredExiledVersion => new(9, 6, 0);
+    public override Version RequiredExiledVersion => new(9, 8, 1);
 #else
     public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
 #endif

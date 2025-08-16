@@ -3,6 +3,7 @@ using Exiled.Events.EventArgs.Item;
 using Exiled.Events.EventArgs.Player;
 #else
 using LabApi.Events.Arguments.PlayerEvents;
+using InventorySystem.Items.Jailbird;
 #endif
 
 namespace AutoEvent.Games.Versus;

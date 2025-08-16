@@ -3,10 +3,11 @@ using System.Linq;
 using AutoEvent.API;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
+using LabApi.Events.Handlers;
 using MEC;
 using UnityEngine;
-using Player = Exiled.Events.Handlers.Player;
 #if EXILED
+using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
 using LabApi.Features.Wrappers;
@@ -68,7 +69,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "LavaObject": _lava = obj; break;
             }
 
-        foreach (var player in Exiled.API.Features.Player.List)
+        foreach (var player in Player.List)
         {
             player.GiveLoadout(Config.Loadouts, LoadoutFlags.IgnoreGodMode);
             player.Position = spawnpoints.RandomItem().transform.position;
@@ -87,12 +88,12 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void CountdownFinished()
     {
         _lava.AddComponent<LavaComponent>().StartComponent(this);
-        foreach (var player in Exiled.API.Features.Player.List) player.GiveInfiniteAmmo(AmmoMode.InfiniteAmmo);
+        foreach (var player in Player.List) player.GiveInfiniteAmmo(AmmoMode.InfiniteAmmo);
     }
 
     protected override bool IsRoundDone()
     {
-        return !(Exiled.API.Features.Player.List.Count(r => r.IsAlive) > 1 && EventTime.TotalSeconds < 600);
+        return !(Player.List.Count(r => r.IsAlive) > 1 && EventTime.TotalSeconds < 600);
     }
 
     protected override void ProcessFrame()
@@ -104,15 +105,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             text = "<size=90><color=red><b>!</b></color></size>\n";
 
         Extensions.Broadcast(
-            text + Translation.Cycle.Replace("{count}", $"{Exiled.API.Features.Player.List.Count(r => r.IsAlive)}"), 1);
+            text + Translation.Cycle.Replace("{count}", $"{Player.List.Count(r => r.IsAlive)}"), 1);
         _lava.transform.position += new Vector3(0, 0.08f, 0);
     }
 
     protected override void OnFinished()
     {
-        if (Exiled.API.Features.Player.List.Count(r => r.IsAlive) == 1)
+        if (Player.List.Count(r => r.IsAlive) == 1)
             Extensions.Broadcast(
-                Translation.Win.Replace("{winner}", Exiled.API.Features.Player.List.First(r => r.IsAlive).Nickname),
+                Translation.Win.Replace("{winner}", Player.List.First(r => r.IsAlive).Nickname),
                 10);
         else
             Extensions.Broadcast(Translation.AllDead, 10);

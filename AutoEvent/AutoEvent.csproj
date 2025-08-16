@@ -44,7 +44,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="ExMod.Exiled" Version="9.6.3" Condition=" '$(Configuration)' == 'Exiled'"/>
+        <PackageReference Include="ExMod.Exiled" Version="9.8.1" Condition=" '$(Configuration)' == 'EXILED'"/>
         <PackageReference Include="Fody" Version="6.8.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -56,8 +56,8 @@
     <ItemGroup>
         <Reference Include="AudioPlayerApi" HintPath="$(LABAPI_DEPENDENCIES)\AudioPlayerApi.dll"/>
         <Reference Include="CedModV3" HintPath="$(LABAPI_PLUGINS)\CedModV3.dll"/>
-        <Reference Include="LabApi" HintPath="$(SL_REFERENCES)\LabApi.dll" Condition=" '$(Configuration)' == 'LabApi'"/>
-        <Reference Include="YamlDotNet" HintPath="$(SL_REFERENCES)\YamlDotNet.dll" Condition=" '$(Configuration)' == 'LabApi'"/>
+        <Reference Include="LabApi" HintPath="$(SL_REFERENCES)\LabApi.dll" Condition=" '$(Configuration)' != 'EXILED'"/>
+        <Reference Include="YamlDotNet" HintPath="$(SL_REFERENCES)\YamlDotNet.dll" Condition=" '$(Configuration)' != 'EXILED'"/>
         <Reference Include="ProjectMER" HintPath="$(LABAPI_PLUGINS)\ProjectMER.dll"/>
         <Reference Include="AdvancedMERTools" HintPath="$(LABAPI_PLUGINS)\AdvancedMERTools.dll"/>
         <Reference Include="Assembly-CSharp" HintPath="$(SL_REFERENCES)\Assembly-CSharp-Publicized.dll"/>

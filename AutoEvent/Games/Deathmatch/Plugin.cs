@@ -2,10 +2,11 @@
 using System.Linq;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
+using LabApi.Events.Handlers;
 using MEC;
 using UnityEngine;
-using Player = Exiled.Events.Handlers.Player;
 #if EXILED
+using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
 using LabApi.Features.Wrappers;
@@ -67,13 +68,13 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         MtfKills = 0;
         ChaosKills = 0;
 #if EXILED
-        _needKills = Config.KillsPerPerson * Exiled.API.Features.Player.List.Count;
+        _needKills = Config.KillsPerPerson * Player.List.Count;
 #else
         _needKills = Config.KillsPerPerson * Player.ReadyList.Count();
 #endif
 
         float scale = 1;
-        switch (Exiled.API.Features.Player.List.Count())
+        switch (Player.List.Count())
         {
             case int n when n > 20 && n <= 25: scale = 1.1f; break;
             case int n when n > 25 && n <= 30: scale = 1.2f; break;
@@ -81,7 +82,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         }
 
         var count = 0;
-        foreach (var player in Exiled.API.Features.Player.List)
+        foreach (var player in Player.List)
         {
             if (count % 2 == 0)
             {
@@ -111,7 +112,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override void CountdownFinished()
     {
-        foreach (var player in Exiled.API.Features.Player.List)
+        foreach (var player in Player.List)
             if (player.CurrentItem == null)
                 player.CurrentItem = player.AddItem(Config.AvailableWeapons.RandomItem());
     }
@@ -119,9 +120,9 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     protected override bool IsRoundDone()
     {
         return !(MtfKills < _needKills && ChaosKills < _needKills &&
-                 Exiled.API.Features.Player.List.Count(r => r.IsNTF) > 0 &&
+                 Player.List.Count(r => r.IsNTF) > 0 &&
 #if EXILED
-                 Exiled.API.Features.Player.List.Count(r => r.IsCHI) > 0);
+                 Player.List.Count(r => r.IsCHI) > 0);
 #else
                  Player.List.Count(r => r.IsChaos) > 0);
 #endif

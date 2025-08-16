@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
+using LabApi.Events.Handlers;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
-using Player = Exiled.Events.Handlers.Player;
 #if EXILED
+using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
 using LabApi.Features.Wrappers;
@@ -70,16 +71,16 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
 #if EXILED
         // Making a random death-guy and teleport to spawnpoint
-        for (var i = 0; Exiled.API.Features.Player.List.Count() / 20 >= i; i++)
+        for (var i = 0; Player.List.Count() / 20 >= i; i++)
         {
-            var death = Exiled.API.Features.Player.List.Where(r => r.Role != RoleTypeId.Scientist).ToList()
+            var death = Player.List.Where(r => r.Role != RoleTypeId.Scientist).ToList()
                 .RandomItem();
             death.GiveLoadout(Config.DeathLoadouts);
             death.Position = deathSpawns.RandomItem().transform.position;
         }
 
         // Teleport runners to spawnpoint
-        foreach (var runner in Exiled.API.Features.Player.List.Where(r => r.Role != RoleTypeId.Scientist))
+        foreach (var runner in Player.List.Where(r => r.Role != RoleTypeId.Scientist))
         {
             runner.GiveLoadout(Config.PlayerLoadouts);
             runner.Position = _runnerSpawns.RandomItem().transform.position;
@@ -122,8 +123,8 @@ public class Plugin : Event<Config, Translation>, IEventMap
     // While all the players are alive and time has not over
     protected override bool IsRoundDone()
     {
-        return !(Exiled.API.Features.Player.List.Count(r => r.Role == RoleTypeId.Scientist) > 0 &&
-                 Exiled.API.Features.Player.List.Count(r => r.Role == RoleTypeId.ClassD) > 0 &&
+        return !(Player.List.Count(r => r.Role == RoleTypeId.Scientist) > 0 &&
+                 Player.List.Count(r => r.Role == RoleTypeId.ClassD) > 0 &&
                  EventTime.TotalSeconds < Config.RoundDurationInSeconds);
     }
 
@@ -137,14 +138,14 @@ public class Plugin : Event<Config, Translation>, IEventMap
         {
             timetext = Translation.OverTimeBroadcast;
 #if EXILED
-            foreach (var player in Exiled.API.Features.Player.List.Where(r => r.Role.Type is RoleTypeId.ClassD))
+            foreach (var player in Player.List.Where(r => r.Role.Type is RoleTypeId.ClassD))
                 if (player.Items.Count == 0)
                     player.Kill(Translation.Died);
         }
         // A second life for dead players
         else if (Config.SecondLifeInSeconds == EventTime.TotalSeconds)
         {
-            foreach (var player in Exiled.API.Features.Player.List.Where(r => r.Role.Type is RoleTypeId.Spectator))
+            foreach (var player in Player.List.Where(r => r.Role.Type is RoleTypeId.Spectator))
             {
                 player.Role.Set(RoleTypeId.ClassD, RoleSpawnFlags.None);
                 player.Position = _runnerSpawns.RandomItem().transform.position;
@@ -155,9 +156,9 @@ public class Plugin : Event<Config, Translation>, IEventMap
         var text = Translation.CycleBroadcast;
         text = text.Replace("{name}", Name);
         text = text.Replace("{runnerCount}",
-            $"{Exiled.API.Features.Player.List.Count(r => r.Role.Type is RoleTypeId.ClassD)}");
+            $"{Player.List.Count(r => r.Role.Type is RoleTypeId.ClassD)}");
         text = text.Replace("{deathCount}",
-            $"{Exiled.API.Features.Player.List.Count(r => r.Role.Type is RoleTypeId.Scientist)}");
+            $"{Player.List.Count(r => r.Role.Type is RoleTypeId.Scientist)}");
         text = text.Replace("{time}", timetext);
 #else
             foreach (var player in Player.List.Where(r => r.Role is RoleTypeId.ClassD))
@@ -190,7 +191,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
     {
         var text = string.Empty;
 #if EXILED
-        if (Exiled.API.Features.Player.List.Count(r => r.Role.Type is RoleTypeId.ClassD) == 0)
+        if (Player.List.Count(r => r.Role.Type is RoleTypeId.ClassD) == 0)
 #else
         if (Player.List.Count(r => r.Role is RoleTypeId.ClassD) == 0)
 #endif

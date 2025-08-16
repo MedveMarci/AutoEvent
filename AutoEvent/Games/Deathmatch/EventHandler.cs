@@ -38,7 +38,7 @@ public class EventHandler
         else
             ev.Player.GiveLoadout(_plugin.Config.NTFLoadouts);
 
-        ev.Player.EnableEffect<SpawnProtected>(.1f);
+        ev.Player.EnableEffect<SpawnProtected>(duration: .1f);
 
         if (ev.Player.CurrentItem == null)
             ev.Player.CurrentItem = ev.Player.AddItem(_plugin.Config.AvailableWeapons.RandomItem());
@@ -66,8 +66,8 @@ public class EventHandler
 #endif
             _plugin.MtfKills++;
 
-        ev.Player.EnableEffect<Flashed>(0.1f);
-        ev.Player.EnableEffect<SpawnProtected>(0.1f);
+        ev.Player.EnableEffect<Flashed>(duration: .1f);
+        ev.Player.EnableEffect<SpawnProtected>(duration: .1f);
         ev.Player.Heal(500); // Since the player does not die, his hp goes into negative hp, so need to completely heal the player.
         ev.Player.ClearItems();
 

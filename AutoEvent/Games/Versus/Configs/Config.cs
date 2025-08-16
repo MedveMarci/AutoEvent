@@ -3,10 +3,11 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
-using Exiled.API.Features;
+using CustomPlayerEffects;
 using PlayerRoles;
 using UnityEngine;
 #if EXILED
+using Exiled.API.Features;
 using EffectType = Exiled.API.Enums.EffectType;
 #endif
 

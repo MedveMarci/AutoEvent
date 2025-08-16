@@ -5,11 +5,12 @@ using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
 using InventorySystem;
 using InventorySystem.Items.MarshmallowMan;
+using LabApi.Events.Handlers;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
-using Player = Exiled.Events.Handlers.Player;
 #if EXILED
+using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
 using LabApi.Features.Wrappers;
@@ -89,7 +90,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
 
         SpawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint").ToList();
-        foreach (var player in Exiled.API.Features.Player.List)
+        foreach (var player in Player.List)
         {
             if (IsChristmasUpdate && Enum.TryParse("Flamingo", out RoleTypeId roleTypeId))
             {
@@ -119,7 +120,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void CountdownFinished()
     {
-        var player = Exiled.API.Features.Player.List.ToList().RandomItem();
+        var player = Player.List.ToList().RandomItem();
 
         if (IsHalloweenUpdate)
         {
@@ -156,7 +157,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
 
 #if EXILED
-        if (Exiled.API.Features.Player.List.Count(r => r.Role.Type == roleType) > 0 && _overtime > 0)
+        if (Player.List.Count(r => r.Role.Type == roleType) > 0 && _overtime > 0)
 #else
         if (Player.ReadyList.Count(r => r.Role == roleType) > 0 && _overtime > 0)
 #endif
@@ -175,7 +176,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             //nothing
         }
 
-        var count = Exiled.API.Features.Player.List.Count(r => r.Role == roleType);
+        var count = Player.List.Count(r => r.Role == roleType);
         if (count > 1)
         {
             Extensions.Broadcast(
@@ -199,7 +200,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             //nothing
         }
 
-        if (Exiled.API.Features.Player.List.Count(r => r.Role == roleType) == 0)
+        if (Player.List.Count(r => r.Role == roleType) == 0)
             Extensions.Broadcast(Translation.Win.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"),
                 10);
         else

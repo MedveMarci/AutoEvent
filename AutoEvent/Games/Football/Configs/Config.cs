@@ -8,8 +8,8 @@ using UnityEngine;
 #if EXILED
 using Exiled.API.Enums;
 using Exiled.API.Features;
-
 #else
+using CustomPlayerEffects;
 #endif
 
 namespace AutoEvent.Games.Football;

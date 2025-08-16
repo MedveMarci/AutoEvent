@@ -3,6 +3,7 @@ using Exiled.Events.EventArgs.Player;
 using DamageType = Exiled.API.Enums.DamageType;
 #else
 using LabApi.Events.Arguments.PlayerEvents;
+using PlayerStatsSystem;
 #endif
 
 namespace AutoEvent.Games.Knives;

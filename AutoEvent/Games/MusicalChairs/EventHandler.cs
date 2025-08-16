@@ -4,6 +4,7 @@ using Exiled.API.Enums;
 using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
 #else
+using PlayerStatsSystem;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Features.Wrappers;
 #endif

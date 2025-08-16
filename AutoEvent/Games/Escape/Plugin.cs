@@ -1,6 +1,10 @@
 ﻿#if EXILED
 using Exiled.API.Features;
 using EffectType = Exiled.API.Enums.EffectType;
+using Exiled.Events.Handlers;
+using Map = Exiled.Events.Handlers.Map;
+using Player = Exiled.Events.Handlers.Player;
+using Warhead = Warhead;
 #else
 using LabApi.Features.Wrappers;
 using LabApi.Events.Handlers;
@@ -9,15 +13,11 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.Interfaces;
 using CustomPlayerEffects;
-using Exiled.Events.Handlers;
 using Interactables.Interobjects.DoorUtils;
 using MapGeneration;
 using MEC;
 using UnityEngine;
 using ElevatorDoor = Interactables.Interobjects.ElevatorDoor;
-using Map = Exiled.Events.Handlers.Map;
-using Player = Exiled.Events.Handlers.Player;
-using Warhead = Exiled.API.Features.Warhead;
 
 namespace AutoEvent.Games.Escape;
 
@@ -71,7 +71,7 @@ public class Plugin : Event<Config, Translation>, IEventSound
     protected override bool IsRoundDone()
     {
         return !(EventTime.TotalSeconds <= Config.EscapeDurationTime &&
-                 Exiled.API.Features.Player.List.Count(r => r.IsAlive) > 0);
+                 Player.List.Count(r => r.IsAlive) > 0);
     }
 
     protected override void OnStart()
@@ -84,7 +84,7 @@ public class Plugin : Event<Config, Translation>, IEventSound
 #endif
         _startPos.transform.localPosition = new Vector3(16.5f, 13f, 8f);
 #if EXILED
-        foreach (var player in Exiled.API.Features.Player.List)
+        foreach (var player in Player.List)
 #else
         foreach (var player in Player.ReadyList)
 #endif
@@ -130,14 +130,14 @@ public class Plugin : Event<Config, Translation>, IEventSound
 
     protected override void OnFinished()
     {
-        foreach (var player in Exiled.API.Features.Player.List)
+        foreach (var player in Player.List)
         {
             player.EnableEffect<Flashed>(1, 1);
 
             if (player.Position.y < 980f) player.Kill("You didn't have time");
         }
 
-        var playeAlive = Exiled.API.Features.Player.List.Count(x => x.IsAlive).ToString();
+        var playeAlive = Player.List.Count(x => x.IsAlive).ToString();
         Extensions.Broadcast(Translation.End.Replace("{name}", Name).Replace("{players}", playeAlive), 10);
     }
 

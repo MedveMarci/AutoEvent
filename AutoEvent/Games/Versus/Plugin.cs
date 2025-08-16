@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
-using Exiled.Events.Handlers;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
-using Player = Exiled.API.Features.Player;
 #if EXILED
+using Player = Exiled.API.Features.Player;
+using Exiled.Events.Handlers;
 #else
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;

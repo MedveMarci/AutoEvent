@@ -5,8 +5,8 @@ using AutoEvent.Interfaces;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
-using Player = Exiled.Events.Handlers.Player;
 #if EXILED
+using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
 using LabApi.Events.Handlers;
@@ -60,7 +60,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         var count = 0;
         var spawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name.Contains("Spawnpoint")).ToList();
-        foreach (var player in Exiled.API.Features.Player.List)
+        foreach (var player in Player.List)
         {
             if (count % 2 == 0)
             {
@@ -96,8 +96,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override bool IsRoundDone()
     {
 #if EXILED
-        return !(Exiled.API.Features.Player.List.Count(r => r.Role.Team == Team.FoundationForces) > 0 &&
-                 Exiled.API.Features.Player.List.Count(r => r.Role.Team == Team.ChaosInsurgency) > 0);
+        return !(Player.List.Count(r => r.Role.Team == Team.FoundationForces) > 0 &&
+                 Player.List.Count(r => r.Role.Team == Team.ChaosInsurgency) > 0);
 #else
         return !(Player.List.Count(r => r.RoleBase.Team == Team.FoundationForces) > 0 &&
                  Player.List.Count(r => r.RoleBase.Team == Team.ChaosInsurgency) > 0);
@@ -107,8 +107,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void ProcessFrame()
     {
 #if EXILED
-        var mtfCount = Exiled.API.Features.Player.List.Count(r => r.Role.Team == Team.FoundationForces).ToString();
-        var chaosCount = Exiled.API.Features.Player.List.Count(r => r.Role.Team == Team.ChaosInsurgency).ToString();
+        var mtfCount = Player.List.Count(r => r.Role.Team == Team.FoundationForces).ToString();
+        var chaosCount = Player.List.Count(r => r.Role.Team == Team.ChaosInsurgency).ToString();
 #else
         var mtfCount = Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces).ToString();
         var chaosCount = Player.ReadyList.Count(r => r.RoleBase.Team == Team.ChaosInsurgency).ToString();
@@ -121,9 +121,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void OnFinished()
     {
 #if EXILED
-        if (Exiled.API.Features.Player.List.Count(r => r.Role.Team == Team.FoundationForces) == 0)
+        if (Player.List.Count(r => r.Role.Team == Team.FoundationForces) == 0)
             Extensions.Broadcast(Translation.ChaosWin.Replace("{name}", Name), 10);
-        else if (Exiled.API.Features.Player.List.Count(r => r.Role.Team == Team.ChaosInsurgency) == 0)
+        else if (Player.List.Count(r => r.Role.Team == Team.ChaosInsurgency) == 0)
             Extensions.Broadcast(Translation.MtfWin.Replace("{name}", Name), 10);
 #else
         if (Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces) == 0)

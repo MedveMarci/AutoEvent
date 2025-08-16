@@ -2,6 +2,7 @@
 using Exiled.API.Features;
 #else
 using LabApi.Features.Wrappers;
+using LabApi.Events.Handlers;
 #endif
 using System;
 using System.Collections.Generic;

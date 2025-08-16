@@ -8,8 +8,8 @@ using InventorySystem;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
-using Player = Exiled.Events.Handlers.Player;
 #if EXILED
+using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
 using LabApi.Features.Wrappers;
@@ -104,7 +104,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
             }
 
         var count = 0;
-        foreach (var player in Exiled.API.Features.Player.List)
+        foreach (var player in Player.List)
         {
             if (count % 2 == 0)
             {
@@ -140,8 +140,8 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     {
         _roundTime -= TimeSpan.FromSeconds(0.1f);
         return !(_roundTime.TotalSeconds > 0 &&
-                 Exiled.API.Features.Player.List.Count(r => r.Role == RoleTypeId.ClassD) > 0 &&
-                 Exiled.API.Features.Player.List.Count(r => r.Role == RoleTypeId.Scientist) > 0);
+                 Player.List.Count(r => r.Role == RoleTypeId.ClassD) > 0 &&
+                 Player.List.Count(r => r.Role == RoleTypeId.Scientist) > 0);
     }
 
     protected override void ProcessFrame()
@@ -149,7 +149,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         var time = $"{_roundTime.Minutes:00}:{_roundTime.Seconds:00}";
         var text = Translation.Cycle.Replace("{name}", Name).Replace("{time}", time);
 
-        foreach (var player in Exiled.API.Features.Player.List)
+        foreach (var player in Player.List)
         {
             // If a player tries to go to the other half of the field, he takes damage and teleports him back
             if (Mathf.Approximately((int)_redLine.transform.position.z, (int)player.Position.z))
@@ -186,8 +186,8 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         var time = $"{totalTime.Minutes:00}:{totalTime.Seconds:00}";
 
 #if EXILED
-        var classDCount = Exiled.API.Features.Player.List.Count(r => r.Role.Type == RoleTypeId.ClassD);
-        var sciCount = Exiled.API.Features.Player.List.Count(r => r.Role.Type == RoleTypeId.Scientist);
+        var classDCount = Player.List.Count(r => r.Role.Type == RoleTypeId.ClassD);
+        var sciCount = Player.List.Count(r => r.Role.Type == RoleTypeId.Scientist);
 #else
         var classDCount = Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD);
         var sciCount = Player.ReadyList.Count(r => r.Role == RoleTypeId.Scientist);

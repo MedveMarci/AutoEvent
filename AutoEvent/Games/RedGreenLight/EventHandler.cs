@@ -6,6 +6,7 @@ using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
 using DamageType = Exiled.API.Enums.DamageType;
 #else
+using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Features.Wrappers;
 using PlayerStatsSystem;
 #endif

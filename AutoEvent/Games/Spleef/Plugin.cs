@@ -6,8 +6,8 @@ using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
 using MEC;
 using UnityEngine;
-using Player = Exiled.Events.Handlers.Player;
 #if EXILED
+using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
 using LabApi.Events.Handlers;
@@ -76,7 +76,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 case "Platform": gameObject.AddComponent<FallPlatformComponent>(); break; //todo
             }
 #if EXILED
-        var count = Exiled.API.Features.Player.List.Count();
+        var count = Player.List.Count();
 #else
         var count = Player.ReadyList.Count();
 #endif
@@ -87,7 +87,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
             default: _loadouts = Config.PlayerNormalLoadouts; break;
         }
 
-        foreach (var ply in Exiled.API.Features.Player.List)
+        foreach (var ply in Player.List)
         {
             ply.GiveLoadout(_loadouts, LoadoutFlags.IgnoreWeapons);
             ply.Position = spawnpoint.transform.position;
@@ -105,33 +105,33 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
     protected override void CountdownFinished()
     {
-        foreach (var ply in Exiled.API.Features.Player.List) ply.GiveLoadout(_loadouts, LoadoutFlags.ItemsOnly);
+        foreach (var ply in Player.List) ply.GiveLoadout(_loadouts, LoadoutFlags.ItemsOnly);
     }
 
     protected override bool IsRoundDone()
     {
         _countdown = _countdown.TotalSeconds > 0 ? _countdown.Subtract(new TimeSpan(0, 0, 1)) : TimeSpan.Zero;
-        return !(Exiled.API.Features.Player.List.Count(ply => ply.IsAlive) > 1 && _countdown != TimeSpan.Zero);
+        return !(Player.List.Count(ply => ply.IsAlive) > 1 && _countdown != TimeSpan.Zero);
     }
 
     protected override void ProcessFrame()
     {
         Extensions.Broadcast(
             Translation.Cycle.Replace("{name}", Name)
-                .Replace("{players}", $"{Exiled.API.Features.Player.List.Count(x => x.IsAlive)}")
+                .Replace("{players}", $"{Player.List.Count(x => x.IsAlive)}")
                 .Replace("{remaining}", $"{_countdown.Minutes:00}:{_countdown.Seconds:00}"), 1);
     }
 
     protected override void OnFinished()
     {
         string text;
-        var count = Exiled.API.Features.Player.List.Count(x => x.IsAlive);
+        var count = Player.List.Count(x => x.IsAlive);
 
         if (count > 1)
             text = Translation.SomeSurvived;
         else if (count == 1)
             text = Translation.Winner.Replace("{winner}",
-                Exiled.API.Features.Player.List.First(x => x.IsAlive).Nickname);
+                Player.List.First(x => x.IsAlive).Nickname);
         else
             text = Translation.AllDied;
 

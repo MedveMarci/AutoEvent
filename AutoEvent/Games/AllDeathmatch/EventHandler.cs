@@ -51,8 +51,8 @@ public class EventHandler
 
     private void SpawnPlayerAfterDeath(Player player)
     {
-        player.EnableEffect<Flashed>(0.1f);
-        player.EnableEffect<SpawnProtected>(0.1f);
+        player.EnableEffect<Flashed>(duration: .1f);
+        player.EnableEffect<SpawnProtected>(duration: .1f);
         player.Heal(500); // Since the player does not die, his hp goes into negative hp, so need to completely heal the player.
         player.ClearItems();
         if (!player.IsAlive)

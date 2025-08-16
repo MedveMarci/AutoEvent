@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using AutoEvent.API.Enums;
 using CustomPlayerEffects;
+using InventorySystem.Items.Jailbird;
 #if EXILED
 using Exiled.API.Enums;
 using Exiled.API.Features;

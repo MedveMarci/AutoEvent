@@ -1,9 +1,9 @@
 ﻿using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
-using Exiled.Events.Handlers;
 using InventorySystem.Items;
 using InventorySystem.Items.Firearms.Attachments;
 #if EXILED
+using Exiled.Events.Handlers;
 using Exiled.API.Extensions;
 using Exiled.Events.EventArgs.Map;
 using Exiled.Events.EventArgs.Player;

@@ -6,11 +6,10 @@ using AutoEvent.Interfaces;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
-using Player = Exiled.Events.Handlers.Player;
 using Random = UnityEngine.Random;
 #if EXILED
+using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
-
 #else
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
