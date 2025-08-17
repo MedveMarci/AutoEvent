@@ -14,10 +14,13 @@ namespace AutoEvent.Patches;
 #else
 [HarmonyPatch(typeof(Player), nameof(Player.ReadyList), MethodType.Getter)]
 #endif
-
 public class PlayerList
 {
+#if EXILED
     public static void Postfix(ref IReadOnlyCollection<Player> __result)
+#else
+    public static void Postfix(ref IEnumerable<Player> __result)
+#endif
     {
         if (AutoEvent.EventManager.CurrentEvent is null)
             return;
@@ -25,17 +28,22 @@ public class PlayerList
         if (AutoEvent.Singleton.Config.IgnoredRoles is null || AutoEvent.Singleton.Config.IgnoredRoles.Count == 0)
             return;
 
-        __result = Player.Dictionary.Values.Where(x => !AutoEvent.Singleton.Config.IgnoredRoles.Contains(x.Role))
-            .ToList();
+        var filtered = Player.Dictionary.Values.Where(x => !AutoEvent.Singleton.Config.IgnoredRoles.Contains(x.Role));
 
         // Display bots in the Exiled.List for testing
         if (!AutoEvent.Singleton.Config.Debug)
         {
 #if EXILED
-            __result = __result.Where(x => !x.IsNPC).ToList();
+            filtered = filtered.Where(x => !x.IsNPC);
 #else
-            __result = __result.Where(x => !x.IsNpc).ToList();
+            filtered = filtered.Where(x => !x.IsNpc);
 #endif
         }
+
+#if EXILED
+        __result = filtered.ToList();
+#else
+        __result = filtered;
+#endif
     }
 }

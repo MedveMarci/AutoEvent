@@ -29,7 +29,7 @@ public class AutoEvent :
     public override string Description => "A plugin that allows you to play mini-games in SCP:SL. It includes a variety of games such as Spleef, Lava, Hide and Seek, Knives, and more. Each game has its own unique mechanics and rules, providing a fun and engaging experience for players.";
 #endif
 
-    public override Version Version => Version.Parse("9.13.0");
+    public override Version Version => Version.Parse("9.13.1");
 #if EXILED
     public override Version RequiredExiledVersion => new(9, 8, 1);
 #else
