@@ -4,7 +4,7 @@
         <LangVersion>latest</LangVersion>
         <AssemblyTitle>AutoEvent</AssemblyTitle>
         <Product>AutoEvent</Product>
-        <Copyright>Copyright RisottoMan and Redforce04 © 2023</Copyright>
+        <Copyright>Copyright MedveMarci © 2025</Copyright>
         <OutputPath>bin\$(Configuration)\</OutputPath>
         <Nullable>enable</Nullable>
         <Configurations>Exiled;LabApi</Configurations>
