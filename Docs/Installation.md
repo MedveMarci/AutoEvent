@@ -6,7 +6,7 @@
 
 ### *You need to download the latest release:*
 
-- [``AutoEvent.dll``](https://github.com/RisottoMan/AutoEvent/releases/latest) move to => ``EXILED/Plugins``
+- [``AutoEvent-Exiled.dll``](https://github.com/RisottoMan/AutoEvent/releases/latest) move to => ``EXILED/Plugins``
 
 - [
   ``ProjectMER.dll``](https://github.com/RisottoMan/AutoEvent/tree/beta14.1-mer/releases/download/v.9.11.1/MapEditorReborn.dll)
@@ -58,7 +58,7 @@ ev.*           - Main Permission for all AutoEvent commands.
 
 ### *You need to download the latest release:*
 
-- [``AutoEvent.dll``](https://github.com/RisottoMan/AutoEvent/releases/latest) move to => ``LabApi/plugins/global/``
+- [``AutoEvent-LabApi.dll``](https://github.com/RisottoMan/AutoEvent/releases/latest) move to => ``LabApi/plugins/global/``
 
 - [
   ``ProjectMER.dll``](https://github.com/RisottoMan/AutoEvent/tree/beta14.1-mer/releases/download/v.9.11.1/MapEditorReborn.dll)
