@@ -43,7 +43,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         var count = 0;
 
         var spawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint").ToList();
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             if (count % 2 == 0)
             {
@@ -100,7 +104,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void ProcessFrame()
     {
         var time = $"{_remainingTime.Minutes:00}:{_remainingTime.Seconds:00}";
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             var text = string.Empty;
             if (Vector3.Distance(_ball.transform.position, player.Position) < 2)

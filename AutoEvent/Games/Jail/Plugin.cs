@@ -102,7 +102,11 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 }
             }
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.GiveLoadout(Config.PrisonerLoadouts);
             player.Position = SpawnPoints.Where(r => r.name == "Spawnpoint").ToList().RandomItem().transform.position;
@@ -119,7 +123,11 @@ public class Plugin : Event<Config, Translation>, IEventMap
     {
         for (var time = 15; time > 0; time--)
         {
-            foreach (var player in Player.List)
+            #if EXILED
+        foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
             {
                 player.ClearBroadcasts();
                 if (player.HasLoadout(Config.JailorLoadouts))
@@ -172,7 +180,11 @@ public class Plugin : Event<Config, Translation>, IEventMap
 #endif
         var time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             foreach (var doorComponent in _doors)
                 if (Vector3.Distance(doorComponent.transform.position, player.Position) < 3)

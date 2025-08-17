@@ -82,7 +82,11 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         }
 
         var count = 0;
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             if (count % 2 == 0)
             {
@@ -112,7 +116,11 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override void CountdownFinished()
     {
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
             if (player.CurrentItem == null)
                 player.CurrentItem = player.AddItem(Config.AvailableWeapons.RandomItem());
     }

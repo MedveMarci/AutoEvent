@@ -103,7 +103,11 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
             }
 
         var count = 0;
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             if (count % 2 == 0)
             {
@@ -148,7 +152,11 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         var time = $"{_roundTime.Minutes:00}:{_roundTime.Seconds:00}";
         var text = Translation.Cycle.Replace("{name}", Name).Replace("{time}", time);
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             // If a player tries to go to the other half of the field, he takes damage and teleports him back
             if (Mathf.Approximately((int)_redLine.transform.position.z, (int)player.Position.z))

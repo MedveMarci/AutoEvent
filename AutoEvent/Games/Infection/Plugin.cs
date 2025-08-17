@@ -89,7 +89,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
 
         SpawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint").ToList();
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             if (IsChristmasUpdate && Enum.TryParse("Flamingo", out RoleTypeId roleTypeId))
             {

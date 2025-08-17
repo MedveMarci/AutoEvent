@@ -73,7 +73,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             SpawnPoints.Add(point.transform.position);
 
         var count = 0;
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             if (!PlayerStats.ContainsKey(player)) PlayerStats.Add(player, new Stats(0));
 
@@ -169,6 +173,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             Extensions.Broadcast(text, 10);
         }
 
-        foreach (var player in Player.List) player.ClearInventory();
+        #if EXILED
+        foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif 
+            player.ClearInventory();
     }
 }

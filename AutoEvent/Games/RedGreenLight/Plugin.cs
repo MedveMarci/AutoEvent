@@ -86,7 +86,11 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 }
             }
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.GiveLoadout(Config.PlayerLoadout);
             player.Position = spawnpoints.RandomItem().transform.position;
@@ -135,7 +139,11 @@ public class Plugin : Event<Config, Translation>, IEventMap
             if (PushCooldown[key] > 0)
                 PushCooldown[key] -= FrameDelayInSeconds;
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             if (Config.IsEnablePush)
 #if EXILED
@@ -178,7 +186,11 @@ public class Plugin : Event<Config, Translation>, IEventMap
             return;
 
         _playerRotation = new Dictionary<Player, Quaternion>();
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
 #if EXILED
             _playerRotation.Add(player, player.CameraTransform.rotation);
@@ -194,7 +206,11 @@ public class Plugin : Event<Config, Translation>, IEventMap
     {
         text = Translation.RedLight;
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             if ((int)_redLine.transform.position.z <= (int)player.Position.z)
                 continue;
@@ -241,7 +257,11 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
     protected override void OnFinished()
     {
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
             if ((int)_redLine.transform.position.z > (int)player.Position.z)
             {
                 Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f);

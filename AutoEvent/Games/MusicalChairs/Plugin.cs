@@ -89,7 +89,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         var count = Player.List.Count > 40 ? 40 : Player.List.Count - 1;
         Platforms = Functions.GeneratePlatforms(count, _parentPlatform, MapInfo.Position);
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.GiveLoadout(Config.PlayerLoadout);
             player.Position = spawnpoints.RandomItem().transform.position;
@@ -101,7 +105,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
 
         PlayerDict = new Dictionary<Player, PlayerClass>();
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
             PlayerDict.Add(player, new PlayerClass
             {
                 Angle = 0,

@@ -156,7 +156,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _finish.transform.position = (platform.transform.position + platform1.transform.position) / 2f +
                                      delta * (platformCount + 2);
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = _spawnpoints.transform.position;
@@ -206,7 +210,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             if (PushCooldown[key] > 0)
                 PushCooldown[key] -= FrameDelayInSeconds;
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
 #if EXILED
             if (Config.IsEnablePush)
@@ -226,7 +234,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void OnFinished()
     {
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
             if (Vector3.Distance(player.Position, _finish.transform.position) >= 10)
             {
 #if EXILED

@@ -59,7 +59,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         var count = 0;
         var spawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name.Contains("Spawnpoint")).ToList();
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             if (count % 2 == 0)
             {

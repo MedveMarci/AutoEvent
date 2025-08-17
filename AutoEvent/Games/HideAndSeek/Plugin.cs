@@ -68,7 +68,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _eventState = 0;
         var spawnpoints = MapInfo.Map.AttachedBlocks.Where(x => x.name == "Spawnpoint").ToList();
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.GiveLoadout(Config.PlayerLoadouts);
             player.Position = spawnpoints.RandomItem().transform.position;
@@ -152,7 +156,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         text = Translation.Cycle.Replace("{time}", $"{_countdown.TotalSeconds}");
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
             if (player.Items.Any(r => r.Type == Config.TaggerWeapon))
             {
                 player.ClearInventory();

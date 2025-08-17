@@ -20,13 +20,13 @@ public class AutoEvent :
     Plugin<Config>
 #endif
 {
-    public override string Name => "AutoEvent";
+    public override string Name => "AutoEvent"; 
 
     public override string Author =>
         "Created by a large community of programmers, map builders and just ordinary people, under the leadership of RisottoMan. MapEditorReborn for 14.1 port by Sakred_. LabApi port by MedveMarci.";
 
 #if LABAPI
-    public override string Description => "";
+    public override string Description => "A plugin that allows you to play mini-games in SCP:SL. It includes a variety of games such as Spleef, Lava, Hide and Seek, Knives, and more. Each game has its own unique mechanics and rules, providing a fun and engaging experience for players.";
 #endif
 
     public override Version Version => Version.Parse("9.13.0");
@@ -69,7 +69,6 @@ public class AutoEvent :
 
             FriendlyFireSystem.IsFriendlyFireEnabledByDefault = Server.FriendlyFire;
 
-            var debugLogger = new DebugLogger(Config.AutoLogDebug);
             DebugLogger.Debug = Config.Debug;
             if (DebugLogger.Debug) DebugLogger.LogDebug("Debug Mode Enabled", LogLevel.Info, true);
 

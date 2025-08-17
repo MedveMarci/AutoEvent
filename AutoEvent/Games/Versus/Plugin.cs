@@ -89,7 +89,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             }
 
         var count = 0;
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             if (count % 2 == 0)
             {
@@ -194,7 +198,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             role = RoleTypeId.ClassD;
         }
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             if (player.Role != role)
                 continue;

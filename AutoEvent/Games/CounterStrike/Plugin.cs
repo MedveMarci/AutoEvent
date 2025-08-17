@@ -169,7 +169,11 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         }
 
         // Output of missions to broadcast and killboard to hints
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             var text = Translation.Cycle.Replace("{name}", Name)
                 .Replace("{task}", player.Role == RoleTypeId.NtfSpecialist ? ctTask : tTask)
@@ -212,7 +216,11 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         var text = string.Empty;
         if (BombState == BombState.Exploded)
         {
-            foreach (var player in Player.List)
+            #if EXILED
+        foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
             {
                 if (player.IsAlive)
 #if EXILED

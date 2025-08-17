@@ -73,7 +73,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         Server.FriendlyFire = false;
 
         SpawnList = MapInfo.Map.AttachedBlocks.Where(x => x.name == "Spawnpoint").ToList();
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.GiveLoadout(Config.PlayerLoadouts);
             player.Position = SpawnList.RandomItem().transform.position;
@@ -136,7 +140,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         text = text.Replace("{humanCount}", Player.List.Count(r => r.IsHuman).ToString());
         text = text.Replace("{time}", $"{_remainingTime.Minutes:00}:{_remainingTime.Seconds:00}");
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.ClearBroadcasts();
 #if EXILED

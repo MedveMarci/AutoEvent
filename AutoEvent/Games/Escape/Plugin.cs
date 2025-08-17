@@ -126,7 +126,11 @@ public class Plugin : Event<Config, Translation>, IEventSound
 
     protected override void OnFinished()
     {
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.EnableEffect<Flashed>(1, 1);
 

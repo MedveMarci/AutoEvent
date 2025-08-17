@@ -68,7 +68,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "LavaObject": _lava = obj; break;
             }
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.GiveLoadout(Config.Loadouts, LoadoutFlags.IgnoreGodMode);
             player.Position = spawnpoints.RandomItem().transform.position;
@@ -87,7 +91,12 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void CountdownFinished()
     {
         _lava.AddComponent<LavaComponent>().StartComponent(this);
-        foreach (var player in Player.List) player.GiveInfiniteAmmo(AmmoMode.InfiniteAmmo);
+        #if EXILED
+        foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif 
+            player.GiveInfiniteAmmo(AmmoMode.InfiniteAmmo);
     }
 
     protected override bool IsRoundDone()

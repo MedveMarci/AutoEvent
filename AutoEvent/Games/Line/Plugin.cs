@@ -36,7 +36,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _timeRemaining = new TimeSpan(0, 2, 0);
 
+#if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = MapInfo.Map.AttachedBlocks.First(x => x.name == "SpawnPoint").transform.position;

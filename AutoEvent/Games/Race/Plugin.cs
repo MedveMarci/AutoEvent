@@ -53,7 +53,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "Spawnpoint": Spawnpoint = block; break;
             }
 
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = Spawnpoint.transform.position;
@@ -90,7 +94,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void OnFinished()
     {
+        #if EXILED
         foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
             if (Vector3.Distance(player.Position, _finish.transform.position) > 10)
                 player.Kill(Translation.Died);
 
