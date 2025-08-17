@@ -24,6 +24,7 @@
         <TargetFrameworkProfile/>
         <DebugSymbols>true</DebugSymbols>
         <DebugType>embedded</DebugType>
+        <AssemblyName>AutoEvent-Exiled</AssemblyName>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'LabApi|x64' ">
         <OutputPath>bin\x64\LabApi</OutputPath>
@@ -38,6 +39,7 @@
         <TargetFrameworkProfile/>
         <DebugSymbols>true</DebugSymbols>
         <DebugType>embedded</DebugType>
+        <AssemblyName>AutoEvent-LabApi</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Costura.Fody" Version="5.8.0-alpha0098">
