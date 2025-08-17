@@ -1,16 +1,22 @@
-﻿using InventorySystem.Items.ThrowableProjectiles;
+﻿using Scp018Projectile = InventorySystem.Items.ThrowableProjectiles.Scp018Projectile;
+
+#if EXILED
 using Exiled.API.Features;
 
-namespace AutoEvent.Events.EventArgs
+#else
+using LabApi.Features.Wrappers;
+#endif
+
+namespace AutoEvent.Events.EventArgs;
+
+public class Scp018CollisionArgs
 {
-    public class Scp018CollisionArgs
+    public Scp018CollisionArgs(Scp018Projectile proj)
     {
-        public Scp018CollisionArgs(Scp018Projectile proj)
-        {
-            Player = Player.Get(proj.PreviousOwner.Hub);
-            Projectile = proj;
-        }
-        public Player Player { get; }
-        public Scp018Projectile Projectile { get; }
+        Player = Player.Get(proj.PreviousOwner.Hub);
+        Projectile = proj;
     }
+
+    public Player Player { get; }
+    public Scp018Projectile Projectile { get; }
 }

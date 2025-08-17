@@ -1,17 +1,25 @@
 # Example :bulb:
+
 ### If you want to learn how to write your own mini-games, then you should study the structure of mini-games.
+
 ### The basic structure:
 
 Use the ***Event*** interface to inherit all the important methods and variables for the mini-game to work.
+
 ```csharp
 public class Plugin : Event
 {
 }
 ```   
-##### Also inherit ***IEventMap*** to launch schematic maps and ***IEventSound*** to launch music (See the detailed description below).
+
+##### Also inherit ***IEventMap*** to launch schematic maps and
+
+***IEventSound*** to launch music (See the detailed description below).
 
 #### Event Information:
+
 Information about the event that users can see.
+
 ```csharp
 public override string Name { get; set; } = "Example";
 public override string Description { get; set; } = "An example event based on the battle event.";
@@ -21,7 +29,9 @@ public override Version Version { get; set; } = new Version(1, 0, 0);
 ```        
 
 #### Event Configs:
+
 Settings you have access to that will change functionality of the event.
+
 ```csharp
 // Enter your config here, which is located in the folder with your mini-game
 [EventConfig]
@@ -32,12 +42,14 @@ public Translate Translate { get; set; } = AutoEvent.Singleton.Translation.Trans
 ```
 
 #### Event Settings:
+
 Settings you have access to that will change functionality of the event.
+
 ```csharp
 // How long to wait after the round finishes, before the cleanup begins. Default is 10 seconds.
 public override float PostRoundDelay { get; protected set; } = 10f; 
 
-// If using NwApi or Exiled as the base plugin, set this to false, and manually add your plugin to Event.Events (List[Events]).
+// If using LabApi or Exiled as the base plugin, set this to false, and manually add your plugin to Event.Events (List[Events]).
 // This prevents double-loading your plugin assembly.
 public override bool AutoLoad { get; protected set; } = true;
 
@@ -48,9 +60,10 @@ public override bool KillLoop { get; protected set; } = false;
 protected override float FrameDelayInSeconds { get; set; } = 1f;
 ```
 
-
 #### Event Variables:
+
 Variables you can use that are automatically managed by the framework.
+
 ```csharp
 // The coroutine handle of the main event thread which calls ProcessFrame().
 protected override CoroutineHandle GameCoroutine { get; set; }
@@ -63,7 +76,9 @@ public override TimeSpan EventTime { get; protected set; }
 ```
 
 #### Event API Methods
+
 All the necessary methods for work are presented here. Combine them as you like.
+
 ```csharp
 // Used to register events for plugins.
 protected override void RegisterEvents() { }
@@ -98,7 +113,9 @@ protected virtual void OnCleanup() { }
 ```
 
 #### Event maps and music
+
 Use IEventMap and IEventSound to inherit important variables.
+
 ```csharp
 public class Plugin : Event, IEventSound, IEventMap
 {
@@ -118,11 +135,17 @@ public class Plugin : Event, IEventSound, IEventMap
 ```
 
 #### Loader Custom Mini-Games
+
 ##### Creating mini-games is not so difficult if you are using a loader of custom mini-games:
+
 ###### Start a project in Visual Studio with a class library .NetFramework 4.8
+
 ###### Paste the compiled dll mini-game into the folder:
-###### Exiled -> ``EXILED\Configs\AutoEvent\Events`` 
-###### NWApi -> ``PluginAPI\plugins\global\AutoEvent\Events``
+
+###### Exiled -> ``EXILED\Configs\AutoEvent\Events``
+
+###### NWApi -> ``LabApi\configs\AutoEvent\Events``
+
 ##### Do not forget to set ``IsDebug = true`` in the config and check the launch of your mini-game.
 
 

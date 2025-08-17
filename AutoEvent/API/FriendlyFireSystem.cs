@@ -1,30 +1,26 @@
 ﻿using System;
 using System.Linq;
 using CedMod;
+#if EXILED
 using Exiled.API.Features;
+#else
+using LabApi.Features.Wrappers;
+#endif
 
 namespace AutoEvent.API;
+
 public class FriendlyFireSystem
 {
-    public static bool CedModIsPresent { get; private set; }
-    public static bool IsFriendlyFireEnabledByDefault { get; set; }
-    public static bool FriendlyFireAutoBanDefaultEnabled { get; set; }
     static FriendlyFireSystem()
     {
         CedModIsPresent = false;
         initializeFFSettings();
         FriendlyFireAutoBanDefaultEnabled = IsFriendlyFireEnabledByDefault;
     }
-    private static void initializeFFSettings()
-    {
-        if (AppDomain.CurrentDomain.GetAssemblies().Any(x => x.FullName.ToLower().Contains("cedmod")))
-        {
-            DebugLogger.LogDebug("CedMod has been detected.");
-            CedModIsPresent = true;
-        }
-        else
-            DebugLogger.LogDebug("CedMod has not been detected.");
-    }
+
+    public static bool CedModIsPresent { get; private set; }
+    public static bool IsFriendlyFireEnabledByDefault { get; set; }
+    public static bool FriendlyFireAutoBanDefaultEnabled { get; set; }
 
     public static bool FriendlyFireDetectorIsDisabled
     {
@@ -34,12 +30,8 @@ public class FriendlyFireSystem
             {
                 // if cedmod detector is not paused - false
                 if (CedModIsPresent)
-                {
                     if (!_cedmodFFAutobanIsDisabled())
-                    {
                         return false;
-                    }
-                }
 
                 // if basegame detector is not paused - false
                 return FriendlyFireConfig.PauseDetector;
@@ -49,6 +41,19 @@ public class FriendlyFireSystem
             {
                 return false;
             }
+        }
+    }
+
+    private static void initializeFFSettings()
+    {
+        if (AppDomain.CurrentDomain.GetAssemblies().Any(x => x.FullName.ToLower().Contains("cedmod")))
+        {
+            DebugLogger.LogDebug("CedMod has been detected.");
+            CedModIsPresent = true;
+        }
+        else
+        {
+            DebugLogger.LogDebug("CedMod has not been detected.");
         }
     }
 
@@ -74,12 +79,11 @@ public class FriendlyFireSystem
         {
             FriendlyFireConfig.PauseDetector = false;
 
-            if (CedModIsPresent)
-            {
-                _cedmodFFEnable();
-            }
+            if (CedModIsPresent) _cedmodFFEnable();
         }
-        catch { }
+        catch
+        {
+        }
     }
 
     public static void DisableFriendlyFireDetector()
@@ -89,18 +93,17 @@ public class FriendlyFireSystem
             DebugLogger.LogDebug("Disabling Friendly Fire Detector.");
             FriendlyFireConfig.PauseDetector = true;
 
-            if (CedModIsPresent)
-            {
-                _cedmodFFDisable();
-            }
+            if (CedModIsPresent) _cedmodFFDisable();
         }
-        catch { }
+        catch
+        {
+        }
     }
 
     public static void EnableFriendlyFire()
     {
         DebugLogger.LogDebug("Enabling Friendly Fire.");
-        
+
         Server.FriendlyFire = true;
     }
 
@@ -117,15 +120,9 @@ public class FriendlyFireSystem
         Server.FriendlyFire = IsFriendlyFireEnabledByDefault;
 
         return; //03.05.2025 fix console errors
-        
-        if (FriendlyFireAutoBanDefaultEnabled && FriendlyFireDetectorIsDisabled)
-        {
-            EnableFriendlyFireDetector();
-        }
 
-        if (!FriendlyFireAutoBanDefaultEnabled && !FriendlyFireDetectorIsDisabled)
-        {
-            DisableFriendlyFireDetector();
-        }
+        if (FriendlyFireAutoBanDefaultEnabled && FriendlyFireDetectorIsDisabled) EnableFriendlyFireDetector();
+
+        if (!FriendlyFireAutoBanDefaultEnabled && !FriendlyFireDetectorIsDisabled) DisableFriendlyFireDetector();
     }
 }

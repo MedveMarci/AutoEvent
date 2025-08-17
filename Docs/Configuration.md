@@ -1,20 +1,24 @@
 ﻿# Changing configs
+
 A List of Events and a list of config options they support.
 
 ## General
-All configs have shared options that are present in any config. If use improperly or contains parameters outside the scope of the event, it may break the event.
+
+All configs have shared options that are present in any config. If use improperly or contains parameters outside the
+scope of the event, it may break the event.
 
 ### Available Shared Options:
 
-| Option Name                 | Description                                                                                                                                                    |
-|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Option Name                 | Description                                                                                                                                                      |
+|-----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Available Maps              | Allows you to specify a map or list of maps to choose from for the event to use. **Some events require custom components in the event to work, such as versus.** |
-| Available Sounds            | Allows you to specify an audio or list of audios to choose from for the event to use.                                                                          |
-| Event Friendly Fire Autoban | Allows you to manually specify whether or not the friendly fire autoban should be enabled / disabled.                                                          |
-| Event Friendly Fire         | Allows you to manually specify whether friendly fire should be allowed for an event.                                                                           |
-| Debug                       | Should debug mode be enabled for this plugin. For any built in plugins, this option is ignored, and the base config option is used instead.                    |                       |
+| Available Sounds            | Allows you to specify an audio or list of audios to choose from for the event to use.                                                                            |
+| Event Friendly Fire Autoban | Allows you to manually specify whether or not the friendly fire autoban should be enabled / disabled.                                                            |
+| Event Friendly Fire         | Allows you to manually specify whether friendly fire should be allowed for an event.                                                                             |
+| Debug                       | Should debug mode be enabled for this plugin. For any built in plugins, this option is ignored, and the base config option is used instead.                      |                       |
 
-#### What does list mean? 
+#### What does list mean?
+
 This means that you can add multiple audio files and schematics to your config at the same time.
 
 ```
@@ -22,10 +26,14 @@ available_sounds:
 - This is the first item in the list
 - This is the second item in the list
 ```
-The structures of the elements will be presented below. You can copy and paste them as I indicated here. A minus sign indicates a new object.
+
+The structures of the elements will be presented below. You can copy and paste them as I indicated here. A minus sign
+indicates a new object.
 
 ## Detailed configuration
+
 ### Available Sounds - A list of sounds that can be used for this event
+
 Warning: If you add your music to the config, then default music will not be played.
 Or you can replace the current music with yours, but the name of the music should be the same.
 
@@ -48,14 +56,17 @@ available_sounds:   - A list of sounds that can be used for this event.
 ```
 
 #### How do convert audio files from mp3 to ogg format?
+
 1) Go to website https://convertio.co/mp3-ogg/
 2) Click on the "Advanced" button to adjust the settings
 3) Settings:
-  - Codec: Ogg (Vorbis)
-  - Quality: Lowest  - The quality does not affect the sound quality in the game
-  - Audio Channels: Mono (1.0)
-  - Frequency: 48000 Hz
-  - Volume: No change
+
+- Codec: Ogg (Vorbis)
+- Quality: Lowest - The quality does not affect the sound quality in the game
+- Audio Channels: Mono (1.0)
+- Frequency: 48000 Hz
+- Volume: No change
+
 4) Insert your audio file to website and click the "Convert" button.
 5) Download and transfer the file to the Music folder.
 6) If you find an error when starting the mini-games, repeat all the steps again (1 - 5).
@@ -95,7 +106,9 @@ available_maps:   - A list of schematics that can be used for this event.
 ```
 
 ### FriendlyFireSettings
-Be aware: Some events may override this setting if it is deemed necessary for event functionality. By default most plugins will just use whatever the default server value is. ***This feature works with CedMod.***
+
+Be aware: Some events may override this setting if it is deemed necessary for event functionality. By default most
+plugins will just use whatever the default server value is. ***This feature works with CedMod.***
 
 | Value   | Description                                                  |
 |---------|--------------------------------------------------------------|

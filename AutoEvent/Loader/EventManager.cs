@@ -9,37 +9,42 @@ namespace AutoEvent;
 public class EventManager
 {
     private readonly Dictionary<string, Event> _events = new();
-    private Event _currentEvent;
-    private bool _isMerLoaded;
+
+    public Event CurrentEvent { get; set; }
+
+    public List<Event> Events => _events.Values.ToList();
+
+    public bool IsMerLoaded { get; private set; }
 
     public void RegisterInternalEvents()
     {
-        _isMerLoaded = true;
+        IsMerLoaded = true;
         if (!AppDomain.CurrentDomain.GetAssemblies().Any(x => x.FullName.ToLower().Contains("projectmer")))
         {
-            DebugLogger.LogDebug("ProjectMER was not detected. The mini-games may not be available until you install ProjectMER.", LogLevel.Error);
-            _isMerLoaded = false;
+            DebugLogger.LogDebug(
+                "ProjectMER was not detected. The mini-games may not be available until you install ProjectMER.",
+                LogLevel.Error);
+            IsMerLoaded = false;
         }
 
-        Assembly callingAssembly = Assembly.GetCallingAssembly();
-        Type[] types = callingAssembly.GetTypes();
+        var callingAssembly = Assembly.GetCallingAssembly();
+        var types = callingAssembly.GetTypes();
 
-        foreach (Type type in types)
-        {
+        foreach (var type in types)
             try
             {
                 if (type.IsAbstract || type.IsEnum || type.IsInterface ||
                     type.GetInterfaces().All(x => x != typeof(IEvent)))
                     continue;
 
-                object evBase = Activator.CreateInstance(type);
+                var evBase = Activator.CreateInstance(type);
                 if (evBase is null || evBase is not Event ev)
                     continue;
 
                 if (!ev.AutoLoad)
                     continue;
 
-                if (ev is IEventMap && !_isMerLoaded)
+                if (ev is IEventMap && !IsMerLoaded)
                     continue;
 
                 ev.Id = _events.Count;
@@ -50,14 +55,13 @@ public class EventManager
             }
             catch (Exception ex)
             {
-                DebugLogger.LogDebug($"[EventLoader] cannot register an event.", LogLevel.Error, true);
-                DebugLogger.LogDebug($"{ex}", LogLevel.Debug);
+                DebugLogger.LogDebug("[EventLoader] cannot register an event.", LogLevel.Error, true);
+                DebugLogger.LogDebug($"{ex}");
             }
-        }
     }
 
     /// <summary>
-    /// Gets an event by it's name.
+    ///     Gets an event by it's name.
     /// </summary>
     /// <param name="type">The name of the event to search for.</param>
     /// <returns>The first event found with the same name (Case-Insensitive).</returns>
@@ -65,7 +69,7 @@ public class EventManager
     {
         Event ev = null;
 
-        if (int.TryParse(type, out int id))
+        if (int.TryParse(type, out var id))
             return GetEvent(id);
 
         if (!TryGetEventByCName(type, out ev))
@@ -74,26 +78,13 @@ public class EventManager
         return ev;
     }
 
-    public Event CurrentEvent
+    private Event GetEvent(int id)
     {
-        get => this._currentEvent;
-        set => this._currentEvent = value;
+        return _events.Values.FirstOrDefault(x => x.Id == id);
     }
 
-    public List<Event> Events
-    {
-        get => this._events.Values.ToList();
-    }
-
-    public bool IsMerLoaded
-    {
-        get => this._isMerLoaded;
-    }
-
-    private Event GetEvent(int id) => this._events.Values.FirstOrDefault(x => x.Id == id);
-    
     private bool TryGetEventByCName(string type, out Event ev)
     {
-        return (ev = this._events.Values.FirstOrDefault(x => x.CommandName == type)) != null;
+        return (ev = _events.Values.FirstOrDefault(x => x.CommandName == type)) != null;
     }
 }

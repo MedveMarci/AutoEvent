@@ -1,5 +1,6 @@
 namespace AutoEvent.Games.Puzzle;
-enum EventState
+
+internal enum EventState
 {
     Waiting,
     Starting,

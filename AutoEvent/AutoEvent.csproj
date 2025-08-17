@@ -1,173 +1,178 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    <AssemblyTitle>AutoEvent</AssemblyTitle>
-    <Product>AutoEvent</Product>
-    <Copyright>Copyright RisottoMan and Redforce04 © 2023</Copyright>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
-    <Nullable>enable</Nullable>
-    <Configurations>Release</Configurations>
-    <Platforms>AnyCPU</Platforms>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release EXILED|AnyCPU' ">
-    <OutputPath>..\bin\Release\Exiled</OutputPath>
-    <DefineConstants>TRACE;EXILED</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-    <z>true</z>
-    <PlatformTarget>x64</PlatformTarget>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <LangVersion>default</LangVersion>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release NWApi|AnyCPU' ">
-    <OutputPath>..\bin\Release\NWApi</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PlatformTarget>x64</PlatformTarget>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <LangVersion>default</LangVersion>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Costura.Fody" Version="5.8.0-alpha0098">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="ExMod.Exiled" Version="9.6.0" />
-    <PackageReference Include="Fody" Version="6.8.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NVorbis" Version="0.10.5" />
-  </ItemGroup>
-<ItemGroup>
-    <Reference Include="CedModV3" HintPath="$(SL_REFERENCES)\CedModV3.dll" />
-    <Reference Include="ProjectMER" HintPath="$(SL_REFERENCES)\ProjectMER.dll" />
-    <Reference Include="AdvancedMERTools" HintPath="$(SL_REFERENCES)\AdvancedMERTools.dll" />
-    <Reference Include="AudioPlayerApi" HintPath="$(SL_REFERENCES)\AudioPlayerApi.dll" />
-    <Reference Include="Assembly-CSharp-Publicized" HintPath="$(SL_REFERENCES)\Assembly-CSharp-Halloween-Publicized.dll" />
-    <Reference Include="Mirror" HintPath="$(SL_REFERENCES)\Mirror.dll" />
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" HintPath="$(SL_REFERENCES)\System.ComponentModel.DataAnnotations.dll" />
-    <Reference Include="UnityEngine" HintPath="$(SL_REFERENCES)\UnityEngine.dll" />
-    <Reference Include="UnityEngine.AssetBundleModule" HintPath="$(SL_REFERENCES)\UnityEngine.AssetBundleModule.dll" />
-    <Reference Include="UnityEngine.ParticleSystem" HintPath="$(SL_REFERENCES)\UnityEngine.ParticleSystemModule.dll" />
-    <Reference Include="UnityEngine.CoreModule" HintPath="$(SL_REFERENCES)\UnityEngine.CoreModule.dll" />
-    <Reference Include="UnityEngine.UnityWebRequestModule" HintPath="$(SL_REFERENCES)\UnityEngine.UnityWebRequestModule.dll" />
-    <Reference Include="UnityEngine.AnimationModule" HintPath="$(SL_REFERENCES)\UnityEngine.AnimationModule.dll" />
-    <Reference Include="UnityEngine.PhysicsModule" HintPath="$(SL_REFERENCES)\UnityEngine.PhysicsModule.dll" />
-    <Reference Include="Assembly-CSharp-firstpass" HintPath="$(SL_REFERENCES)\Assembly-CSharp-firstpass.dll" />
-    <Reference Include="UnityEngine.AudioModule" HintPath="$(SL_REFERENCES)\UnityEngine.AudioModule.dll" />
-    <Reference Include="CommandSystem.Core" HintPath="$(SL_REFERENCES)\CommandSystem.Core.dll" />
-    <Reference Include="NorthwoodLib" HintPath="$(SL_REFERENCES)\NorthwoodLib.dll" />
-    <Reference Include="Pooling" HintPath="$(SL_REFERENCES)\Pooling.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\.gitignore">
-      <Link>.gitignore</Link>
-    </Content>
-    <Content Include="..\Docs\*" Link="Docs\*" />
-    <Content Include="..\Docs\Translations\*" Link="Docs\Translations\*" />
-    <Content Include="..\README.md" Link="README.md" />
-    <Content Include="FodyWeavers.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Remove="Games\Dodgeball\Features\**" />
-    <EmbeddedResource Remove="SchematicApi\**" />
-    <EmbeddedResource Remove="SchematicApi\*" />
-    <EmbeddedResource Remove="PowerupApi\**" />
-    <EmbeddedResource Remove="PowerupApi\*" />
-    <EmbeddedResource Remove="ReplaceTextWithVariables\**" />
-    <EmbeddedResource Remove="ReplaceTextWithVariables\*" />
-    <EmbeddedResource Remove="InventoryMenu\**" />
-    <EmbeddedResource Remove="InventoryMenu\*" />
-    <None Remove="Translations\chinese.yml" />
-    <EmbeddedResource Include="Translations\chinese.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <None Remove="Translations\italian.yml" />
-    <EmbeddedResource Include="Translations\italian.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <None Remove="Translations\portuguese.yml" />
-    <EmbeddedResource Include="Translations\portuguese.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <None Remove="Translations\polish.yml" />
-    <EmbeddedResource Include="Translations\polish.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <None Remove="Translations\german.yml" />
-    <EmbeddedResource Include="Translations\german.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <None Remove="Translations\turkish.yml" />
-    <EmbeddedResource Include="Translations\turkish.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <None Remove="Translations\thai.yml" />
-    <EmbeddedResource Include="Translations\thai.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <None Remove="Translations\russian.yml" />
-    <EmbeddedResource Include="Translations\russian.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <None Remove="Translations\french.yml" />
-    <EmbeddedResource Include="Translations\french.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <None Remove="Translations\spanish.yml" />
-    <EmbeddedResource Include="Translations\spanish.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <None Remove="Translations\english.yml" />
-    <EmbeddedResource Include="Translations\english.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Games\Dodgeball\Features\**" />
-    <None Remove="SchematicApi\**" />
-    <None Remove="SchematicApi\*" />
-    <None Remove="PowerupApi\**" />
-    <None Remove="PowerupApi\*" />
-    <None Remove="ReplaceTextWithVariables\**" />
-    <None Remove="ReplaceTextWithVariables\*" />
-    <None Remove="InventoryMenu\**" />
-    <None Remove="InventoryMenu\*" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Games\Dodgeball\Features\**" />
-    <Compile Remove="SchematicApi\**" />
-    <Compile Remove="SchematicApi\*" />
-    <Compile Remove="PowerupApi\**" />
-    <Compile Remove="PowerupApi\*" />
-    <Compile Remove="ReplaceTextWithVariables\**" />
-    <Compile Remove="ReplaceTextWithVariables\*" />
-    <Compile Remove="InventoryMenu\**" />
-    <Compile Remove="InventoryMenu\*" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Translations\" />
-  </ItemGroup>
-  <Target Name="RemoveFile" BeforeTargets="ReplaceFile">
-    <Exec Command="if exist $(SolutionDir)VersionInfo.cs del $(SolutionDir)VersionInfo.cs" />
-  </Target>
-  <Target Name="ReplaceFile" BeforeTargets="ReplaceVars">
-    <Exec Command="copy $(SolutionDir)BlankVersionInfo.txt $(SolutionDir)VersionInfo.cs" />
-  </Target>
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <AssemblyTitle>AutoEvent</AssemblyTitle>
+        <Product>AutoEvent</Product>
+        <Copyright>Copyright RisottoMan and Redforce04 © 2023</Copyright>
+        <OutputPath>bin\$(Configuration)\</OutputPath>
+        <Nullable>enable</Nullable>
+        <Configurations>Exiled;LabApi</Configurations>
+        <Platforms>x64</Platforms>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'EXILED|x64' ">
+        <OutputPath>bin\x64\Exiled</OutputPath>
+        <DefineConstants>TRACE;EXILED</DefineConstants>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Optimize>true</Optimize>
+        <PlatformTarget>x64</PlatformTarget>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <Deterministic>true</Deterministic>
+        <LangVersion>default</LangVersion>
+        <TargetFrameworkProfile/>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'LabApi|x64' ">
+        <OutputPath>bin\x64\LabApi</OutputPath>
+        <DefineConstants>TRACE;LABAPI</DefineConstants>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Optimize>true</Optimize>
+        <PlatformTarget>x64</PlatformTarget>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <Deterministic>true</Deterministic>
+        <LangVersion>default</LangVersion>
+        <TargetFrameworkProfile/>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Costura.Fody" Version="5.8.0-alpha0098">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="ExMod.Exiled" Version="9.8.1" Condition=" '$(Configuration)' == 'EXILED'"/>
+        <PackageReference Include="Fody" Version="6.8.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Lib.Harmony" Version="2.2.2"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+        <PackageReference Include="NVorbis" Version="0.10.5"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="AudioPlayerApi" HintPath="$(LABAPI_DEPENDENCIES)\AudioPlayerApi.dll"/>
+        <Reference Include="CedModV3" HintPath="$(LABAPI_PLUGINS)\CedModV3.dll"/>
+        <Reference Include="LabApi" HintPath="$(SL_REFERENCES)\LabApi.dll" Condition=" '$(Configuration)' != 'EXILED'"/>
+        <Reference Include="YamlDotNet" HintPath="$(SL_REFERENCES)\YamlDotNet.dll" Condition=" '$(Configuration)' != 'EXILED'"/>
+        <Reference Include="ProjectMER" HintPath="$(LABAPI_PLUGINS)\ProjectMER.dll"/>
+        <Reference Include="Assembly-CSharp" HintPath="$(SL_REFERENCES)\Assembly-CSharp-Publicized.dll"/>
+        <Reference Include="Mirror" HintPath="$(SL_REFERENCES)\Mirror.dll"/>
+        <Reference Include="System"/>
+        <Reference Include="System.ComponentModel.DataAnnotations" HintPath="$(SL_REFERENCES)\System.ComponentModel.DataAnnotations.dll"/>
+        <Reference Include="UnityEngine" HintPath="$(SL_REFERENCES)\UnityEngine.dll"/>
+        <Reference Include="UnityEngine.AssetBundleModule" HintPath="$(SL_REFERENCES)\UnityEngine.AssetBundleModule.dll"/>
+        <Reference Include="UnityEngine.ParticleSystem" HintPath="$(SL_REFERENCES)\UnityEngine.ParticleSystemModule.dll"/>
+        <Reference Include="UnityEngine.CoreModule" HintPath="$(SL_REFERENCES)\UnityEngine.CoreModule.dll"/>
+        <Reference Include="UnityEngine.UnityWebRequestModule" HintPath="$(SL_REFERENCES)\UnityEngine.UnityWebRequestModule.dll"/>
+        <Reference Include="UnityEngine.AnimationModule" HintPath="$(SL_REFERENCES)\UnityEngine.AnimationModule.dll"/>
+        <Reference Include="UnityEngine.PhysicsModule" HintPath="$(SL_REFERENCES)\UnityEngine.PhysicsModule.dll"/>
+        <Reference Include="Assembly-CSharp-firstpass" HintPath="$(SL_REFERENCES)\Assembly-CSharp-firstpass.dll"/>
+        <Reference Include="UnityEngine.AudioModule" HintPath="$(SL_REFERENCES)\UnityEngine.AudioModule.dll"/>
+        <Reference Include="CommandSystem.Core" HintPath="$(SL_REFERENCES)\CommandSystem.Core.dll"/>
+        <Reference Include="NorthwoodLib" HintPath="$(SL_REFERENCES)\NorthwoodLib.dll"/>
+        <Reference Include="Pooling" HintPath="$(SL_REFERENCES)\Pooling.dll"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="..\.gitignore">
+            <Link>.gitignore</Link>
+        </Content>
+        <Content Include="..\Docs\*" Link="Docs\*"/>
+        <Content Include="..\Docs\Translations\*" Link="Docs\Translations\*"/>
+        <Content Include="..\README.md" Link="README.md"/>
+        <Content Include="FodyWeavers.xml"/>
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Remove="Games\Dodgeball\Features\**"/>
+        <EmbeddedResource Remove="SchematicApi\**"/>
+        <EmbeddedResource Remove="SchematicApi\*"/>
+        <EmbeddedResource Remove="PowerupApi\**"/>
+        <EmbeddedResource Remove="PowerupApi\*"/>
+        <EmbeddedResource Remove="ReplaceTextWithVariables\**"/>
+        <EmbeddedResource Remove="ReplaceTextWithVariables\*"/>
+        <EmbeddedResource Remove="InventoryMenu\**"/>
+        <EmbeddedResource Remove="InventoryMenu\*"/>
+        <None Remove="Translations\chinese.yml"/>
+        <EmbeddedResource Include="Translations\chinese.yml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Translations\italian.yml"/>
+        <EmbeddedResource Include="Translations\italian.yml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Translations\portuguese.yml"/>
+        <EmbeddedResource Include="Translations\portuguese.yml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Translations\polish.yml"/>
+        <EmbeddedResource Include="Translations\polish.yml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Translations\german.yml"/>
+        <EmbeddedResource Include="Translations\german.yml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Translations\turkish.yml"/>
+        <EmbeddedResource Include="Translations\turkish.yml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Translations\thai.yml"/>
+        <EmbeddedResource Include="Translations\thai.yml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Translations\russian.yml"/>
+        <EmbeddedResource Include="Translations\russian.yml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Translations\french.yml"/>
+        <EmbeddedResource Include="Translations\french.yml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Translations\spanish.yml"/>
+        <EmbeddedResource Include="Translations\spanish.yml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
+        <None Remove="Translations\english.yml"/>
+        <EmbeddedResource Include="Translations\english.yml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+        <None Remove="Games\Dodgeball\Features\**"/>
+        <None Remove="SchematicApi\**"/>
+        <None Remove="SchematicApi\*"/>
+        <None Remove="PowerupApi\**"/>
+        <None Remove="PowerupApi\*"/>
+        <None Remove="ReplaceTextWithVariables\**"/>
+        <None Remove="ReplaceTextWithVariables\*"/>
+        <None Remove="InventoryMenu\**"/>
+        <None Remove="InventoryMenu\*"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="Games\Dodgeball\Features\**"/>
+        <Compile Remove="SchematicApi\**"/>
+        <Compile Remove="SchematicApi\*"/>
+        <Compile Remove="PowerupApi\**"/>
+        <Compile Remove="PowerupApi\*"/>
+        <Compile Remove="ReplaceTextWithVariables\**"/>
+        <Compile Remove="ReplaceTextWithVariables\*"/>
+        <Compile Remove="InventoryMenu\**"/>
+        <Compile Remove="InventoryMenu\*"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Translations\"/>
+    </ItemGroup>
+    <Target Name="RemoveFile" BeforeTargets="ReplaceFile">
+        <Exec Command="if exist $(SolutionDir)VersionInfo.cs del $(SolutionDir)VersionInfo.cs"/>
+    </Target>
+    <Target Name="ReplaceFile" BeforeTargets="ReplaceVars">
+        <Exec Command="copy $(SolutionDir)BlankVersionInfo.txt $(SolutionDir)VersionInfo.cs"/>
+    </Target>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+    <Target Name="AfterBuild">
+        <Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;%appdata%\SCP Secret Laboratory\LabAPI\plugins\global&quot; /y"/>
+    </Target>
 </Project>

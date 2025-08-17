@@ -1,45 +1,59 @@
-﻿using AutoEvent.Interfaces;
+﻿using System;
 using CommandSystem;
-using System;
-using Exiled.API.Features;
 using MEC;
+#if EXILED
+using Exiled.API.Features;
 using Exiled.Permissions.Extensions;
+#else
+using LabApi.Features.Wrappers;
+using LabApi.Features.Permissions;
+#endif
 
 namespace AutoEvent.Commands;
+
 internal class Lobby : ICommand
 {
     public string Command => nameof(Lobby);
     public string Description => "Starting a lobby in which the winner chooses a mini-game";
     public string[] Aliases => [];
+
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
+#if EXILED
         if (!sender.CheckPermission("ev.lobby"))
+#else
+        if (!sender.HasPermissions("ev.lobby"))
+#endif
         {
             response = "<color=red>You do not have permission to use this command!</color>";
             return false;
         }
-        
+
         if (AutoEvent.EventManager.CurrentEvent != null)
         {
             response = $"The mini-game {AutoEvent.EventManager.CurrentEvent.Name} is already running!";
             return false;
         }
 
-        Event lobby = AutoEvent.EventManager.GetEvent("Lobby");
+        var lobby = AutoEvent.EventManager.GetEvent("Lobby");
         if (lobby == null)
         {
-            response = $"The lobby is not found.";
+            response = "The lobby is not found.";
             return false;
         }
 
         Round.IsLocked = true;
 
+#if EXILED
         if (!Round.IsStarted)
+#else
+        if (!Round.IsRoundStarted)
+#endif
         {
             Round.Start();
 
-            Timing.CallDelayed(2f, () => {
-
+            Timing.CallDelayed(2f, () =>
+            {
                 lobby.StartEvent();
                 AutoEvent.EventManager.CurrentEvent = lobby;
             });
@@ -50,7 +64,7 @@ internal class Lobby : ICommand
             AutoEvent.EventManager.CurrentEvent = lobby;
         }
 
-        response = $"The lobby event has started!";
+        response = "The lobby event has started!";
         return true;
     }
 }

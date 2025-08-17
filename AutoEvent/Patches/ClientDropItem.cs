@@ -11,12 +11,8 @@ internal static class ClientDropItem
     public static bool Prefix()
     {
         if (AutoEvent.EventManager.CurrentEvent is Event activeEvent)
-        {
             if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingItem))
-            {
                 return false;
-            }
-        }
 
         return true;
     }

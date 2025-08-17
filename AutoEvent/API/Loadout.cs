@@ -1,8 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using Exiled.API.Features;
 using PlayerRoles;
 using UnityEngine;
+#if EXILED
+using Exiled.API.Features;
+
+#else
+#endif
 
 namespace AutoEvent.API;
 
@@ -13,13 +17,13 @@ public class Loadout
     public int Chance { get; set; } = 1;
 
     [Description("A list of roles, and the chance of getting the role.")]
-    public Dictionary<RoleTypeId, int> Roles { get; set; } = default(Dictionary<RoleTypeId, int>);
-    
+    public Dictionary<RoleTypeId, int> Roles { get; set; } = default;
+
     [Description("The health that this class has. 0 is default role health. -1 is godmode.")]
     public int Health { get; set; } = 0;
 
     [Description("How much artificial health the class has. 0 is default artificial health.")]
-    public ArtificialHealth ArtificialHealth { get; set; } = new ArtificialHealth()
+    public ArtificialHealth ArtificialHealth { get; set; } = new()
     {
         AbsorptionPercent = 100,
         Permanent = true,
@@ -27,27 +31,40 @@ public class Loadout
         MaxAmount = 0,
         RegenerationAmount = 0
     };
-    
+
     [Description("The stamina the player should get. 0 will ignore.")]
     public float Stamina { get; set; } = 0f;
-    
+
     [Description("The items that this class spawns with.")]
-    public List<ItemType> Items { get; set; } = default(List<ItemType>);
+    public List<ItemType> Items { get; set; } = default;
 
     [Description("A list of effects the player will spawn with.")]
-    public List<Effect> Effects { get; set; }  = default(List<Effect>);
-    
+#if EXILED
+    public List<Effect> Effects { get; set; } = default;
+#else
+    public List<EffectData> Effects { get; set; } = default;
+#endif
+
     [Description("The size of this class. One is normal.")]
     public Vector3 Size { get; set; } = Vector3.one;
-    
+
     [Description("Should the player have infinite ammo.")]
     public AmmoMode InfiniteAmmo { get; set; } = AmmoMode.None;
 }
 
 public enum AmmoMode
 {
-    [Description("Ammo will be normal.")]
-    None = 0,
+    [Description("Ammo will be normal.")] None = 0,
+
     [Description("Player will be able to reload regardless of if there is ammo in their inventory.")]
     InfiniteAmmo = 2
 }
+
+#if LABAPI
+public class EffectData
+{
+    public string Type { get; set; }
+    public float Duration { get; set; }
+    public byte Intensity { get; set; }
+}
+#endif

@@ -1,20 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AdminToys;
+using AutoEvent.Interfaces;
 using MEC;
 using UnityEngine;
-using AutoEvent.Interfaces;
+using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
+#if EXILED
 using Exiled.API.Features;
+#else
+using LabApi.Features.Wrappers;
+#endif
 using Random = UnityEngine.Random;
 
 namespace AutoEvent.Games.Puzzle;
+
 public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
+    private List<GameObject> _colorIndicators;
+    private TimeSpan _countdown;
+    private EventState _eventState;
+    private float _fallDelay;
+    private List<GameObject> _fallingPlatforms;
+    private List<GameObject> _platforms;
+
+    private float _speed;
+
+    private int _stage;
+    private float _timeDelay;
     public override string Name { get; set; } = "Puzzle";
     public override string Description { get; set; } = "Get up the fastest on the right color";
     public override string Author { get; set; } = "RisottoMan && Redforce";
     public override string CommandName { get; set; } = "puzzle";
+
     public MapInfo MapInfo { get; set; } = new()
     {
         MapName = "Puzzle",
@@ -27,29 +44,17 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         Volume = 15,
         Loop = true
     };
-    private List<GameObject> _platforms;
-    private List<GameObject> _colorIndicators;
-    private List<GameObject> _fallingPlatforms;
-
-    private int _stage;
-    private EventState _eventState;
-    private TimeSpan _countdown;
-    
-    private float _speed;
-    private float _timeDelay;
-    private float _fallDelay;
 
     /// <summary>
-    /// Interaction with players and objects before the start of the game
+    ///     Interaction with players and objects before the start of the game
     /// </summary>
     protected override void OnStart()
     {
-        _platforms = new();
-        _colorIndicators = new();
+        _platforms = new List<GameObject>();
+        _colorIndicators = new List<GameObject>();
         GameObject spawnpoint = new();
-        
-        foreach (GameObject block in MapInfo.Map.AttachedBlocks)
-        {
+
+        foreach (var block in MapInfo.Map.AttachedBlocks)
             switch (block.name)
             {
                 case "Lava":
@@ -59,9 +64,12 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "Spawnpoint": spawnpoint = block; break;
                 case "Platform": _platforms.Add(block); break;
             }
-        }
-        
-        foreach (Player player in Player.List)
+
+        #if EXILED
+        foreach (var player in Player.List)
+#else
+        foreach (var player in Player.ReadyList)
+#endif
         {
             player.GiveLoadout(Config.Loadout);
             player.Position = spawnpoint.transform.position;
@@ -69,13 +77,13 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     }
 
     /// <summary>
-    /// Broadcast before the start of the game
+    ///     Broadcast before the start of the game
     /// </summary>
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (int time = 10; time > 0; time--)
+        for (var time = 10; time > 0; time--)
         {
-            string text = Translation.Start.Replace("{name}", Name).Replace("{time}", $"{time}");
+            var text = Translation.Start.Replace("{name}", Name).Replace("{time}", $"{time}");
             Extensions.Broadcast(text, 1);
             yield return Timing.WaitForSeconds(1f);
         }
@@ -94,7 +102,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     }
 
     /// <summary>
-    /// The logic of the mini-game
+    ///     The logic of the mini-game
     /// </summary>
     protected override void ProcessFrame()
     {
@@ -126,75 +134,58 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     }
 
     /// <summary>
-    /// Setting the initial values
+    ///     Setting the initial values
     /// </summary>
     protected void UpdateWaitingState()
     {
-        float selectionDelay = Config.SelectionTime.GetValue(_stage, 10, 0, 10);
-        _fallDelay = Config.FallDelay.GetValue(_stage, 10, .3f,8);
-        int safePlatformCount = (int)Config.NonFallingPlatforms.GetValue(_stage, Config.Rounds, 1, 100);
-        
+        var selectionDelay = Config.SelectionTime.GetValue(_stage, 10, 0, 10);
+        _fallDelay = Config.FallDelay.GetValue(_stage, 10, .3f, 8);
+        var safePlatformCount = (int)Config.NonFallingPlatforms.GetValue(_stage, Config.Rounds, 1, 100);
+
         _fallingPlatforms = new List<GameObject>();
         var shuffledPlatforms = _platforms;
-        for (int i = shuffledPlatforms.Count - 1; i > 0; i--)
+        for (var i = shuffledPlatforms.Count - 1; i > 0; i--)
         {
-            int j = Random.Range(0, i + 1);
+            var j = Random.Range(0, i + 1);
             (shuffledPlatforms[i], shuffledPlatforms[j]) = (shuffledPlatforms[j], shuffledPlatforms[i]);
         }
-        
+
         foreach (var platform in _platforms)
-        {
             if (_fallingPlatforms.Count < shuffledPlatforms.Count - safePlatformCount)
-            {
                 _fallingPlatforms.Add(platform);
-            }
-        }
-        
+
         _countdown = TimeSpan.FromSeconds((float)Math.Ceiling(selectionDelay / _timeDelay));
         FrameDelayInSeconds = _timeDelay;
         _eventState++;
     }
 
     /// <summary>
-    /// The game is in an active process when the platforms change their color
+    ///     The game is in an active process when the platforms change their color
     /// </summary>
     protected void UpdateStartingState()
     {
         foreach (var platform in _platforms)
-        {
-            platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);
-        }
-        
-        foreach (GameObject colorIndicator in _colorIndicators)
-        {
-            colorIndicator.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);
-        }
+            platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = new Color(Random.Range(0f, 1f),
+                Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);
+
+        foreach (var colorIndicator in _colorIndicators)
+            colorIndicator.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = new Color(Random.Range(0f, 1f),
+                Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);
 
         if (_countdown.TotalSeconds > 0)
             return;
 
         // Change the color of those platforms that should fall to magenta
         if (!Config.UseRandomPlatformColors)
-        {
             foreach (var platform in _platforms)
-            {
                 if (_fallingPlatforms.Contains(platform))
-                {
                     platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = Color.magenta;
-                }
                 else
-                {
                     platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = Color.green;
-                }
-            }
-        }
         else
-        {
             foreach (var platform in _platforms)
-            {
-                platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);
-            }
-        }
+                platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = new Color(Random.Range(0f, 1f),
+                    Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);
 
         FrameDelayInSeconds = 1;
         _countdown = TimeSpan.FromSeconds(_fallDelay);
@@ -202,41 +193,35 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     }
 
     /// <summary>
-    /// At the end of the time, the selected platforms will fall
+    ///     At the end of the time, the selected platforms will fall
     /// </summary>
     protected void UpdateFallingState()
     {
         if (_countdown.TotalSeconds > 0)
             return;
 
-        foreach (var platform in _fallingPlatforms)
-        {
-            platform.transform.position += Vector3.down * 5;
-        }
-        
+        foreach (var platform in _fallingPlatforms) platform.transform.position += Vector3.down * 5;
+
         _countdown = TimeSpan.FromSeconds(_fallDelay);
         _eventState++;
     }
 
     /// <summary>
-    /// At the end of the time, the selected platforms will return
+    ///     At the end of the time, the selected platforms will return
     /// </summary>
     protected void UpdateReturningState()
     {
         if (_countdown.TotalSeconds > 0)
             return;
 
-        foreach (var platform in _fallingPlatforms)
-        {
-            platform.transform.position += Vector3.up * 5;
-        }
-        
+        foreach (var platform in _fallingPlatforms) platform.transform.position += Vector3.up * 5;
+
         _countdown = TimeSpan.FromSeconds(_speed);
         _eventState++;
     }
 
     /// <summary>
-    /// Waiting for the next stage
+    ///     Waiting for the next stage
     /// </summary>
     protected void UpdateEndingState()
     {
@@ -252,7 +237,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void OnFinished()
     {
         string text;
-        int count = Player.List.Count(r => r.IsAlive);
+        var count = Player.List.Count(r => r.IsAlive);
 
         if (count < 1)
         {
@@ -260,7 +245,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
         else if (count == 1)
         {
-            string nickname = Player.List.First(r => r.IsAlive).Nickname;
+            var nickname = Player.List.First(r => r.IsAlive).Nickname;
             text = Translation.Winner.Replace("{name}", Name).Replace("{winner}", nickname);
         }
         else

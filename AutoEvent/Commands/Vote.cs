@@ -1,24 +1,34 @@
-﻿using AutoEvent.Interfaces;
+﻿using System;
 using CommandSystem;
-using System;
-using Exiled.API.Features;
 using MEC;
+#if EXILED
+using Exiled.API.Features;
 using Exiled.Permissions.Extensions;
+#else
+using LabApi.Features.Permissions;
+using LabApi.Features.Wrappers;
+#endif
 
 namespace AutoEvent.Commands;
+
 internal class Vote : ICommand, IUsageProvider
 {
     public string Command => nameof(Vote);
     public string Description => "Starts voting for mini-game, 1 argument - the command name of the event";
     public string[] Aliases => [];
-    public string[] Usage => ["Event Name"];
+
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
+#if EXILED
         if (!sender.CheckPermission("ev.vote"))
+#else
+        if (!sender.HasPermissions("ev.vote"))
+#endif
         {
             response = "<color=red>You do not have permission to use this command!</color>";
             return false;
         }
+
         if (AutoEvent.EventManager.CurrentEvent != null)
         {
             response = $"The mini-game {AutoEvent.EventManager.CurrentEvent.Name} is already running!";
@@ -38,11 +48,11 @@ internal class Vote : ICommand, IUsageProvider
             response = $"The mini-game {arguments.At(0)} is not found.";
             return false;
         }*/
-        
-        Event vote = AutoEvent.EventManager.GetEvent("Vote");
+
+        var vote = AutoEvent.EventManager.GetEvent("Vote");
         if (vote is null)
         {
-            response = $"The vote is not found.";
+            response = "The vote is not found.";
             return false;
         }
 
@@ -56,13 +66,16 @@ internal class Vote : ICommand, IUsageProvider
 
         comp.NewEvent = ev;*/
         Round.IsLocked = true;
-
+#if EXILED
         if (!Round.IsStarted)
+#else
+        if (!Round.IsRoundStarted)
+#endif
         {
             Round.Start();
 
-            Timing.CallDelayed(2f, () => {
-
+            Timing.CallDelayed(2f, () =>
+            {
                 Extensions.TeleportEnd();
                 vote.StartEvent();
                 AutoEvent.EventManager.CurrentEvent = vote;
@@ -74,7 +87,9 @@ internal class Vote : ICommand, IUsageProvider
             AutoEvent.EventManager.CurrentEvent = vote;
         }
 
-        response = $"The vote NAME has started!"; //$"The vote {ev.Name} has started!"
+        response = "The vote NAME has started!"; //$"The vote {ev.Name} has started!"
         return true;
     }
+
+    public string[] Usage => ["Event Name"];
 }
