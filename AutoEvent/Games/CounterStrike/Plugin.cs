@@ -1,5 +1,4 @@
 ﻿#if EXILED
-using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 #else
@@ -52,7 +51,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     {
         _eventHandler = new EventHandler(this);
 #if EXILED
-        Player.SearchingPickup += _eventHandler.OnSearchingPickup;
+        Exiled.Events.Handlers.Player.SearchingPickup += _eventHandler.OnSearchingPickup;
 #else
         PlayerEvents.SearchingPickup += _eventHandler.OnSearchingPickup;
 #endif
@@ -61,7 +60,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     protected override void UnregisterEvents()
     {
 #if EXILED
-        Player.SearchingPickup -= _eventHandler.OnSearchingPickup;
+        Exiled.Events.Handlers.Player.SearchingPickup -= _eventHandler.OnSearchingPickup;
 #else
         PlayerEvents.SearchingPickup -= _eventHandler.OnSearchingPickup;
 #endif

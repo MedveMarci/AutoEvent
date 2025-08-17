@@ -5,14 +5,13 @@ using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
 using InventorySystem;
 using InventorySystem.Items.MarshmallowMan;
-using LabApi.Events.Handlers;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
 #if EXILED
-using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
+using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
 #endif
 
@@ -46,9 +45,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _eventHandler = new EventHandler(this);
 #if EXILED
-        Player.Hurting += _eventHandler.OnHurting;
-        Player.Joined += _eventHandler.OnJoined;
-        Player.Died += _eventHandler.OnDied;
+        Exiled.Events.Handlers.Player.Hurting += _eventHandler.OnHurting;
+        Exiled.Events.Handlers.Player.Joined += _eventHandler.OnJoined;
+        Exiled.Events.Handlers.Player.Died += _eventHandler.OnDied;
 #else
         PlayerEvents.Hurting += _eventHandler.OnHurting;
         PlayerEvents.Joined += _eventHandler.OnJoined;
@@ -59,9 +58,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void UnregisterEvents()
     {
 #if EXILED
-        Player.Hurting -= _eventHandler.OnHurting;
-        Player.Joined -= _eventHandler.OnJoined;
-        Player.Died -= _eventHandler.OnDied;
+        Exiled.Events.Handlers.Player.Hurting -= _eventHandler.OnHurting;
+        Exiled.Events.Handlers.Player.Joined -= _eventHandler.OnJoined;
+        Exiled.Events.Handlers.Player.Died -= _eventHandler.OnDied;
 #else
         PlayerEvents.Hurting -= _eventHandler.OnHurting;
         PlayerEvents.Joined -= _eventHandler.OnJoined;

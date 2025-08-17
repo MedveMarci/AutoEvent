@@ -7,7 +7,6 @@ using AutoEvent.Interfaces;
 using MEC;
 using UnityEngine;
 #if EXILED
-using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
 using LabApi.Events.Handlers;
@@ -44,7 +43,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
     {
         _eventHandler = new EventHandler(this);
 #if EXILED
-        Player.Shot += _eventHandler.OnShot;
+        Exiled.Events.Handlers.Player.Shot += _eventHandler.OnShot;
 #else
         PlayerEvents.ShotWeapon += _eventHandler.OnShot;
 #endif
@@ -53,7 +52,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
     protected override void UnregisterEvents()
     {
 #if EXILED
-        Player.Shot -= _eventHandler.OnShot;
+        Exiled.Events.Handlers.Player.Shot -= _eventHandler.OnShot;
 #else
         PlayerEvents.ShotWeapon -= _eventHandler.OnShot;
 #endif

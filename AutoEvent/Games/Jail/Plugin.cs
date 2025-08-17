@@ -142,7 +142,6 @@ public class Plugin : Event<Config, Translation>, IEventMap
                     player.SendBroadcast(
                         Translation.StartPrisoners.Replace("{name}", Name).Replace("{time}", time.ToString("00")), 1);
                 }
-#else
 #endif
             }
 

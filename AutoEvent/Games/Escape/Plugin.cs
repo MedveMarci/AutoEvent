@@ -1,10 +1,6 @@
 ﻿#if EXILED
 using Exiled.API.Features;
 using EffectType = Exiled.API.Enums.EffectType;
-using Exiled.Events.Handlers;
-using Map = Exiled.Events.Handlers.Map;
-using Player = Exiled.Events.Handlers.Player;
-using Warhead = Warhead;
 #else
 using LabApi.Features.Wrappers;
 using LabApi.Events.Handlers;
@@ -40,10 +36,10 @@ public class Plugin : Event<Config, Translation>, IEventSound
     {
         _eventHandler = new EventHandler(this);
 #if EXILED
-        Player.Joined += _eventHandler.OnJoined;
-        Map.AnnouncingScpTermination += _eventHandler.OnAnnoucingScpTermination;
-        Scp173.PlacingTantrum += _eventHandler.OnPlacingTantrum;
-        Scp173.UsingBreakneckSpeeds += _eventHandler.OnUsingBreakneckSpeeds;
+        Exiled.Events.Handlers.Player.Joined += _eventHandler.OnJoined;
+        Exiled.Events.Handlers.Map.AnnouncingScpTermination += _eventHandler.OnAnnoucingScpTermination;
+        Exiled.Events.Handlers.Scp173.PlacingTantrum += _eventHandler.OnPlacingTantrum;
+        Exiled.Events.Handlers.Scp173.UsingBreakneckSpeeds += _eventHandler.OnUsingBreakneckSpeeds;
 #else
         PlayerEvents.Joined += _eventHandler.OnJoined;
         ServerEvents.CassieAnnouncing += _eventHandler.OnAnnoucingScpTermination;
@@ -55,10 +51,10 @@ public class Plugin : Event<Config, Translation>, IEventSound
     protected override void UnregisterEvents()
     {
 #if EXILED
-        Player.Joined -= _eventHandler.OnJoined;
-        Map.AnnouncingScpTermination -= _eventHandler.OnAnnoucingScpTermination;
-        Scp173.PlacingTantrum -= _eventHandler.OnPlacingTantrum;
-        Scp173.UsingBreakneckSpeeds -= _eventHandler.OnUsingBreakneckSpeeds;
+        Exiled.Events.Handlers.Player.Joined -= _eventHandler.OnJoined;
+        Exiled.Events.Handlers.Map.AnnouncingScpTermination -= _eventHandler.OnAnnoucingScpTermination;
+        Exiled.Events.Handlers.Scp173.PlacingTantrum -= _eventHandler.OnPlacingTantrum;
+        Exiled.Events.Handlers.Scp173.UsingBreakneckSpeeds -= _eventHandler.OnUsingBreakneckSpeeds;
 #else
         PlayerEvents.Joined -= _eventHandler.OnJoined;
         ServerEvents.CassieAnnouncing -= _eventHandler.OnAnnoucingScpTermination;

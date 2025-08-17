@@ -59,7 +59,6 @@
         <Reference Include="LabApi" HintPath="$(SL_REFERENCES)\LabApi.dll" Condition=" '$(Configuration)' != 'EXILED'"/>
         <Reference Include="YamlDotNet" HintPath="$(SL_REFERENCES)\YamlDotNet.dll" Condition=" '$(Configuration)' != 'EXILED'"/>
         <Reference Include="ProjectMER" HintPath="$(LABAPI_PLUGINS)\ProjectMER.dll"/>
-        <Reference Include="AdvancedMERTools" HintPath="$(LABAPI_PLUGINS)\AdvancedMERTools.dll"/>
         <Reference Include="Assembly-CSharp" HintPath="$(SL_REFERENCES)\Assembly-CSharp-Publicized.dll"/>
         <Reference Include="Mirror" HintPath="$(SL_REFERENCES)\Mirror.dll"/>
         <Reference Include="System"/>

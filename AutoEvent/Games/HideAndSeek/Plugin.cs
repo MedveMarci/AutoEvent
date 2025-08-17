@@ -6,8 +6,7 @@ using AutoEvent.Interfaces;
 using MEC;
 using UnityEngine;
 #if EXILED
-using Player = Exiled.Events.Handlers.Player;
-using Exiled.Events.Handlers;
+using Exiled.API.Features;
 using EffectType = Exiled.API.Enums.EffectType;
 using Exiled.API.Features;
 #else
@@ -45,8 +44,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _eventHandler = new EventHandler(this);
 #if EXILED
-        Player.Hurting += _eventHandler.OnHurting;
-        Item.ChargingJailbird += _eventHandler.OnJailbirdCharge;
+        Exiled.Events.Handlers.Player.Hurting += _eventHandler.OnHurting;
+        Exiled.Events.Handlers.Item.ChargingJailbird += _eventHandler.OnJailbirdCharge;
 #else
         PlayerEvents.Hurting += _eventHandler.OnHurting;
         PlayerEvents.ProcessingJailbirdMessage += _eventHandler.OnJailbirdCharge;
@@ -56,8 +55,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void UnregisterEvents()
     {
 #if EXILED
-        Player.Hurting -= _eventHandler.OnHurting;
-        Item.ChargingJailbird -= _eventHandler.OnJailbirdCharge;
+        Exiled.Events.Handlers.Player.Hurting -= _eventHandler.OnHurting;
+        Exiled.Events.Handlers.Item.ChargingJailbird -= _eventHandler.OnJailbirdCharge;
 #else
         PlayerEvents.Hurting -= _eventHandler.OnHurting;
         PlayerEvents.ProcessingJailbirdMessage -= _eventHandler.OnJailbirdCharge;

@@ -9,7 +9,6 @@ using MEC;
 using PlayerRoles;
 using UnityEngine;
 #if EXILED
-using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
 using LabApi.Features.Wrappers;
@@ -54,7 +53,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         Handlers.Scp018Update += _eventHandler.OnScp018Update;
         Handlers.Scp018Collision += _eventHandler.OnScp018Collision;
 #if EXILED
-        Player.Hurting += _eventHandler.OnHurting;
+        Exiled.Events.Handlers.Player.Hurting += _eventHandler.OnHurting;
 #else
         PlayerEvents.Hurting += _eventHandler.OnHurting;
 #endif
@@ -65,7 +64,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         Handlers.Scp018Update -= _eventHandler.OnScp018Update;
         Handlers.Scp018Collision -= _eventHandler.OnScp018Collision;
 #if EXILED
-        Player.Hurting -= _eventHandler.OnHurting;
+        Exiled.Events.Handlers.Player.Hurting -= _eventHandler.OnHurting;
 #else
         PlayerEvents.Hurting -= _eventHandler.OnHurting;
 #endif

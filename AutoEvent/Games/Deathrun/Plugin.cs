@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
-using LabApi.Events.Handlers;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
 #if EXILED
-using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
+using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
 #endif
 
@@ -37,7 +36,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
     {
         _eventHandler = new EventHandler();
 #if EXILED
-        Player.SearchingPickup += _eventHandler.OnSearchingPickup;
+        Exiled.Events.Handlers.Player.SearchingPickup += _eventHandler.OnSearchingPickup;
 #else
         PlayerEvents.SearchingPickup += _eventHandler.OnSearchingPickup;
 #endif
@@ -46,7 +45,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
     protected override void UnregisterEvents()
     {
 #if EXILED
-        Player.SearchingPickup -= _eventHandler.OnSearchingPickup;
+        Exiled.Events.Handlers.Player.SearchingPickup -= _eventHandler.OnSearchingPickup;
 #else
         PlayerEvents.SearchingPickup -= _eventHandler.OnSearchingPickup;
 #endif

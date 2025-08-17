@@ -6,7 +6,6 @@ using MEC;
 using PlayerRoles;
 using UnityEngine;
 #if EXILED
-using Player = Exiled.Events.Handlers.Player;
 using Exiled.API.Features;
 #else
 using LabApi.Events.Handlers;
@@ -40,7 +39,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _eventHandler = new EventHandler();
 #if EXILED
-        Player.Hurting += _eventHandler.OnHurting;
+        Exiled.Events.Handlers.Player.Hurting += _eventHandler.OnHurting;
 #else
         PlayerEvents.Hurting += _eventHandler.OnHurting;
 #endif
@@ -49,7 +48,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void UnregisterEvents()
     {
 #if EXILED
-        Player.Hurting -= _eventHandler.OnHurting;
+        Exiled.Events.Handlers.Player.Hurting -= _eventHandler.OnHurting;
 #else
         PlayerEvents.Hurting -= _eventHandler.OnHurting;
 #endif
