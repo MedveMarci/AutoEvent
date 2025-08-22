@@ -9,7 +9,7 @@
         <Configurations>Debug;Release</Configurations>
         <Platforms>x64</Platforms>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <AssemblyName>AutoEvent-LabApi</AssemblyName>
+        <AssemblyName>AutoEvent</AssemblyName>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
         <OutputPath>bin\x64\Debug</OutputPath>
