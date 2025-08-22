@@ -15,11 +15,11 @@ public class Config : EventConfig
     public int EscapeResumeTime { get; set; } = 100;
 
     [Description("A list of loadouts for team Chaos Insurgency")]
-    public List<Loadout> Scp173Loadout { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> Scp173Loadout { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.Scp173, 100 } }
         }
-    };
+    ];
 }

@@ -3,14 +3,9 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
+using CustomPlayerEffects;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
-using CustomPlayerEffects;
-#endif
 
 namespace AutoEvent.Games.GunGame;
 
@@ -18,45 +13,43 @@ public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
+        AvailableMaps ??= [];
 
-        if (AvailableMaps.Count < 1)
-        {
-            AvailableMaps.Add(new MapChance(50, new MapInfo("Shipment", new Vector3(0, 40f, 0f))));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("Shipment_Xmas2025", new Vector3(0, 40f, 0f)),
-                SeasonFlags.Christmas));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("Shipment_Halloween2024", new Vector3(0, 40f, 0f)),
-                SeasonFlags.Halloween));
-        }
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance(50, new MapInfo("Shipment", new Vector3(0, 40f, 0f))));
+        AvailableMaps.Add(new MapChance(50, new MapInfo("Shipment_Xmas2025", new Vector3(0, 40f, 0f)),
+            SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance(50, new MapInfo("Shipment_Halloween2024", new Vector3(0, 40f, 0f)),
+            SeasonFlags.Halloween));
     }
 
     [Description("A list of guns a player can get.")]
-    public List<GunRole> Guns { get; set; } = new()
-    {
-        new GunRole(ItemType.GunCOM15, 0),
-        new GunRole(ItemType.GunCOM18, 2),
-        new GunRole(ItemType.GunRevolver, 4),
-        new GunRole(ItemType.GunCom45, 6),
-        new GunRole(ItemType.GunFSP9, 8),
-        new GunRole(ItemType.GunCrossvec, 10),
-        new GunRole(ItemType.GunAK, 12),
-        new GunRole(ItemType.Jailbird, 14),
-        new GunRole(ItemType.GunE11SR, 16),
-        new GunRole(ItemType.GunRevolver, 18),
-        new GunRole(ItemType.GunA7, 20),
-        new GunRole(ItemType.ParticleDisruptor, 22),
-        new GunRole(ItemType.GunAK, 24),
-        new GunRole(ItemType.GunE11SR, 26),
-        new GunRole(ItemType.GunLogicer, 28),
-        new GunRole(ItemType.GunFRMG0, 30),
-        new GunRole(ItemType.Jailbird, 32),
-        new GunRole(ItemType.None, 34)
-    };
+    public List<GunRole> Guns { get; set; } =
+    [
+        new(ItemType.GunCOM15, 0),
+        new(ItemType.GunCOM18, 2),
+        new(ItemType.GunRevolver, 4),
+        new(ItemType.GunCom45, 6),
+        new(ItemType.GunFSP9, 8),
+        new(ItemType.GunCrossvec, 10),
+        new(ItemType.GunAK, 12),
+        new(ItemType.Jailbird, 14),
+        new(ItemType.GunE11SR, 16),
+        new(ItemType.GunRevolver, 18),
+        new(ItemType.GunA7, 20),
+        new(ItemType.ParticleDisruptor, 22),
+        new(ItemType.GunAK, 24),
+        new(ItemType.GunE11SR, 26),
+        new(ItemType.GunLogicer, 28),
+        new(ItemType.GunFRMG0, 30),
+        new(ItemType.Jailbird, 32),
+        new(ItemType.None, 34)
+    ];
 
     [Description("The loadouts a player can get.")]
-    public List<Loadout> Loadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> Loadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int>
             {
@@ -67,16 +60,12 @@ public class Config : EventConfig
                 { RoleTypeId.FacilityGuard, 100 }
             },
             InfiniteAmmo = AmmoMode.InfiniteAmmo,
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
-            ],
-#endif
+            ]
         }
-    };
+    ];
 }
 
 public class GunRole

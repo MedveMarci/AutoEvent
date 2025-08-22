@@ -1,6 +1,6 @@
 ﻿using AutoEvent.Interfaces;
 
-namespace AutoEvent.Games.Battle;
+namespace AutoEvent.Games.Battle.Configs;
 
 public class Translation : EventTranslation
 {

@@ -1,14 +1,11 @@
-﻿#if EXILED
-using Exiled.API.Features;
-#else
-using LabApi.Features.Wrappers;
-using LabApi.Events.Handlers;
-#endif
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.API;
 using AutoEvent.Games.Glass.Features;
 using AutoEvent.Interfaces;
+using LabApi.Events.Handlers;
+using LabApi.Features.Wrappers;
 using MEC;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -16,7 +13,7 @@ using Random = UnityEngine.Random;
 
 namespace AutoEvent.Games.Glass;
 
-public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private GameObject _finish;
     private GameObject _lava;
@@ -25,13 +22,12 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     private TimeSpan _remaining;
     private GameObject _spawnpoints;
     private GameObject _wall;
-    private bool isPlayerFinished;
     internal Dictionary<Player, float> PushCooldown;
     public override string Name { get; set; } = "Dead Jump";
     public override string Description { get; set; } = "Jump on fragile platforms";
     public override string Author { get; set; } = "RisottoMan && Redforce";
     public override string CommandName { get; set; } = "glass";
-    private EventHandler _eventHandler { get; set; }
+    private EventHandler EventHandler { get; set; }
 
     public MapInfo MapInfo { get; set; } = new()
     {
@@ -48,53 +44,45 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void RegisterEvents()
     {
-        _eventHandler = new EventHandler(this);
-#if EXILED
-        Exiled.Events.Handlers.Player.TogglingNoClip += _eventHandler.OnTogglingNoClip;
-#else
-        PlayerEvents.TogglingNoclip += _eventHandler.OnTogglingNoClip;
-#endif
+        EventHandler = new EventHandler(this);
+        PlayerEvents.TogglingNoclip += EventHandler.OnTogglingNoClip;
     }
 
     protected override void UnregisterEvents()
     {
-#if EXILED
-        Exiled.Events.Handlers.Player.TogglingNoClip -= _eventHandler.OnTogglingNoClip;
-#else
-        PlayerEvents.TogglingNoclip -= _eventHandler.OnTogglingNoClip;
-#endif
-        _eventHandler = null;
+        PlayerEvents.TogglingNoclip -= EventHandler.OnTogglingNoClip;
+
+        EventHandler = null;
     }
 
     protected override void OnStart()
     {
         PushCooldown = new Dictionary<Player, float>();
-        _platforms = new List<GameObject>();
+        _platforms = [];
         _finish = new GameObject();
         _lava = new GameObject();
         _wall = new GameObject();
-        isPlayerFinished = false;
 
         var platformCount = 0;
-        switch (Player.List.Count)
+        switch (Player.ReadyList.Count())
         {
-            case int n when n > 0 && n <= 5:
+            case <= 5 and > 0:
                 platformCount = 3;
                 _matchTimeInSeconds = 30;
                 break;
-            case int n when n > 5 && n <= 15:
+            case <= 15 and > 5:
                 platformCount = 6;
                 _matchTimeInSeconds = 60;
                 break;
-            case int n when n > 15 && n <= 25:
+            case <= 25 and > 15:
                 platformCount = 9;
                 _matchTimeInSeconds = 90;
                 break;
-            case int n when n > 25 && n <= 30:
+            case <= 30 and > 25:
                 platformCount = 12;
                 _matchTimeInSeconds = 120;
                 break;
-            case int n when n > 30:
+            case > 30:
                 platformCount = 15;
                 _matchTimeInSeconds = 150;
                 break;
@@ -133,10 +121,10 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             catch (Exception e)
             {
                 data = new PlatformData(Random.Range(0, 2) == 1, -1);
-                DebugLogger.LogDebug("An error has occured while processing platform data.", LogLevel.Warn, true);
-                DebugLogger.LogDebug(
+                LogManager.Error("An error has occured while processing platform data.");
+                LogManager.Error(
                     $"selector count: {selector.PlatformCount}, selector length: {selector.PlatformData.Count}, specified count: {platformCount}, [i: {i}]");
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"{e}");
             }
 
             // Creating a platform by copying the parent
@@ -156,11 +144,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _finish.transform.position = (platform.transform.position + platform1.transform.position) / 2f +
                                      delta * (platformCount + 2);
 
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = _spawnpoints.transform.position;
@@ -171,14 +155,14 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         for (var time = 15; time > 0; time--)
         {
-            Extensions.Broadcast($"<size=100><color=red>{time}</color></size>", 1);
+            Extensions.ServerBroadcast($"<size=100><color=red>{time}</color></size>", 1);
             yield return Timing.WaitForSeconds(1f);
         }
     }
 
     protected override void CountdownFinished()
     {
-        GameObject.Destroy(_wall);
+        Object.Destroy(_wall);
     }
 
     protected override bool IsRoundDone()
@@ -188,7 +172,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         // At least one player is not on the platform.
 
         var playerNotOnPlatform = false;
-        foreach (var ply in Player.List.Where(ply => ply.IsAlive))
+        foreach (var ply in Player.ReadyList.Where(ply => ply.IsAlive))
             if (Vector3.Distance(_finish.transform.position, ply.Position) >= 4)
             {
                 playerNotOnPlatform = true;
@@ -196,67 +180,45 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             }
 
         return !(EventTime.TotalSeconds < _matchTimeInSeconds &&
-                 Player.List.Count(r => r.IsAlive) > 0 && playerNotOnPlatform);
+                 Player.ReadyList.Count(r => r.IsAlive) > 0 && playerNotOnPlatform);
     }
 
     protected override void ProcessFrame()
     {
         _remaining -= TimeSpan.FromSeconds(FrameDelayInSeconds);
         var text = Translation.Start;
-        text = text.Replace("{plyAlive}", Player.List.Count(r => r.IsAlive).ToString());
+        text = text.Replace("{plyAlive}", Player.ReadyList.Count(r => r.IsAlive).ToString());
         text = text.Replace("{time}", $"{_remaining.Minutes:00}:{_remaining.Seconds:00}");
 
         foreach (var key in PushCooldown.Keys.ToList())
             if (PushCooldown[key] > 0)
                 PushCooldown[key] -= FrameDelayInSeconds;
 
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
-#if EXILED
-            if (Config.IsEnablePush)
-                player.ShowHint(Translation.Push, 1);
-
-            player.ClearBroadcasts();
-            player.Broadcast(1, text);
-#else
             if (Config.IsEnablePush)
                 player.SendHint(Translation.Push, 1);
 
-            player.ClearBroadcasts();
-            player.SendBroadcast(text, 1);
-#endif
+            player.Broadcast(text, 1);
         }
     }
 
     protected override void OnFinished()
     {
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
             if (Vector3.Distance(player.Position, _finish.transform.position) >= 10)
-            {
-#if EXILED
-                player.Hurt(500, Translation.Died);
-#else
                 player.Damage(500, Translation.Died);
-#endif
-            }
 
-        var count = Player.List.Count(r => r.IsAlive);
+        var count = Player.ReadyList.Count(r => r.IsAlive);
         if (count > 1)
-            Extensions.Broadcast(
-                Translation.WinSurvived.Replace("{plyAlive}", Player.List.Count(r => r.IsAlive).ToString()), 3);
+            Extensions.ServerBroadcast(
+                Translation.WinSurvived.Replace("{plyAlive}", Player.ReadyList.Count(r => r.IsAlive).ToString()), 3);
         else if (count == 1)
-            Extensions.Broadcast(Translation.Winner.Replace("{winner}", Player.List.First(r => r.IsAlive).Nickname),
+            Extensions.ServerBroadcast(
+                Translation.Winner.Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname),
                 10);
         else
-            Extensions.Broadcast(Translation.Fail, 10);
+            Extensions.ServerBroadcast(Translation.Fail, 10);
     }
 
     protected override void OnCleanup()

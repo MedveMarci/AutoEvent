@@ -3,7 +3,7 @@ using AutoEvent.Events.EventArgs;
 
 namespace AutoEvent.Events;
 
-public class Handlers
+public abstract class Handlers
 {
     public static event Action<Scp018CollisionArgs> Scp018Collision;
     public static event Action<Scp018UpdateArgs> Scp018Update;

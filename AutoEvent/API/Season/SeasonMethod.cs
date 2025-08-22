@@ -3,18 +3,18 @@ using AutoEvent.API.Season.Enum;
 
 namespace AutoEvent.API.Season;
 
-public class SeasonMethod
+public abstract class SeasonMethod
 {
     /// <summary>
     ///     Current style
     /// </summary>
-    private static SeasonStyle _curStyle { get; set; }
+    private static SeasonStyle CurStyle { get; set; }
 
     /// <summary>
     ///     All styles are located here
     /// </summary>
-    private static SeasonStyle[] _styles { get; } =
-    {
+    private static SeasonStyle[] Styles { get; } =
+    [
         new()
         {
             Text = "<size=80><color=#42aaff><b>🎄 MERRY CHRISTMAS 🎄</b></color></size>",
@@ -95,7 +95,7 @@ public class SeasonMethod
             FirstDate = new DateTime(2024, 12, 25),
             LastDate = new DateTime(2024, 12, 31)
         }
-    };
+    ];
 
     /// <summary>
     ///     Get today's festive style
@@ -103,13 +103,13 @@ public class SeasonMethod
     /// <returns></returns>
     public static SeasonStyle GetSeasonStyle()
     {
-        if (_curStyle is not null)
-            return _curStyle;
+        if (CurStyle is not null)
+            return CurStyle;
 
         SeasonStyle style = null;
         var curDate = new DateTime(2024, DateTime.Now.Month, DateTime.Now.Day);
 
-        foreach (var item in _styles)
+        foreach (var item in Styles)
             if (item.FirstDate <= curDate && curDate <= item.LastDate)
                 style = item;
 
@@ -119,7 +119,7 @@ public class SeasonMethod
             SeasonFlag = 0
         };
 
-        _curStyle = style;
+        CurStyle = style;
         return style;
     }
 }

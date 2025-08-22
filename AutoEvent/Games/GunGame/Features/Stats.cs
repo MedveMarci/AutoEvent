@@ -8,8 +8,8 @@ public class Stats
 
     public Stats(int kills)
     {
-        kill = kills;
+        Kill = kills;
     }
 
-    public int kill { get; set; }
+    public int Kill { get; set; }
 }

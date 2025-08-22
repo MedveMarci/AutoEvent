@@ -2,11 +2,6 @@
 using System.ComponentModel;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-
-#else
-#endif
 
 namespace AutoEvent.API;
 
@@ -39,11 +34,7 @@ public class Loadout
     public List<ItemType> Items { get; set; } = default;
 
     [Description("A list of effects the player will spawn with.")]
-#if EXILED
-    public List<Effect> Effects { get; set; } = default;
-#else
     public List<EffectData> Effects { get; set; } = default;
-#endif
 
     [Description("The size of this class. One is normal.")]
     public Vector3 Size { get; set; } = Vector3.one;
@@ -60,11 +51,9 @@ public enum AmmoMode
     InfiniteAmmo = 2
 }
 
-#if LABAPI
 public class EffectData
 {
     public string Type { get; set; }
     public float Duration { get; set; }
     public byte Intensity { get; set; }
 }
-#endif

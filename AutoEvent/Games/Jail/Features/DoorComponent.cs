@@ -1,37 +1,37 @@
 ﻿using UnityEngine;
 
+namespace AutoEvent.Games.Jail;
+
 public class DoorComponent : MonoBehaviour
 {
-    private Transform doorTransform;
-    private bool isOpen;
-    private float openTime = 2f;
+    private Transform _doorTransform;
+    private bool _isOpen;
+    private float _openTime = 2f;
 
     private void Start()
     {
-        doorTransform = transform;
-        isOpen = false;
+        _doorTransform = transform;
+        _isOpen = false;
     }
 
     private void Update()
     {
-        if (isOpen)
+        if (!_isOpen) return;
+        if (_openTime <= 0)
         {
-            if (openTime <= 0)
-            {
-                doorTransform.position += new Vector3(0f, -4f, 0f);
-                isOpen = false;
-            }
-            else
-            {
-                openTime -= Time.deltaTime;
-            }
+            _doorTransform.position += new Vector3(0f, -4f, 0f);
+            _isOpen = false;
+        }
+        else
+        {
+            _openTime -= Time.deltaTime;
         }
     }
 
     public void Open()
     {
-        doorTransform.position += new Vector3(0f, 4f, 0f);
-        isOpen = true;
-        openTime = 2f;
+        _doorTransform.position += new Vector3(0f, 4f, 0f);
+        _isOpen = true;
+        _openTime = 2f;
     }
 }

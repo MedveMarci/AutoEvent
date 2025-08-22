@@ -3,14 +3,9 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
+using CustomPlayerEffects;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
-using CustomPlayerEffects;
-#endif
 
 namespace AutoEvent.Games.HideAndSeek;
 
@@ -18,16 +13,14 @@ public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
+        AvailableMaps ??= [];
 
-        if (AvailableMaps.Count < 1)
-        {
-            AvailableMaps.Add(new MapChance(50, new MapInfo("HideAndSeek", new Vector3(0, 30, 30))));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("HideAndSeek_Xmas2024", new Vector3(0, 30, 30)),
-                SeasonFlags.Christmas));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("HideAndSeek_Halloween2024", new Vector3(0, 30, 30)),
-                SeasonFlags.Halloween));
-        }
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance(50, new MapInfo("HideAndSeek", new Vector3(0, 30, 30))));
+        AvailableMaps.Add(new MapChance(50, new MapInfo("HideAndSeek_Xmas2024", new Vector3(0, 30, 30)),
+            SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance(50, new MapInfo("HideAndSeek_Halloween2024", new Vector3(0, 30, 30)),
+            SeasonFlags.Halloween));
     }
 
     [Description(
@@ -54,49 +47,33 @@ public class Config : EventConfig
     public bool JailbirdCanCharge { get; set; } = false;
 
     [Description("A list of loadouts players can get.")]
-    public List<Loadout> PlayerLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> PlayerLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.ClassD, 100 } },
-#if EXILED
-            Effects = new List<Effect>
-            {
-                new(EffectType.MovementBoost, 0, 50),
-                new(EffectType.FogControl, 0)
-            },
-#else
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 },
                 new EffectData { Type = nameof(MovementBoost), Duration = 0, Intensity = 50 }
             ],
-#endif
             Chance = 100,
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
-    };
+    ];
 
-    public List<Loadout> TaggerLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> TaggerLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.Scientist, 100 } },
-#if EXILED
-            Effects = new List<Effect>
-            {
-                new(EffectType.MovementBoost, 0, 70),
-                new(EffectType.FogControl, 0)
-            },
-#else
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 },
                 new EffectData { Type = nameof(MovementBoost), Duration = 0, Intensity = 70 }
             ],
-#endif
             Chance = 100,
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
-    };
+    ];
 }

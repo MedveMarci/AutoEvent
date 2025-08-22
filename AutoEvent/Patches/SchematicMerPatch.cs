@@ -7,7 +7,7 @@ namespace AutoEvent.Patches;
 [HarmonyPatch(typeof(ProjectMER.ProjectMER), nameof(ProjectMER.ProjectMER.SchematicsDir), MethodType.Getter)]
 public class SchematicMerPatch
 {
-    public static bool Prefix(ref string __result)
+    public static bool Prefix(ref string result)
     {
         var stackTrace = new StackTrace();
         foreach (var frame in stackTrace.GetFrames())
@@ -17,7 +17,7 @@ public class SchematicMerPatch
 
             if (assemblyName.Contains("AutoEvent") && declaringType.Name == "Extensions")
             {
-                __result = Path.Combine(AutoEvent.BaseConfigPath, "Schematics");
+                result = Path.Combine(AutoEvent.BaseConfigPath, "Schematics");
                 return false;
             }
         }

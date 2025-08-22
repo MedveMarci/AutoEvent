@@ -3,91 +3,68 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
-using UnityEngine;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
 using CustomPlayerEffects;
-#endif
+using UnityEngine;
 
-namespace AutoEvent.Games.Battle;
+namespace AutoEvent.Games.Battle.Configs;
 
 public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
+        AvailableMaps ??= [];
 
-        if (AvailableMaps.Count < 1)
-        {
-            AvailableMaps.Add(new MapChance(50, new MapInfo("Battle", new Vector3(0f, 40f, 0f))));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("Battle_Xmas2025", new Vector3(0f, 40f, 0f)),
-                SeasonFlags.Christmas));
-        }
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance(50, new MapInfo("Battle", new Vector3(0f, 40f, 0f))));
+        AvailableMaps.Add(new MapChance(50, new MapInfo("Battle_Xmas2025", new Vector3(0f, 40f, 0f)),
+            SeasonFlags.Christmas));
     }
 
     [Description("A List of Loadouts to use.")]
-    public List<Loadout> Loadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> Loadouts { get; set; } =
+    [
+        new()
         {
             Health = 100,
             Chance = 33,
-            Items = new List<ItemType>
-            {
+            Items =
+            [
                 ItemType.GunE11SR, ItemType.Medkit, ItemType.Medkit,
                 ItemType.ArmorCombat, ItemType.SCP1853, ItemType.Adrenaline
-            },
-#if EXILED
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
+            ],
+
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
             ],
-#endif
-#else
-            Effects =
-            [
-                new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
-            ],
-#endif
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         },
-        new Loadout
+
+        new()
         {
             Health = 115,
             Chance = 33,
-            Items = new List<ItemType>
-            {
+            Items =
+            [
                 ItemType.GunShotgun, ItemType.Medkit, ItemType.Medkit,
                 ItemType.Medkit, ItemType.Medkit, ItemType.Medkit,
                 ItemType.ArmorCombat, ItemType.SCP500
-            },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
-            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 0, Duration = 0 }],
-#endif
+            ],
+            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }],
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         },
-        new Loadout
+
+        new()
         {
             Health = 200,
             Chance = 33,
-            Items = new List<ItemType>
-            {
+            Items =
+            [
                 ItemType.GunLogicer, ItemType.ArmorHeavy, ItemType.SCP500,
                 ItemType.SCP500, ItemType.SCP1853, ItemType.Medkit
-            },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
-            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 0, Duration = 0 }],
-#endif
+            ],
+            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }],
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
-    };
+    ];
 }

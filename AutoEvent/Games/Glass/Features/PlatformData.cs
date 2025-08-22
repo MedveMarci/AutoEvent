@@ -1,13 +1,7 @@
 ﻿namespace AutoEvent.Games.Glass.Features;
 
-public struct PlatformData
+public struct PlatformData(bool leftSideIsDangerous, int placement)
 {
-    public PlatformData(bool leftSideIsDangerous, int placement)
-    {
-        LeftSideIsDangerous = leftSideIsDangerous;
-        Placement = placement;
-    }
-
-    public int Placement { get; set; }
-    public bool LeftSideIsDangerous { get; set; }
+    public int Placement { get; set; } = placement;
+    public bool LeftSideIsDangerous { get; set; } = leftSideIsDangerous;
 }

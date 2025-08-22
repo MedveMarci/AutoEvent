@@ -3,30 +3,23 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
+using CustomPlayerEffects;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
-using CustomPlayerEffects;
-#endif
 
-namespace AutoEvent.Games.Airstrike;
+namespace AutoEvent.Games.Airstrike.Configs;
 
 [Description("Be aware that this plugin can cause lag if not carefully balanaced.")]
 public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
+        AvailableMaps ??= [];
 
-        if (AvailableMaps.Count < 1)
-        {
-            AvailableMaps.Add(new MapChance(50, new MapInfo("DeathParty", new Vector3(0f, 40f, 0f))));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("DeathParty_Xmas2024", new Vector3(0f, 40f, 0f)),
-                SeasonFlags.Christmas));
-        }
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance(50, new MapInfo("DeathParty", new Vector3(0f, 40f, 0f))));
+        AvailableMaps.Add(new MapChance(50, new MapInfo("DeathParty_Xmas2024", new Vector3(0f, 40f, 0f)),
+            SeasonFlags.Christmas));
     }
 
     [Description("Should grenades spawn on top of randomly chosen players. This will not apply on the last round.")]
@@ -43,36 +36,28 @@ public class Config : EventConfig
     public bool LastPlayerAliveWins { get; set; } = true;
 
     [Description("A list of loadouts.")]
-    public List<Loadout> Loadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> Loadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int>
             {
                 { RoleTypeId.ClassD, 100 }
             },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) }
-#else
-            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 0, Duration = 0 }]
-#endif
+            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }]
         }
-    };
+    ];
 
     [Description("A list of failure loadouts.")]
-    public List<Loadout> FailureLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> FailureLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int>
             {
                 { RoleTypeId.ChaosConscript, 100 }
             },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) }
-#else
-            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 0, Duration = 0 }]
-#endif
+            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }]
         }
-    };
+    ];
 }

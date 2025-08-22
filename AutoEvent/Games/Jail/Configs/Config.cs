@@ -2,13 +2,8 @@
 using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.Interfaces;
-using PlayerRoles;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
 using CustomPlayerEffects;
-#endif
+using PlayerRoles;
 
 namespace AutoEvent.Games.Jail;
 
@@ -21,82 +16,75 @@ public class Config : EventConfig
     public RoleCount JailorRoleCount { get; set; } = new(1, 4, 15f);
 
     [Description("A list of loadouts for the jailors.")]
-    public List<Loadout> JailorLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> JailorLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.NtfCaptain, 100 } },
-            Items = new List<ItemType>
-            {
+            Items =
+            [
                 ItemType.GunE11SR,
                 ItemType.GunCOM18
-            },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
+            ],
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
-            ],
-#endif
+            ]
         }
-    };
+    ];
 
     [Description("A list of loadouts for the prisoners.")]
-    public List<Loadout> PrisonerLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> PrisonerLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int>
             {
                 { RoleTypeId.ClassD, 100 }
             },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
             ],
-#endif
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
-    };
+    ];
 
     [Description("What loadouts each locker can give.")]
-    public List<Loadout> WeaponLockerLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> WeaponLockerLoadouts { get; set; } =
+    [
+        new()
         {
             InfiniteAmmo = AmmoMode.InfiniteAmmo,
-            Items = new List<ItemType>
-            {
+            Items =
+            [
                 ItemType.GunE11SR,
                 ItemType.GunCOM15
-            }
+            ]
         },
-        new Loadout
+
+        new()
         {
             InfiniteAmmo = AmmoMode.InfiniteAmmo,
-            Items = new List<ItemType>
-            {
+            Items =
+            [
                 ItemType.GunCrossvec,
                 ItemType.GunRevolver
-            }
+            ]
         }
-    };
+    ];
 
-    public List<Loadout> MedicalLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> MedicalLoadouts { get; set; } =
+    [
+        new()
         {
             Health = 100
         }
-    };
+    ];
 
-    public List<Loadout> AdrenalineLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> AdrenalineLoadouts { get; set; } =
+    [
+        new()
         {
             ArtificialHealth = new ArtificialHealth
             {
@@ -108,5 +96,5 @@ public class Config : EventConfig
                 Duration = 0
             }
         }
-    };
+    ];
 }

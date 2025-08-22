@@ -1,6 +1,6 @@
 ﻿using AutoEvent.Interfaces;
 
-namespace AutoEvent.Games.AllDeathmatch;
+namespace AutoEvent.Games.AllDeathmatch.Configs;
 
 public class Translation : EventTranslation
 {

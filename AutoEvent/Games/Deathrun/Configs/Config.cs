@@ -3,14 +3,9 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
+using CustomPlayerEffects;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
-using CustomPlayerEffects;
-#endif
 
 namespace AutoEvent.Games.Deathrun;
 
@@ -18,7 +13,7 @@ public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
+        if (AvailableMaps is null) AvailableMaps = [];
 
         if (AvailableMaps.Count < 1)
         {
@@ -35,79 +30,55 @@ public class Config : EventConfig
     public int SecondLifeInSeconds { get; set; } = 15;
 
     [Description("Loadouts of run-guys")]
-    public List<Loadout> PlayerLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> PlayerLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.ClassD, 100 } },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
+
             Effects = [new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }],
-#endif
+
             Chance = 100,
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
-    };
+    ];
 
     [Description("Loadouts of death-guys")]
-    public List<Loadout> DeathLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> DeathLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.Scientist, 100 } },
 
-#if EXILED
-            Effects = new List<Effect>
-            {
-                new() { Type = EffectType.MovementBoost, Intensity = 50 },
-                new() { Type = EffectType.FogControl, Intensity = 1 }
-            },
-#else
-            Effects = new List<EffectData>
-            {
-                new() { Type = nameof(MovementBoost), Intensity = 50, Duration = 0 },
-                new() { Type = nameof(FogControl), Intensity = 1, Duration = 0 }
-            },
-#endif
+
+            Effects =
+            [
+                new EffectData { Type = nameof(MovementBoost), Intensity = 50, Duration = 0 },
+                new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }
+            ],
+
             Chance = 100
         }
-    };
+    ];
 
     [Description("Weapon loadouts for finish")]
-    public List<Loadout> WeaponLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> WeaponLoadouts { get; set; } =
+    [
+        new()
         {
-            Items = new List<ItemType> { ItemType.GunE11SR, ItemType.Jailbird },
-#if EXILED
-            Effects = new List<Effect>
-            {
-                new() { Type = EffectType.MovementBoost, Intensity = 50 }
-            },
-#else
-            Effects = new List<EffectData>
-            {
-                new() { Type = nameof(MovementBoost), Intensity = 50, Duration = 0 }
-            },
-#endif
+            Items = [ItemType.GunE11SR, ItemType.Jailbird],
+            Effects = [new EffectData { Type = nameof(MovementBoost), Intensity = 50, Duration = 0 }],
+
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
-    };
+    ];
 
     [Description("Poison loadouts")]
-    public List<Loadout> PoisonLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> PoisonLoadouts { get; set; } =
+    [
+        new()
         {
-#if EXILED
-            Effects = new List<Effect>
-            {
-                new() { Type = EffectType.CardiacArrest, Intensity = 1, Duration = 15 }
-            },
-#else
-            Effects = [new EffectData { Type = nameof(CardiacArrest), Intensity = 1, Duration = 15 }],
-#endif
+            Effects = [new EffectData { Type = nameof(CardiacArrest), Intensity = 1, Duration = 15 }]
         }
-    };
+    ];
 }

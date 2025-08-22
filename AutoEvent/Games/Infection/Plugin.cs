@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.API;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
 using InventorySystem;
 using InventorySystem.Items.MarshmallowMan;
+using LabApi.Events.Handlers;
+using LabApi.Features.Wrappers;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-#else
-using LabApi.Events.Handlers;
-using LabApi.Features.Wrappers;
-#endif
 
 namespace AutoEvent.Games.Infection;
 
-public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private int _overtime = 30;
     internal List<GameObject> SpawnList;
@@ -25,7 +22,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     public override string Description { get; set; } = "Zombie mode, the purpose of which is to infect all players";
     public override string Author { get; set; } = "RisottoMan";
     public override string CommandName { get; set; } = "zombie";
-    private EventHandler _eventHandler { get; set; }
+    private EventHandler EventHandler { get; set; }
     public bool IsChristmasUpdate { get; set; }
     public bool IsHalloweenUpdate { get; set; }
 
@@ -43,30 +40,18 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void RegisterEvents()
     {
-        _eventHandler = new EventHandler(this);
-#if EXILED
-        Exiled.Events.Handlers.Player.Hurting += _eventHandler.OnHurting;
-        Exiled.Events.Handlers.Player.Joined += _eventHandler.OnJoined;
-        Exiled.Events.Handlers.Player.Died += _eventHandler.OnDied;
-#else
-        PlayerEvents.Hurting += _eventHandler.OnHurting;
-        PlayerEvents.Joined += _eventHandler.OnJoined;
-        PlayerEvents.Death += _eventHandler.OnDied;
-#endif
+        EventHandler = new EventHandler(this);
+        PlayerEvents.Hurting += EventHandler.OnHurting;
+        PlayerEvents.Joined += EventHandler.OnJoined;
+        PlayerEvents.Death += EventHandler.OnDied;
     }
 
     protected override void UnregisterEvents()
     {
-#if EXILED
-        Exiled.Events.Handlers.Player.Hurting -= _eventHandler.OnHurting;
-        Exiled.Events.Handlers.Player.Joined -= _eventHandler.OnJoined;
-        Exiled.Events.Handlers.Player.Died -= _eventHandler.OnDied;
-#else
-        PlayerEvents.Hurting -= _eventHandler.OnHurting;
-        PlayerEvents.Joined -= _eventHandler.OnJoined;
-        PlayerEvents.Death -= _eventHandler.OnDied;
-#endif
-        _eventHandler = null;
+        PlayerEvents.Hurting -= EventHandler.OnHurting;
+        PlayerEvents.Joined -= EventHandler.OnJoined;
+        PlayerEvents.Death -= EventHandler.OnDied;
+        EventHandler = null;
     }
 
     protected override void OnStart()
@@ -89,24 +74,12 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
 
         SpawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint").ToList();
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             if (IsChristmasUpdate && Enum.TryParse("Flamingo", out RoleTypeId roleTypeId))
-            {
-#if EXILED
-                player.Role.Set(roleTypeId, RoleSpawnFlags.None);
-#else
                 player.SetRole(roleTypeId, flags: RoleSpawnFlags.None);
-#endif
-            }
             else
-            {
                 player.GiveLoadout(Config.PlayerLoadouts);
-            }
 
             player.Position = SpawnList.RandomItem().transform.position;
         }
@@ -116,32 +89,25 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         for (float time = 15; time > 0; time--)
         {
-            Extensions.Broadcast(Translation.Start.Replace("{name}", Name).Replace("{time}", time.ToString("00")), 1);
+            Extensions.ServerBroadcast(Translation.Start.Replace("{name}", Name).Replace("{time}", time.ToString("00")),
+                1);
             yield return Timing.WaitForSeconds(1f);
         }
     }
 
     protected override void CountdownFinished()
     {
-        var player = Player.List.ToList().RandomItem();
+        var player = Player.ReadyList.ToList().RandomItem();
 
         if (IsHalloweenUpdate)
         {
-#if EXILED
-            player.Role.Set(RoleTypeId.Scientist, RoleSpawnFlags.None);
-#else
             player.SetRole(RoleTypeId.Scientist, flags: RoleSpawnFlags.None);
-#endif
             player.EnableEffect<MarshmallowEffect>();
             player.IsGodModeEnabled = true;
         }
         else if (IsChristmasUpdate && Enum.TryParse("ZombieFlamingo", out RoleTypeId roleTypeId))
         {
-#if EXILED
-            player.Role.Set(roleTypeId, RoleSpawnFlags.None);
-#else
             player.SetRole(roleTypeId, flags: RoleSpawnFlags.None);
-#endif
         }
         else
         {
@@ -159,14 +125,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             //nothing
         }
 
-#if EXILED
-        if (Player.List.Count(r => r.Role.Type == roleType) > 0 && _overtime > 0)
-#else
-        if (Player.ReadyList.Count(r => r.Role == roleType) > 0 && _overtime > 0)
-#endif
-            return false;
-
-        return true;
+        return Player.ReadyList.Count(r => r.Role == roleType) <= 0 || _overtime <= 0;
     }
 
     protected override void ProcessFrame()
@@ -179,17 +138,17 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             //nothing
         }
 
-        var count = Player.List.Count(r => r.Role == roleType);
+        var count = Player.ReadyList.Count(r => r.Role == roleType);
         if (count > 1)
         {
-            Extensions.Broadcast(
+            Extensions.ServerBroadcast(
                 Translation.Cycle.Replace("{name}", Name).Replace("{count}", count.ToString()).Replace("{time}", time),
                 1);
         }
         else if (count == 1)
         {
             _overtime--;
-            Extensions.Broadcast(Translation.ExtraTime
+            Extensions.ServerBroadcast(Translation.ExtraTime
                 .Replace("{extratime}", _overtime.ToString("00"))
                 .Replace("{time}", $"{time}"), 1);
         }
@@ -203,11 +162,10 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             //nothing
         }
 
-        if (Player.List.Count(r => r.Role == roleType) == 0)
-            Extensions.Broadcast(Translation.Win.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"),
-                10);
-        else
-            Extensions.Broadcast(Translation.Lose.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"),
-                10);
+        Extensions.ServerBroadcast(
+            Player.ReadyList.Count(r => r.Role == roleType) == 0
+                ? Translation.Win.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}")
+                : Translation.Lose.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"),
+            10);
     }
 }

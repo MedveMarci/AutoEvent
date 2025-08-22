@@ -61,7 +61,7 @@
 
 ![image](https://github.com/user-attachments/assets/469eab25-2f94-4414-87dc-7402a5068aaf)
 
-- Unzip *``Schematics.tar.gz``* to ``EXILED/Configs/AutoEvent/Schematics`` or if you're using the LabApi version ``LabApi/configs/AutoEvent/Schematics`` folder.
+- Unzip *``Schematics.tar.gz``* to ``LabApi/configs/AutoEvent/Schematics`` folder.
 
 ![image](https://github.com/user-attachments/assets/1797ee0b-ed3d-42a5-9fea-546bdf8bca12)
 
@@ -107,4 +107,3 @@ their respective config options.
 - Method 2 - Debug File Logging (`auto_log_debug`):
     - Debug file logging stores all errors to a debug file in the base autoevent directory.
         - For LabApi: `~/.config/SCP Secret Laboratory/LabApi/configs/AutoEvent/debug-output.log`
-        - For Exiled: `~/.config/EXILED/Configs/AutoEvent/debug-output.log`

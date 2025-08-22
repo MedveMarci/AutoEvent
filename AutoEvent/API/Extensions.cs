@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AutoEvent.API;
 using AutoEvent.API.Enums;
+using Footprinting;
+using InventorySystem;
+using InventorySystem.Items.Firearms;
 using InventorySystem.Items.Pickups;
+using InventorySystem.Items.ThrowableProjectiles;
+using LabApi.Features.Wrappers;
 using Mirror;
 using PlayerRoles;
 using PlayerRoles.Ragdolls;
@@ -12,26 +16,12 @@ using PlayerStatsSystem;
 using ProjectMER.Features;
 using ProjectMER.Features.Serializable;
 using UnityEngine;
-using JailbirdItem = InventorySystem.Items.Jailbird.JailbirdItem;
 using Object = UnityEngine.Object;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
 using Random = UnityEngine.Random;
+using ThrowableItem = InventorySystem.Items.ThrowableProjectiles.ThrowableItem;
 
-#if EXILED
-using Player = Exiled.API.Features.Player;
-using Item = Exiled.API.Features.Items.Item;
-using Map = Exiled.API.Features.Map;
-using Exiled.API.Enums;
-using Exiled.API.Extensions;
-using Exiled.API.Features.Items;
-
-#else
-using InventorySystem.Items.Firearms;
-using CustomPlayerEffects;
-using LabApi.Features.Wrappers;
-#endif
-
-namespace AutoEvent;
+namespace AutoEvent.API;
 
 public static class Extensions
 {
@@ -42,9 +32,8 @@ public static class Extensions
         HasAllItems
     }
 
-    public static Dictionary<Player, AmmoMode> InfiniteAmmoList = new();
-    public static bool JailbirdIsInvincible { get; set; } = true;
-    public static List<JailbirdItem> InvincibleJailbirds { get; set; } = new();
+    public static readonly Dictionary<string, AmmoMode> InfiniteAmmoList = new();
+    public static readonly List<string> InfinityStaminaList = [];
 
     public static bool HasLoadout(this Player ply, List<Loadout> loadouts,
         LoadoutCheckMethods checkMethod = LoadoutCheckMethods.HasRole)
@@ -92,7 +81,6 @@ public static class Extensions
 
     public static void GiveLoadout(this Player player, Loadout loadout, LoadoutFlags flags = LoadoutFlags.None)
     {
-        var role = RoleTypeId.None;
         var respawnFlags = RoleSpawnFlags.None;
         if (loadout.Roles is not null && loadout.Roles.Count > 0 && !flags.HasFlag(LoadoutFlags.IgnoreRole))
         {
@@ -101,6 +89,7 @@ public static class Extensions
             if (flags.HasFlag(LoadoutFlags.DontClearDefaultItems))
                 respawnFlags |= RoleSpawnFlags.AssignInventory;
 
+            RoleTypeId role;
             if (loadout.Roles.Count == 1)
             {
                 role = loadout.Roles.First().Key;
@@ -122,16 +111,12 @@ public static class Extensions
             assignRole:
             if (AutoEvent.Singleton.Config.IgnoredRoles.Contains(role))
             {
-                DebugLogger.LogDebug(
-                    "AutoEvent is trying to set a player to a role that is apart of IgnoreRoles. This is probably an error. The plugin will instead set players to the lobby role to prevent issues.",
-                    LogLevel.Error, true);
+                LogManager.Warn(
+                    "AutoEvent is trying to set a player to a role that is apart of IgnoreRoles. This is probably an error. The plugin will instead set players to the lobby role to prevent issues.");
                 role = AutoEvent.Singleton.Config.LobbyRole;
             }
-#if EXILED
-            player.Role.Set(role, respawnFlags);
-#else
+
             player.SetRole(role, flags: respawnFlags);
-#endif
         }
 
         if (!flags.HasFlag(LoadoutFlags.DontClearDefaultItems)) player.ClearInventory();
@@ -139,11 +124,7 @@ public static class Extensions
         if (loadout.Items is not null && loadout.Items.Count > 0 && !flags.HasFlag(LoadoutFlags.IgnoreItems))
             foreach (var item in loadout.Items)
             {
-#if EXILED
-                if (flags.HasFlag(LoadoutFlags.IgnoreWeapons) && item.IsWeapon())
-#else
                 if (flags.HasFlag(LoadoutFlags.IgnoreWeapons) && item is Firearm)
-#endif
                     continue;
 
                 player.AddItem(item);
@@ -157,7 +138,7 @@ public static class Extensions
         if (loadout.Health == -1 && !flags.HasFlag(LoadoutFlags.IgnoreGodMode)) player.IsGodModeEnabled = true;
 
         if (loadout.ArtificialHealth is not null && loadout.ArtificialHealth.MaxAmount > 0 &&
-            !flags.HasFlag(LoadoutFlags.IgnoreAHP)) loadout.ArtificialHealth.ApplyToPlayer(player);
+            !flags.HasFlag(LoadoutFlags.IgnoreAhp)) loadout.ArtificialHealth.ApplyToPlayer(player);
 
         if (!flags.HasFlag(LoadoutFlags.IgnoreStamina) && loadout.Stamina != 0)
         {
@@ -165,54 +146,28 @@ public static class Extensions
         }
         else
         {
-#if EXILED
-            player.IsUsingStamina = false;
-#else
-            player.EnableEffect<Invigorated>();
-#endif
+            if (!InfinityStaminaList.Contains(player.UserId))
+                InfinityStaminaList.Add(player.UserId);
         }
 
         if (loadout.Size != Vector3.one && !flags.HasFlag(LoadoutFlags.IgnoreSize)) player.Scale = loadout.Size;
 
-        if (loadout.Effects is not null && loadout.Effects.Count > 0 && !flags.HasFlag(LoadoutFlags.IgnoreEffects))
-            foreach (var effect in loadout.Effects)
-            {
-#if EXILED
-                player.EnableEffect(effect.Type, effect.Intensity, effect.Duration);
-#else
-                var effectType = Type.GetType($"CustomPlayerEffects.{effect}");
-                if (effectType != null && typeof(StatusEffectBase).IsAssignableFrom(effectType))
-                    player.EnableEffect((StatusEffectBase)Activator.CreateInstance(effectType), effect.Intensity,
-                        effect.Duration);
-#endif
-            }
-    }
-
-    public static void SetPlayerAhp(this Player player, float amount, float limit = 75, float decay = 1.2f,
-        float efficacy = 0.7f, float sustain = 0, bool persistant = false)
-    {
-        if (amount > 100) amount = 100;
-
-        player.ReferenceHub.playerStats.GetModule<AhpStat>()
-            .ServerAddProcess(amount, limit, decay, efficacy, sustain, persistant);
+        if (loadout.Effects is null || loadout.Effects.Count <= 0 || flags.HasFlag(LoadoutFlags.IgnoreEffects)) return;
+        foreach (var effect in loadout.Effects)
+        {
+            if (!player.TryGetEffect(effect.Type, out var customEffect)) continue;
+            customEffect.Intensity = effect.Intensity;
+            customEffect.Duration = effect.Duration;
+        }
     }
 
     public static void GiveInfiniteAmmo(this Player player, AmmoMode ammoMode)
     {
         if (ammoMode == AmmoMode.None)
-            if (InfiniteAmmoList is null || InfiniteAmmoList.Count < 1 || !InfiniteAmmoList.Remove(player))
+            if (InfiniteAmmoList is null || InfiniteAmmoList.Count < 1 || !InfiniteAmmoList.Remove(player.UserId))
                 return;
 
-        InfiniteAmmoList[player] = ammoMode;
-#if EXILED
-        foreach (AmmoType ammoType in Enum.GetValues(typeof(AmmoType)))
-        {
-            if (ammoType == AmmoType.None)
-                continue;
-
-            player.SetAmmo(ammoType, 100);
-        }
-#else
+        InfiniteAmmoList[player.UserId] = ammoMode;
         foreach (ItemType ammoType in Enum.GetValues(typeof(ItemType)))
         {
             if (ammoType == ItemType.None)
@@ -223,24 +178,18 @@ public static class Extensions
 
             player.SetAmmo(ammoType, 100);
         }
-#endif
     }
 
     public static void TeleportEnd()
     {
-#if EXILED
-        foreach (var player in Player.List)
-        {
-            player.Role.Set(AutoEvent.Singleton.Config.LobbyRole);
-#else
         foreach (var player in Player.ReadyList)
         {
             player.SetRole(AutoEvent.Singleton.Config.LobbyRole);
-#endif
             player.GiveInfiniteAmmo(AmmoMode.None);
             player.IsGodModeEnabled = false;
             player.Scale = new Vector3(1, 1, 1);
             player.Position = new Vector3(39.332f, 314.112f, -31.922f);
+            InfinityStaminaList.Remove(player.UserId);
             player.ClearInventory();
         }
     }
@@ -249,25 +198,16 @@ public static class Extensions
     {
         try
         {
-            if (MapUtils.GetSchematicDataByName(schematicName) is null)
-            {
-                // Map is not installed for ProjectMER
-                response = $"You need to download the map {schematicName} to run this mini-game.\n" +
-                           $"Download and install Schematics.tar.gz from the github.";
-                return false;
-            }
-
-            // The latest ProjectMER and Schematics are installed
             response = $"The map {schematicName} exist and can be used.";
             return true;
         }
-        catch (Exception _)
+        catch (Exception)
         {
             // The old version of ProjectMER is installed
             if (AppDomain.CurrentDomain.GetAssemblies().Any(x => x.FullName.ToLower().Contains("projectmer")))
             {
-                response = $"You have installed the old version of 'ProjectMER' and cannot run this mini-game.\n" +
-                           $"Install the latest version of 'ProjectMER'.";
+                response = $"You need to download the map {schematicName} to run this mini-game.\n" +
+                           $"Download and install Schematics.tar.gz from the github.";
                 return false;
             }
         }
@@ -292,8 +232,7 @@ public static class Extensions
         }
         catch (Exception e)
         {
-            DebugLogger.LogDebug("An error occured at LoadMap.", LogLevel.Warn, true);
-            DebugLogger.LogDebug($"{e}");
+            LogManager.Error($"An error occured at LoadMap.\n{e}");
         }
 
         return null;
@@ -321,59 +260,65 @@ public static class Extensions
 
     public static void CleanUpAll()
     {
-        foreach (var item in Object.FindObjectsOfType<ItemPickupBase>()) Object.Destroy(item.gameObject);
+        foreach (var item in Object.FindObjectsByType<ItemPickupBase>(FindObjectsInactive.Exclude,
+                     FindObjectsSortMode.None))
+            Object.Destroy(item.gameObject);
 
-        foreach (var ragdoll in Object.FindObjectsOfType<BasicRagdoll>()) Object.Destroy(ragdoll.gameObject);
+        foreach (var ragdoll in Object.FindObjectsByType<BasicRagdoll>(FindObjectsInactive.Exclude,
+                     FindObjectsSortMode.None))
+            Object.Destroy(ragdoll.gameObject);
     }
 
-    public static void Broadcast(string text, ushort time)
+    public static void ServerBroadcast(string text, ushort time)
     {
-#if EXILED
-        Map.ClearBroadcasts();
-        Map.Broadcast(time, text);
-#else
         Server.ClearBroadcasts();
         Server.SendBroadcast(text, time);
-#endif
     }
+
+    public static void Broadcast(this Player player, string text, ushort time)
+    {
+        player.ClearBroadcasts();
+        player.SendBroadcast(text, time);
+    }
+
 
     public static void GrenadeSpawn(Vector3 pos, float scale = 1f, float fuseTime = 1f, float radius = 1f)
     {
-#if EXILED
-        var grenade = (ExplosiveGrenade)Item.Create(ItemType.GrenadeHE);
-        grenade.Scale = new Vector3(scale, scale, scale);
-        grenade.FuseTime = fuseTime;
-        grenade.MaxRadius = radius;
-        grenade.SpawnActive(pos);
-#else
-        var grenade =
-            Pickup.Create(ItemType.GrenadeHE, pos, Quaternion.identity, new Vector3(scale, scale, scale)) as
-                ExplosiveGrenadeProjectile;
-        if (grenade == null) return;
-        grenade.MaxRadius = radius;
-        grenade.Base._fuseTime = fuseTime;
-        grenade.Spawn();
-#endif
+        if (!InventoryItemLoader.TryGetItem(ItemType.GrenadeHE, out ThrowableItem result))
+            return;
+        if (result.Projectile is not TimeGrenade projectile)
+            return;
+        var timeGrenade = Object.Instantiate(projectile, pos, Quaternion.identity);
+        timeGrenade.Info = new PickupSyncInfo(result.ItemTypeId, result.Weight, locked: true);
+        timeGrenade.PreviousOwner = new Footprint(Player.Host?.ReferenceHub);
+        timeGrenade.gameObject.transform.localScale = new Vector3(scale, scale, scale);
+        NetworkServer.Spawn(timeGrenade.gameObject);
+        var grenadeProjectile = (ExplosiveGrenadeProjectile)Pickup.Get(timeGrenade);
+        grenadeProjectile.RemainingTime = fuseTime;
+        grenadeProjectile.MaxRadius = radius;
+        timeGrenade.ServerActivate();
     }
 
-    public static AudioPlayer PlayAudio(string fileName, byte volume, bool isLoop)
+    public static AudioPlayer PlayAudio(string fileName, byte volume, bool isLoop, bool isSpatial = false,
+        float minDistance = 5f, float maxDistance = 5f)
     {
         if (!AudioClipStorage.AudioClips.ContainsKey(fileName))
         {
             var filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, fileName);
-            DebugLogger.LogDebug($"{filePath}");
+            LogManager.Debug($"[PlayAudio] File path: {filePath}");
             if (!AudioClipStorage.LoadClip(filePath, fileName))
             {
-                DebugLogger.LogDebug($"[PlayAudio] The music file {fileName} was not found for playback");
+                LogManager.Debug($"[PlayAudio] The music file {fileName} was not found for playback");
                 return null;
             }
         }
 
-        var audioPlayer = AudioPlayer.CreateOrGet("AutoEvent-Global", onIntialCreation: p =>
-        {
-            var speaker = p.AddSpeaker($"AutoEvent-Main-{fileName}", isSpatial: false, maxDistance: 5000f);
-            speaker.Volume = volume * (AutoEvent.Singleton.Config.Volume / 100f);
-        });
+        var audioPlayer = AudioPlayer.CreateOrGet("AutoEvent-Global",
+            onIntialCreation: p =>
+            {
+                p.AddSpeaker($"AutoEvent-Main-{fileName}", volume * (AutoEvent.Singleton.Config.Volume / 100f),
+                    isSpatial, minDistance, maxDistance);
+            });
 
         audioPlayer.SendSoundGlobally = true;
         audioPlayer.AddClip(fileName, loop: isLoop);
@@ -383,17 +328,21 @@ public static class Extensions
 
     public static void PlayPlayerAudio(AudioPlayer audioPlayer, Player player, string fileName, byte volume)
     {
-        if (audioPlayer is null) DebugLogger.LogDebug("[PlayPlayerAudio] The AudioPlayer is null");
+        if (audioPlayer is null)
+        {
+            LogManager.Debug("[PlayPlayerAudio] The AudioPlayer is null");
+            return;
+        }
 
-        if (player is null) DebugLogger.LogDebug("[PlayPlayerAudio] The player is null");
+        if (player is null) LogManager.Debug("[PlayPlayerAudio] The player is null");
 
         if (!AudioClipStorage.AudioClips.ContainsKey(fileName))
         {
             var filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, fileName);
-            DebugLogger.LogDebug($"{filePath}");
+            LogManager.Debug($"[PlayPlayerAudio] File path: {filePath}");
             if (!AudioClipStorage.LoadClip(filePath, fileName))
             {
-                DebugLogger.LogDebug($"[PlayPlayerAudio] The music file {fileName} was not found for playback");
+                LogManager.Debug($"[PlayPlayerAudio] The music file {fileName} was not found for playback");
                 return;
             }
         }
@@ -403,45 +352,37 @@ public static class Extensions
 
     public static void PauseAudio(AudioPlayer audioPlayer)
     {
-        if (audioPlayer is null) DebugLogger.LogDebug("[PauseAudio] The AudioPlayer is null");
+        if (audioPlayer is null)
+        {
+            LogManager.Debug("[PauseAudio] The AudioPlayer is null");
+            return;
+        }
 
-        try
-        {
-            var clipId = audioPlayer.ClipsById.Keys.First();
-            if (audioPlayer.TryGetClip(clipId, out var clip)) clip.IsPaused = true;
-        }
-        catch
-        {
-        }
+        var clipId = audioPlayer.ClipsById.Keys.First();
+        if (audioPlayer.TryGetClip(clipId, out var clip)) clip.IsPaused = true;
     }
 
     public static void ResumeAudio(AudioPlayer audioPlayer)
     {
-        if (audioPlayer is null) DebugLogger.LogDebug("[PauseAudio] The AudioPlayer is null");
+        if (audioPlayer is null)
+        {
+            LogManager.Debug("[PauseAudio] The AudioPlayer is null");
+            return;
+        }
 
-        try
-        {
-            var clipId = audioPlayer.ClipsById.Keys.First();
-            if (audioPlayer.TryGetClip(clipId, out var clip)) clip.IsPaused = false;
-        }
-        catch
-        {
-        }
+        var clipId = audioPlayer.ClipsById.Keys.First();
+        if (audioPlayer.TryGetClip(clipId, out var clip)) clip.IsPaused = false;
     }
 
     public static void StopAudio(AudioPlayer audioPlayer)
     {
-        if (audioPlayer is null) DebugLogger.LogDebug("[StopAudio] The AudioPlayer is null");
+        if (audioPlayer is null)
+        {
+            LogManager.Debug("[StopAudio] The AudioPlayer is null");
+            return;
+        }
 
-        try
-        {
-            audioPlayer.RemoveAllClips();
-            audioPlayer.Destroy();
-        }
-        catch (Exception e)
-        {
-            DebugLogger.LogDebug("An error occured at StopAudio.", LogLevel.Warn, true);
-            DebugLogger.LogDebug($"{e}");
-        }
+        audioPlayer.RemoveAllClips();
+        audioPlayer.Destroy();
     }
 }

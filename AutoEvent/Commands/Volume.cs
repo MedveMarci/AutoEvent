@@ -1,13 +1,8 @@
 ﻿using System;
 using AutoEvent.Interfaces;
 using CommandSystem;
-#if EXILED
-using Exiled.API.Features;
-using Exiled.Permissions.Extensions;
-#else
 using LabApi.Features.Console;
 using LabApi.Features.Permissions;
-#endif
 
 namespace AutoEvent.Commands;
 
@@ -21,11 +16,7 @@ public class Volume : ICommand, IUsageProvider
     {
         try
         {
-#if EXILED
-            if (!sender.CheckPermission("ev.volume"))
-#else
             if (!sender.HasPermissions("ev.volume"))
-#endif
             {
                 response = "<color=red>You do not have permission to use this command!</color>";
                 return false;
@@ -59,13 +50,8 @@ public class Volume : ICommand, IUsageProvider
         {
             response =
                 "Could not set the volume due to an error. This could be a bug. Ensure audio is playing while using this command.";
-#if EXILED
-            Log.Warn("An error has occured while trying to set the volume.");
-            Log.Debug($"{e}");
-#else
             Logger.Warn("An error has occured while trying to set the volume.");
             Logger.Debug($"{e}");
-#endif
             return false;
         }
     }

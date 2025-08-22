@@ -1,9 +1,5 @@
 using System.ComponentModel;
-#if EXILED
-using Exiled.API.Features;
-#else
 using LabApi.Features.Wrappers;
-#endif
 
 namespace AutoEvent.API;
 
@@ -48,11 +44,7 @@ public class ArtificialHealth
     {
         if (MaxAmount <= 0)
             return;
-#if EXILED
-        player.AddAhp(InitialAmount, MaxAmount, -1 * RegenerationAmount, AbsorptionPercent / 100f, Duration, Permanent);
-#else
         player.CreateAhpProcess(InitialAmount, MaxAmount, -1 * RegenerationAmount, AbsorptionPercent / 100f, Duration,
             Permanent);
-#endif
     }
 }

@@ -1,21 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.API;
 using AutoEvent.API.Enums;
 using AutoEvent.Games.Football;
 using AutoEvent.Interfaces;
+using LabApi.Events.Handlers;
+using LabApi.Features.Wrappers;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-#else
-using LabApi.Events.Handlers;
-using LabApi.Features.Wrappers;
-#endif
 
 namespace AutoEvent.Games.Jail;
 
-public class Plugin : Event<Config, Translation>, IEventMap
+public abstract class Plugin : Event<Config, Translation>, IEventMap
 {
     private GameObject _ball;
     private List<GameObject> _doors;
@@ -45,28 +42,16 @@ public class Plugin : Event<Config, Translation>, IEventMap
     protected override void RegisterEvents()
     {
         _eventHandler = new EventHandler(this);
-#if EXILED
-        Exiled.Events.Handlers.Player.Shooting += _eventHandler.OnShooting;
-        Exiled.Events.Handlers.Player.Dying += _eventHandler.OnDying;
-        Exiled.Events.Handlers.Player.InteractingLocker += _eventHandler.OnInteractingLocker;
-#else
         PlayerEvents.ShootingWeapon += _eventHandler.OnShooting;
         PlayerEvents.Dying += _eventHandler.OnDying;
         PlayerEvents.InteractingLocker += _eventHandler.OnInteractingLocker;
-#endif
     }
 
     protected override void UnregisterEvents()
     {
-#if EXILED
-        Exiled.Events.Handlers.Player.Shooting -= _eventHandler.OnShooting;
-        Exiled.Events.Handlers.Player.Dying -= _eventHandler.OnDying;
-        Exiled.Events.Handlers.Player.InteractingLocker -= _eventHandler.OnInteractingLocker;
-#else
         PlayerEvents.ShootingWeapon -= _eventHandler.OnShooting;
         PlayerEvents.Dying -= _eventHandler.OnDying;
         PlayerEvents.InteractingLocker -= _eventHandler.OnInteractingLocker;
-#endif
 
         _eventHandler = null;
     }
@@ -74,13 +59,13 @@ public class Plugin : Event<Config, Translation>, IEventMap
     protected override void OnStart()
     {
         Deaths = new Dictionary<Player, int>();
-        SpawnPoints = new List<GameObject>();
-        _doors = new List<GameObject>();
+        SpawnPoints = [];
+        _doors = [];
 
         foreach (var obj in MapInfo.Map.AttachedBlocks)
             switch (obj.name)
             {
-                case string str when str.Contains("Spawnpoint"): SpawnPoints.Add(obj); break;
+                case { } str when str.Contains("Spawnpoint"): SpawnPoints.Add(obj); break;
                 case "Button": Button = obj; break;
                 case "Ball":
                 {
@@ -102,11 +87,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 }
             }
 
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             player.GiveLoadout(Config.PrisonerLoadouts);
             player.Position = SpawnPoints.Where(r => r.name == "Spawnpoint").ToList().RandomItem().transform.position;
@@ -123,35 +104,11 @@ public class Plugin : Event<Config, Translation>, IEventMap
     {
         for (var time = 15; time > 0; time--)
         {
-            #if EXILED
-        foreach (var player in Player.List)
-#else
-        foreach (var player in Player.ReadyList)
-#endif
-            {
-                player.ClearBroadcasts();
-                if (player.HasLoadout(Config.JailorLoadouts))
-                {
-#if EXILED
-                    player.Broadcast(1,
-                        Translation.Start.Replace("{name}", Name).Replace("{time}", time.ToString("00")));
-                }
-                else
-                {
-                    player.Broadcast(1,
-                        Translation.StartPrisoners.Replace("{name}", Name).Replace("{time}", time.ToString("00")));
-                }
-#else
-                    player.SendBroadcast(
-                        Translation.Start.Replace("{name}", Name).Replace("{time}", time.ToString("00")), 1);
-                }
-                else
-                {
-                    player.SendBroadcast(
-                        Translation.StartPrisoners.Replace("{name}", Name).Replace("{time}", time.ToString("00")), 1);
-                }
-#endif
-            }
+            foreach (var player in Player.ReadyList)
+                player.Broadcast(
+                    player.HasLoadout(Config.JailorLoadouts)
+                        ? Translation.Start.Replace("{name}", Name).Replace("{time}", time.ToString("00"))
+                        : Translation.StartPrisoners.Replace("{name}", Name).Replace("{time}", time.ToString("00")), 1);
 
             yield return Timing.WaitForSeconds(1f);
         }
@@ -159,32 +116,18 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
     protected override bool IsRoundDone()
     {
-#if EXILED
-        return !(Player.List.Count(r => r.Role == RoleTypeId.ClassD) > 0 &&
-                 Player.List.Count(r => r.Role.Team == Team.FoundationForces) > 0);
-#else
         return !(Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD) > 0 &&
                  Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces) > 0);
-#endif
     }
 
     protected override void ProcessFrame()
     {
-#if EXILED
-        var dClassCount = Player.List.Count(r => r.Role == RoleTypeId.ClassD).ToString();
-        var mtfCount = Player.List.Count(r => r.Role.Team == Team.FoundationForces).ToString();
-#else
         var dClassCount = Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD).ToString();
         var mtfCount = Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces).ToString();
 
-#endif
         var time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
 
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             foreach (var doorComponent in _doors)
                 if (Vector3.Distance(doorComponent.transform.position, player.Position) < 3)
@@ -197,36 +140,20 @@ public class Plugin : Event<Config, Translation>, IEventMap
             }
 
             player.ClearBroadcasts();
-#if EXILED
-            player.Broadcast(1,
-                Translation.Cycle.Replace("{name}", Name).Replace("{dclasscount}", dClassCount)
-                    .Replace("{mtfcount}", mtfCount).Replace("{time}", time));
-#else
             player.SendBroadcast(
                 Translation.Cycle.Replace("{name}", Name).Replace("{dclasscount}", dClassCount)
                     .Replace("{mtfcount}", mtfCount).Replace("{time}", time), 1);
-#endif
         }
     }
 
     protected override void OnFinished()
     {
-#if EXILED
-        if (Player.List.Count(r => r.Role.Team == Team.FoundationForces) == 0)
-            Extensions.Broadcast(
-                Translation.PrisonersWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"), 10);
-
-        if (Player.List.Count(r => r.Role == RoleTypeId.ClassD) == 0)
-            Extensions.Broadcast(
-                Translation.JailersWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"), 10);
-#else
         if (Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces) == 0)
-            Extensions.Broadcast(
+            Extensions.ServerBroadcast(
                 Translation.PrisonersWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"), 10);
 
         if (Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD) == 0)
-            Extensions.Broadcast(
+            Extensions.ServerBroadcast(
                 Translation.JailersWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"), 10);
-#endif
     }
 }

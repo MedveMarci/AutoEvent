@@ -1,12 +1,9 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using AutoEvent.Loader;
 using CommandSystem;
-#if EXILED
-using Exiled.Permissions.Extensions;
-#else
 using LabApi.Features.Permissions;
-#endif
 
 namespace AutoEvent.Commands;
 
@@ -18,11 +15,7 @@ public class Translations : ICommand, IUsageProvider
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
     {
-#if EXILED
-        if (!sender.CheckPermission("ev.language"))
-#else
         if (!sender.HasPermissions("ev.language"))
-#endif
         {
             response = "<color=red>You do not have permission to use this command!</color>";
             return false;

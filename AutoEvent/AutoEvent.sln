@@ -7,14 +7,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoEvent", "AutoEvent.cspr
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		LabApi|x64 = LabApi|x64
-		Exiled|x64 = Exiled|x64
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3C3FC008-22E1-4B28-BA50-A241B30CC216}.LabApi|x64.ActiveCfg = LabApi|x64
-		{3C3FC008-22E1-4B28-BA50-A241B30CC216}.LabApi|x64.Build.0 = LabApi|x64
-		{3C3FC008-22E1-4B28-BA50-A241B30CC216}.Exiled|x64.ActiveCfg = Exiled|x64
-		{3C3FC008-22E1-4B28-BA50-A241B30CC216}.Exiled|x64.Build.0 = Exiled|x64
+		{3C3FC008-22E1-4B28-BA50-A241B30CC216}.Debug|x64.ActiveCfg = Debug|x64
+		{3C3FC008-22E1-4B28-BA50-A241B30CC216}.Debug|x64.Build.0 = Debug|x64
+		{3C3FC008-22E1-4B28-BA50-A241B30CC216}.Release|x64.ActiveCfg = Release|x64
+		{3C3FC008-22E1-4B28-BA50-A241B30CC216}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,23 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.API;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
+using CustomPlayerEffects;
+using LabApi.Events.Handlers;
+using LabApi.Features.Wrappers;
 using MEC;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-using EffectType = Exiled.API.Enums.EffectType;
-using Exiled.API.Features;
-#else
-using LabApi.Events.Handlers;
-using CustomPlayerEffects;
-using LabApi.Features.Wrappers;
-#endif
 
 namespace AutoEvent.Games.HideAndSeek;
 
-public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private TimeSpan _countdown;
     private EventHandler _eventHandler;
@@ -43,24 +38,14 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void RegisterEvents()
     {
         _eventHandler = new EventHandler(this);
-#if EXILED
-        Exiled.Events.Handlers.Player.Hurting += _eventHandler.OnHurting;
-        Exiled.Events.Handlers.Item.ChargingJailbird += _eventHandler.OnJailbirdCharge;
-#else
         PlayerEvents.Hurting += _eventHandler.OnHurting;
         PlayerEvents.ProcessingJailbirdMessage += _eventHandler.OnJailbirdCharge;
-#endif
     }
 
     protected override void UnregisterEvents()
     {
-#if EXILED
-        Exiled.Events.Handlers.Player.Hurting -= _eventHandler.OnHurting;
-        Exiled.Events.Handlers.Item.ChargingJailbird -= _eventHandler.OnJailbirdCharge;
-#else
         PlayerEvents.Hurting -= _eventHandler.OnHurting;
         PlayerEvents.ProcessingJailbirdMessage -= _eventHandler.OnJailbirdCharge;
-#endif
         _eventHandler = null;
     }
 
@@ -68,11 +53,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _eventState = 0;
         var spawnpoints = MapInfo.Map.AttachedBlocks.Where(x => x.name == "Spawnpoint").ToList();
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             player.GiveLoadout(Config.PlayerLoadouts);
             player.Position = spawnpoints.RandomItem().transform.position;
@@ -81,9 +62,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (float _time = 15; _time > 0; _time--)
+        for (float time = 15; time > 0; time--)
         {
-            Extensions.Broadcast(Translation.Broadcast.Replace("{time}", $"{_time}"), 1);
+            Extensions.ServerBroadcast(Translation.Broadcast.Replace("{time}", $"{time}"), 1);
 
             yield return Timing.WaitForSeconds(1f);
             EventTime += TimeSpan.FromSeconds(1f);
@@ -93,7 +74,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override bool IsRoundDone()
     {
         _countdown = _countdown.TotalSeconds > 0 ? _countdown.Subtract(new TimeSpan(0, 0, 1)) : TimeSpan.Zero;
-        return !(Player.List.Count(ply => ply.IsAlive) > 1);
+        return !(Player.ReadyList.Count(ply => ply.IsAlive) > 1);
     }
 
     protected override void ProcessFrame()
@@ -107,7 +88,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             case EventState.PlayerBreak: UpdatePlayerBreak(ref text); break;
         }
 
-        Extensions.Broadcast(text, 1);
+        Extensions.ServerBroadcast(text, 1);
     }
 
     /// <summary>
@@ -116,23 +97,17 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected void SelectPlayers(ref string text)
     {
         text = Translation.Broadcast.Replace("{time}", $"{_countdown.TotalSeconds}");
-        var playersToChoose = Player.List.Where(x => x.IsAlive).ToList();
+        var playersToChoose = Player.ReadyList.Where(x => x.IsAlive).ToList();
         foreach (var ply in Config.TaggerCount.GetPlayers(true, playersToChoose))
         {
             ply.GiveLoadout(Config.TaggerLoadouts);
-            if (ply.CurrentItem == null) ply.CurrentItem = ply.AddItem(Config.TaggerWeapon);
+            ply.CurrentItem ??= ply.AddItem(Config.TaggerWeapon);
         }
 
-        if (Player.List.Count(ply => ply.HasLoadout(Config.PlayerLoadouts)) <=
+        if (Player.ReadyList.Count(ply => ply.HasLoadout(Config.PlayerLoadouts)) <=
             Config.PlayersRequiredForBreachScannerEffect)
-            foreach (var player in Player.List.Where(ply => ply.HasLoadout(Config.PlayerLoadouts)))
-            {
-#if EXILED
-                player.EnableEffect(EffectType.Scanned, 255);
-#else
+            foreach (var player in Player.ReadyList.Where(ply => ply.HasLoadout(Config.PlayerLoadouts)))
                 player.EnableEffect<Scanned>(255);
-#endif
-            }
 
         _countdown = new TimeSpan(0, 0, Config.TagDuration);
         _eventState++;
@@ -156,19 +131,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         text = Translation.Cycle.Replace("{time}", $"{_countdown.TotalSeconds}");
 
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
             if (player.Items.Any(r => r.Type == Config.TaggerWeapon))
             {
                 player.ClearInventory();
-#if EXILED
-                player.Hurt(200, Translation.Hurt);
-#else
                 player.Damage(200, Translation.Hurt);
-#endif
             }
 
         _countdown = new TimeSpan(0, 0, Config.BreakDuration);
@@ -188,14 +155,14 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void OnFinished()
     {
-        var text = string.Empty;
-        if (Player.List.Count(r => r.IsAlive) >= 1)
+        string text;
+        if (Player.ReadyList.Count(r => r.IsAlive) >= 1)
             text = Translation.OnePlayer
-                .Replace("{winner}", Player.List.First(r => r.IsAlive).Nickname)
+                .Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname)
                 .Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}");
         else
             text = Translation.AllDie.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}");
 
-        Extensions.Broadcast(text, 10);
+        Extensions.ServerBroadcast(text, 10);
     }
 }

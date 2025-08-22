@@ -1,15 +1,11 @@
 ﻿using System;
+using AutoEvent.API;
 using AutoEvent.Interfaces;
 using CommandSystem;
-using MEC;
-#if EXILED
-using Exiled.API.Features;
-using Exiled.Permissions.Extensions;
-#else
-using LabApi.Features.Wrappers;
 using LabApi.Features.Console;
 using LabApi.Features.Permissions;
-#endif
+using LabApi.Features.Wrappers;
+using MEC;
 
 namespace AutoEvent.Commands;
 
@@ -21,11 +17,7 @@ internal class Run : ICommand, IUsageProvider
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
-#if EXILED
-        if (!sender.CheckPermission("ev.run"))
-#else
         if (!sender.HasPermissions("ev.run"))
-#endif
         {
             response = "<color=red>You do not have permission to use this command!</color>";
             return false;
@@ -53,34 +45,17 @@ internal class Run : ICommand, IUsageProvider
         // Checking that MapEditorReborn has loaded on the server
         if (!(ev is IEventMap map && !string.IsNullOrEmpty(map.MapInfo.MapName) &&
               map.MapInfo.MapName.ToLower() != "none"))
-        {
-#if EXILED
-            Log.Warn("No map has been specified for this event!");
-#else
             Logger.Warn("No map has been specified for this event!");
-#endif
-        }
-        else if (!Extensions.IsExistsMap(map.MapInfo.MapName, out response))
-        {
-            return false;
-        }
+        else if (!Extensions.IsExistsMap(map.MapInfo.MapName, out response)) return false;
 
         Round.IsLocked = true;
-#if EXILED
-        if (!Round.IsStarted)
-#else
         if (!Round.IsRoundStarted)
-#endif
         {
             Round.Start();
 
             Timing.CallDelayed(2f, () =>
             {
-#if EXILED
-                foreach (var player in Player.List)
-#else
                 foreach (var player in Player.ReadyList)
-#endif
                     player.ClearInventory();
 
                 ev.StartEvent();

@@ -49,7 +49,7 @@ Settings you have access to that will change functionality of the event.
 // How long to wait after the round finishes, before the cleanup begins. Default is 10 seconds.
 public override float PostRoundDelay { get; protected set; } = 10f; 
 
-// If using LabApi or Exiled as the base plugin, set this to false, and manually add your plugin to Event.Events (List[Events]).
+// If using LabApi as the base plugin, set this to false, and manually add your plugin to Event.Events (List[Events]).
 // This prevents double-loading your plugin assembly.
 public override bool AutoLoad { get; protected set; } = true;
 
@@ -142,9 +142,7 @@ public class Plugin : Event, IEventSound, IEventMap
 
 ###### Paste the compiled dll mini-game into the folder:
 
-###### Exiled -> ``EXILED\Configs\AutoEvent\Events``
-
-###### NWApi -> ``LabApi\configs\AutoEvent\Events``
+###### LabApi -> ``LabApi\configs\AutoEvent\Events``
 
 ##### Do not forget to set ``IsDebug = true`` in the config and check the launch of your mini-game.
 

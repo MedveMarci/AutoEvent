@@ -3,14 +3,9 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
+using CustomPlayerEffects;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
-using CustomPlayerEffects;
-#endif
 
 namespace AutoEvent.Games.Spleef;
 
@@ -18,14 +13,12 @@ public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
+        AvailableMaps ??= [];
 
-        if (AvailableMaps.Count < 1)
-        {
-            AvailableMaps.Add(new MapChance(50, new MapInfo("Spleef", new Vector3(0f, 40f, 0f))));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("Spleef_Xmas2024", new Vector3(0f, 40f, 0f)),
-                SeasonFlags.Christmas));
-        }
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance(50, new MapInfo("Spleef", new Vector3(0f, 40f, 0f))));
+        AvailableMaps.Add(new MapChance(50, new MapInfo("Spleef_Xmas2024", new Vector3(0f, 40f, 0f)),
+            SeasonFlags.Christmas));
     }
 
     [Description("How long the round should last.")]
@@ -35,68 +28,62 @@ public class Config : EventConfig
     public float PlatformHealth { get; set; } = 1;
 
     [Description("A list of loadouts for spleef if a little count of players.")]
-    public List<Loadout> PlayerLittleLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> PlayerLittleLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int>
             {
                 { RoleTypeId.ClassD, 100 }
             },
-            Items = new List<ItemType> { ItemType.GunCom45 },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
+            Items = [ItemType.GunCom45],
+
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
             ],
-#endif
+
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
-    };
+    ];
 
     [Description("A list of loadouts for spleef if a normal count of players.")]
-    public List<Loadout> PlayerNormalLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> PlayerNormalLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int>
             {
                 { RoleTypeId.ClassD, 100 }
             },
-            Items = new List<ItemType> { ItemType.GunCOM18 },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
+            Items = [ItemType.GunCOM18],
+
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
             ],
-#endif
+
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
-    };
+    ];
 
     [Description("A list of loadouts for spleef if a big count of players.")]
-    public List<Loadout> PlayerBigLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> PlayerBigLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int>
             {
                 { RoleTypeId.ClassD, 100 }
             },
-            Items = new List<ItemType> { ItemType.GunCOM15 },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
+            Items = [ItemType.GunCOM15],
+
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
             ],
-#endif
+
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
-    };
+    ];
 }

@@ -3,14 +3,9 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
+using CustomPlayerEffects;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
-using CustomPlayerEffects;
-#endif
 
 namespace AutoEvent.Games.Deathmatch;
 
@@ -18,7 +13,7 @@ public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
+        if (AvailableMaps is null) AvailableMaps = [];
 
         if (AvailableMaps.Count < 1)
         {
@@ -35,63 +30,45 @@ public class Config : EventConfig
     public int KillsPerPerson { get; set; } = 3;
 
     [Description("A list of loadouts for team Chaos Insurgency")]
-    public List<Loadout> ChaosLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> ChaosLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.ChaosRifleman, 100 } },
-            Items = new List<ItemType> { ItemType.ArmorCombat, ItemType.Medkit, ItemType.Painkillers },
+            Items = [ItemType.ArmorCombat, ItemType.Medkit, ItemType.Painkillers],
             InfiniteAmmo = AmmoMode.InfiniteAmmo,
-#if EXILED
-            Effects = new List<Effect>
-            {
-                new(EffectType.MovementBoost, 10, 0),
-                new(EffectType.Scp1853, 1, 0),
-                new(EffectType.FogControl, 0)
-            }
-#else
             Effects =
             [
                 new EffectData { Type = nameof(MovementBoost), Duration = 10, Intensity = 0 },
                 new EffectData { Type = nameof(Scp1853), Duration = 1, Intensity = 0 },
-                new EffectData { Type = nameof(FogControl), Duration = 0 }
-            ],
-#endif
+                new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
+            ]
         }
-    };
+    ];
 
     [Description("A list of loadouts for team NTF")]
-    public List<Loadout> NTFLoadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> NtfLoadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.NtfSpecialist, 100 } },
-            Items = new List<ItemType> { ItemType.ArmorCombat, ItemType.Medkit, ItemType.Painkillers },
+            Items = [ItemType.ArmorCombat, ItemType.Medkit, ItemType.Painkillers],
             InfiniteAmmo = AmmoMode.InfiniteAmmo,
-#if EXILED
-            Effects = new List<Effect>
-            {
-                new(EffectType.MovementBoost, 10, 0),
-                new(EffectType.Scp1853, 1, 0),
-                new(EffectType.FogControl, 0)
-            }
-#else
             Effects =
             [
                 new EffectData { Type = nameof(MovementBoost), Duration = 10, Intensity = 0 },
                 new EffectData { Type = nameof(Scp1853), Duration = 1, Intensity = 0 },
-                new EffectData { Type = nameof(FogControl), Duration = 0 }
-            ],
-#endif
+                new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
+            ]
         }
-    };
+    ];
 
     [Description("The weapons a player can get once the round starts.")]
-    public List<ItemType> AvailableWeapons { get; set; } = new()
-    {
+    public List<ItemType> AvailableWeapons { get; set; } =
+    [
         ItemType.GunAK,
         ItemType.GunCrossvec,
         ItemType.GunFSP9,
         ItemType.GunE11SR
-    };
+    ];
 }

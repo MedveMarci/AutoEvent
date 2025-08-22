@@ -1,19 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.API;
 using AutoEvent.Interfaces;
+using LabApi.Features.Wrappers;
 using MEC;
 using UnityEngine;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
-#if EXILED
-using Exiled.API.Features;
 
-#else
-using LabApi.Features.Wrappers;
-#endif
 
 namespace AutoEvent.Games.FallDown;
 
-public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private GameObject _lava;
     private bool _noPlatformsRemainingWarning;
@@ -42,11 +39,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _noPlatformsRemainingWarning = true;
 
         var spawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint").ToList();
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = spawnList.RandomItem().transform.position;
@@ -60,7 +53,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         for (float time = 15; time > 0; time--)
         {
-            Extensions.Broadcast($"{time}", 1);
+            Extensions.ServerBroadcast($"{time}", 1);
             yield return Timing.WaitForSeconds(1f);
         }
     }
@@ -69,17 +62,17 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _platformId = 0;
         _platforms = MapInfo.Map.AttachedBlocks.Where(x => x.name == "Platform").ToList();
-        GameObject.Destroy(MapInfo.Map.AttachedBlocks.First(x => x.name == "Wall"));
-        if (Config.PlatformsHaveColorWarning)
-            foreach (var platform in _platforms)
-                platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = Color.white;
+        Object.Destroy(MapInfo.Map.AttachedBlocks.First(x => x.name == "Wall"));
+        if (!Config.PlatformsHaveColorWarning) return;
+        foreach (var platform in _platforms)
+            platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = Color.white;
     }
 
     protected override bool IsRoundDone()
     {
         // Over 1 player is alive &&
         // over 1 platform is present. 
-        return !(Player.List.Count(r => r.IsAlive) > 1 && _platforms.Count > 1);
+        return !(Player.ReadyList.Count(r => r.IsAlive) > 1 && _platforms.Count > 1);
     }
 
     protected override void ProcessFrame()
@@ -87,18 +80,16 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _platformId++;
         FrameDelayInSeconds = Config.DelayInSeconds.GetValue(_platformId, 169, 1, 0.3f);
 
-        var count = Player.List.Count(r => r.IsAlive);
+        var count = Player.ReadyList.Count(r => r.IsAlive);
         var time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
-        Extensions.Broadcast(
+        Extensions.ServerBroadcast(
             Translation.Broadcast.Replace("{name}", Name).Replace("{time}", time).Replace("{count}", $"{count}"), 1);
 
         if (_platforms.Count < 1)
         {
-            if (_noPlatformsRemainingWarning)
-            {
-                DebugLogger.LogDebug("No platforms remaining.");
-                _noPlatformsRemainingWarning = false;
-            }
+            if (!_noPlatformsRemainingWarning) return;
+            LogManager.Debug("No platforms remaining.");
+            _noPlatformsRemainingWarning = false;
 
             return;
         }
@@ -110,22 +101,22 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             Timing.CallDelayed(Config.WarningDelayInSeconds.GetValue(_platformId, 169, 0, 3), () =>
             {
                 _platforms.Remove(platform);
-                GameObject.Destroy(platform);
+                Object.Destroy(platform);
             });
         }
         else
         {
             _platforms.Remove(platform);
-            GameObject.Destroy(platform);
+            Object.Destroy(platform);
         }
     }
 
     protected override void OnFinished()
     {
-        if (Player.List.Count(r => r.IsAlive) == 1)
-            Extensions.Broadcast(Translation.Winner.Replace("{winner}", Player.List.First(r => r.IsAlive).Nickname),
-                10);
-        else
-            Extensions.Broadcast(Translation.Died, 10);
+        Extensions.ServerBroadcast(
+            Player.ReadyList.Count(r => r.IsAlive) == 1
+                ? Translation.Winner.Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname)
+                : Translation.Died,
+            10);
     }
 }

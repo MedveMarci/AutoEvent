@@ -10,7 +10,7 @@ public class PlatformSelector
     public PlatformSelector(int platformCount, string salt, int minimumSideOffset, int maximumSideOffset)
     {
         PlatformCount = platformCount;
-        PlatformData = new List<PlatformData>();
+        PlatformData = [];
         MinimumSideOffset = minimumSideOffset;
         MaximumSideOffset = maximumSideOffset;
         Seed = (DateTime.Now.Ticks + salt).GetHashCode().ToString();
@@ -20,12 +20,12 @@ public class PlatformSelector
     }
 
     public int PlatformCount { get; set; }
-    internal string Seed { get; set; }
+    private string Seed { get; }
     internal List<PlatformData> PlatformData { get; set; }
-    public int MinimumSideOffset { get; set; }
-    public int MaximumSideOffset { get; set; }
-    public int LeftSidedPlatforms { get; set; }
-    public int RightSidedPlatforms { get; set; }
+    private int MinimumSideOffset { get; }
+    private int MaximumSideOffset { get; }
+    private int LeftSidedPlatforms { get; set; }
+    private int RightSidedPlatforms { get; set; }
 
     private void _selectPlatformSideCount()
     {
@@ -52,14 +52,14 @@ public class PlatformSelector
 
     private void _logOutput()
     {
-        DebugLogger.LogDebug(
+        LogManager.Debug(
             $"Selecting {PlatformCount} Platforms. [{MinimumSideOffset}, {MaximumSideOffset}]   {LeftSidedPlatforms} | {RightSidedPlatforms}");
         foreach (var platform in PlatformData.OrderByDescending(x => x.Placement))
-            DebugLogger.LogDebug(
+            LogManager.Debug(
                 (platform.LeftSideIsDangerous ? "[X] [=]" : "[=] [X]") + $"  Priority: {platform.Placement}");
     }
 
-    public static int GetIntFromSeededString(string seed, int count, int amount)
+    private static int GetIntFromSeededString(string seed, int count, int amount)
     {
         var seedGen = "";
         for (var s = 0; s < count; s++)

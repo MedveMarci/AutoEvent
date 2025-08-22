@@ -1,12 +1,7 @@
-using UnityEngine;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
 using Footprinting;
 using LabApi.Features.Wrappers;
 using PlayerStatsSystem;
-#endif
+using UnityEngine;
 
 namespace AutoEvent.Games.Deathrun;
 
@@ -22,15 +17,9 @@ public class KillComponent : MonoBehaviour
 
     private void OnTriggerEnter(Collider collider)
     {
-#if EXILED
-        if (Player.Get(collider.gameObject) is Player player)
-            if (player.IsAlive)
-                player.Kill(DamageType.Explosion);
-#else
-        if (Player.Get(collider.gameObject) is Player player)
-            if (player.IsAlive)
-                player.Damage(new ExplosionDamageHandler(new Footprint(Player.Host?.ReferenceHub), Vector3.back, 1000,
-                    100, ExplosionType.Grenade));
-#endif
+        if (Player.Get(collider.gameObject) is not { } player) return;
+        if (player.IsAlive)
+            player.Damage(new ExplosionDamageHandler(new Footprint(Player.Host?.ReferenceHub), Vector3.back, 1000,
+                100, ExplosionType.Grenade));
     }
 }

@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.API;
 using AutoEvent.Interfaces;
+using LabApi.Features.Wrappers;
 using MEC;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-#else
-using LabApi.Features.Wrappers;
-#endif
+using Object = UnityEngine.Object;
+
 
 namespace AutoEvent.Games.Race;
 
-public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private TimeSpan _countdown;
     private GameObject _finish;
@@ -53,11 +52,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "Spawnpoint": Spawnpoint = block; break;
             }
 
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = Spawnpoint.transform.position;
@@ -68,7 +63,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         for (float time = 10; time > 0; time--)
         {
-            Extensions.Broadcast($"<b>{time}</b>", 1);
+            Extensions.ServerBroadcast($"<b>{time}</b>", 1);
             yield return Timing.WaitForSeconds(1f);
         }
     }
@@ -76,42 +71,38 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void CountdownFinished()
     {
         StartAudio();
-        GameObject.Destroy(_wall);
+        Object.Destroy(_wall);
     }
 
     protected override bool IsRoundDone()
     {
         _countdown = _countdown.TotalSeconds > 0 ? _countdown.Subtract(new TimeSpan(0, 0, 1)) : TimeSpan.Zero;
-        return !(Player.List.Count(r => r.IsAlive) > 0 && EventTime.TotalSeconds < Config.EventDurationInSeconds);
+        return !(Player.ReadyList.Count(r => r.IsAlive) > 0 && EventTime.TotalSeconds < Config.EventDurationInSeconds);
     }
 
     protected override void ProcessFrame()
     {
-        Extensions.Broadcast(
+        Extensions.ServerBroadcast(
             Translation.Cycle.Replace("{name}", Name)
                 .Replace("{time}", $"{_countdown.Minutes:00}:{_countdown.Seconds:00}"), 1);
     }
 
     protected override void OnFinished()
     {
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
             if (Vector3.Distance(player.Position, _finish.transform.position) > 10)
                 player.Kill(Translation.Died);
 
-        var text = string.Empty;
-        var count = Player.List.Count(r => r.IsAlive);
+        string text;
+        var count = Player.ReadyList.Count(r => r.IsAlive);
 
         if (count > 1)
-            text = Translation.PlayersSurvived.Replace("{count}", Player.List.Count(r => r.IsAlive).ToString());
+            text = Translation.PlayersSurvived.Replace("{count}", Player.ReadyList.Count(r => r.IsAlive).ToString());
         else if (count == 1)
-            text = Translation.OneSurvived.Replace("{player}", Player.List.First(r => r.IsAlive).Nickname);
+            text = Translation.OneSurvived.Replace("{player}", Player.ReadyList.First(r => r.IsAlive).Nickname);
         else
             text = Translation.NoSurvivors;
 
-        Extensions.Broadcast(text, 10);
+        Extensions.ServerBroadcast(text, 10);
     }
 }
