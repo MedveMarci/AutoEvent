@@ -10,7 +10,7 @@ public class PlayerList
 {
     public static void Postfix(ref IEnumerable<Player> __result)
     {
-        var ready = Player.ReadyList.Where(x => x.IsDummy || (x.IsPlayer && x.IsReady));
+        var ready = Player.List.Where(x => x.IsDummy || (x.IsPlayer && x.IsReady));
 
         var ignored = AutoEvent.Singleton.Config?.IgnoredRoles;
         if (AutoEvent.EventManager.CurrentEvent != null && ignored is { Count: > 0 })
