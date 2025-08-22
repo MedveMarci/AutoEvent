@@ -8,7 +8,7 @@ namespace AutoEvent.Patches;
 [HarmonyPatch(typeof(Player), nameof(Player.ReadyList), MethodType.Getter)]
 public class PlayerList
 {
-    public static void Postfix(ref IEnumerable<Player> result)
+    public static void Postfix(ref IEnumerable<Player> __result)
     {
         var ready = Player.ReadyList.Where(x => x.IsDummy || (x.IsPlayer && x.IsReady));
 
@@ -16,6 +16,6 @@ public class PlayerList
         if (AutoEvent.EventManager.CurrentEvent != null && ignored is { Count: > 0 })
             ready = ready.Where(x => !ignored.Contains(x.Role));
 
-        result = ready;
+        __result = ready;
     }
 }

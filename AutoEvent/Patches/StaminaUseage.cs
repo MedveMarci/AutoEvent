@@ -8,11 +8,11 @@ namespace AutoEvent.Patches;
 [HarmonyPatch(typeof(Inventory), "StaminaUsageMultiplier", MethodType.Getter)]
 internal class StaminaUsage
 {
-    private static void Postfix(Inventory instance, ref float result)
+    private static void Postfix(Inventory __instance, ref float __result)
     {
-        var player = Player.Get(instance._hub);
+        var player = Player.Get(__instance._hub);
         if (Extensions.InfinityStaminaList.Contains(player.UserId))
-            result *= 0;
-        result *= 1;
+            __result *= 0;
+        __result *= 1;
     }
 }

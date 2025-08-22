@@ -11,12 +11,12 @@ using LabApi.Loader.Features.Plugins;
 
 namespace AutoEvent;
 
-public abstract class AutoEvent : Plugin<Config>
+public class AutoEvent : Plugin<Config>
 {
     public static AutoEvent Singleton;
     private static Harmony _harmonyPatch;
     public static EventManager EventManager;
-    internal static EventHandler EventHandler;
+    private static EventHandler EventHandler;
     public override string Name => "AutoEvent";
 
     public override string Author =>
@@ -59,10 +59,10 @@ public abstract class AutoEvent : Plugin<Config>
 
             try
             {
-                LogManager.Info($"Base Conf Path: {BaseConfigPath}");
-                LogManager.Info($"Configs paths: \n" +
-                                $"{Config.SchematicsDirectoryPath}\n" +
-                                $"{Config.MusicDirectoryPath}\n");
+                LogManager.Debug($"Base Config Path: {BaseConfigPath}");
+                LogManager.Debug($"Configs paths: \n" +
+                                 $"{Config.SchematicsDirectoryPath}\n" +
+                                 $"{Config.MusicDirectoryPath}\n");
                 CreateDirectoryIfNotExists(BaseConfigPath);
                 CreateDirectoryIfNotExists(Config.SchematicsDirectoryPath);
                 CreateDirectoryIfNotExists(Config.MusicDirectoryPath);

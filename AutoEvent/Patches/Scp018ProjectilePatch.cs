@@ -9,9 +9,9 @@ namespace AutoEvent.Patches;
 [HarmonyPatch(typeof(Scp018Projectile), nameof(Scp018Projectile.Update))]
 internal static class Scp018ProjectilePatch
 {
-    public static void Postfix(Scp018Projectile instance)
+    public static void Postfix(Scp018Projectile __instance)
     {
-        var scp018UpdateEvent = new Scp018UpdateArgs(instance);
+        var scp018UpdateEvent = new Scp018UpdateArgs(__instance);
         Handlers.OnScp018Update(scp018UpdateEvent);
     }
 }
@@ -19,9 +19,9 @@ internal static class Scp018ProjectilePatch
 [HarmonyPatch(typeof(Scp018Projectile), nameof(Scp018Projectile.ProcessCollision))]
 internal static class Scp018ProjectileBouncePatch
 {
-    public static void Postfix(Scp018Projectile instance, Collision collision)
+    public static void Postfix(Scp018Projectile __instance, Collision collision)
     {
-        var scp018CollisionEvent = new Scp018CollisionArgs(instance);
+        var scp018CollisionEvent = new Scp018CollisionArgs(__instance);
         Handlers.OnScp018Collision(scp018CollisionEvent);
     }
 }
