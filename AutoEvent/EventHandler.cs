@@ -73,7 +73,7 @@ internal class EventHandler : CustomEventsHandler
             var playersAmmo = module.AmmoMax - module.AmmoStored;
             ev.Player.SetAmmo(module.AmmoType, (ushort)playersAmmo);
         }
-        
+
         if (ev.FirearmItem.Base.TryGetModule<CylinderAmmoModule>(out var revModule))
         {
             var playersAmmo = revModule.AmmoMax - revModule.AmmoStored;

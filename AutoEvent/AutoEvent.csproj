@@ -48,7 +48,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Lib.Harmony" Version="2.4.0" />
+        <PackageReference Include="Lib.Harmony" Version="2.4.0"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
         <PackageReference Include="NVorbis" Version="0.10.5"/>
     </ItemGroup>

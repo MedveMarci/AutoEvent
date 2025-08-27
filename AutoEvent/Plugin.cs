@@ -81,6 +81,7 @@ public class AutoEvent : Plugin<Config>
             EventManager.RegisterInternalEvents();
             EventHandler = new EventHandler();
             CustomHandlersManager.RegisterEventsHandler(EventHandler);
+            ConfigManager.LoadConfigsAndTranslations();
 
             LogManager.Info("The mini-games are loaded.");
             LogManager.Warn("This is a pre-release version. There might be bugs, if you find one, please report it on GitHub or Discord.");

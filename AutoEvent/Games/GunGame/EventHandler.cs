@@ -54,10 +54,7 @@ public class EventHandler
 
         if (ev.Player == null) return;
         GetWeaponForPlayer(ev.Player);
-        Timing.CallDelayed(Timing.WaitForOneFrame, () =>
-        {
-            ev.Player.Position = _plugin.SpawnPoints.RandomItem();
-        });
+        Timing.CallDelayed(Timing.WaitForOneFrame, () => { ev.Player.Position = _plugin.SpawnPoints.RandomItem(); });
     }
 
     public void GetWeaponForPlayer(Player player, bool isHeal = false)
@@ -77,7 +74,7 @@ public class EventHandler
 
         var itemType = _plugin.Config.Guns.OrderByDescending(y => y.KillsRequired)
             .FirstOrDefault(x => PlayerStats[player].Kill >= x.KillsRequired)!.Item;
-        
+
         player.EnableEffect<SpawnProtected>(1, .1f);
 
         player.Heal(500); // Since the player does not die, his hp goes into negative hp, so need to completely heal the player.

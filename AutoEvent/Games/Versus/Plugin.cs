@@ -12,7 +12,6 @@ using UnityEngine;
 
 namespace AutoEvent.Games.Versus;
 
-
 public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private TimeSpan _countdown;
