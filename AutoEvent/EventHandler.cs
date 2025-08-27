@@ -67,13 +67,17 @@ internal class EventHandler : CustomEventsHandler
 
         if (!Extensions.InfiniteAmmoList.ContainsKey(ev.Player.UserId))
             return;
-        if (ev.FirearmItem.Type is ItemType.ParticleDisruptor)
-            return;
 
         if (ev.FirearmItem.Base.TryGetModule<MagazineModule>(out var module))
         {
             var playersAmmo = module.AmmoMax - module.AmmoStored;
             ev.Player.SetAmmo(module.AmmoType, (ushort)playersAmmo);
+        }
+        
+        if (ev.FirearmItem.Base.TryGetModule<CylinderAmmoModule>(out var revModule))
+        {
+            var playersAmmo = revModule.AmmoMax - revModule.AmmoStored;
+            ev.Player.SetAmmo(revModule.AmmoType, (ushort)playersAmmo);
         }
 
         base.OnPlayerShootingWeapon(ev);
