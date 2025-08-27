@@ -41,12 +41,14 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
         EventHandler = new EventHandler(this);
         PlayerEvents.Dying += EventHandler.OnDying;
+        PlayerEvents.PlacingBlood += EventHandler.OnPlacingBlood;
         PlayerEvents.Joined += EventHandler.OnJoined;
     }
 
     protected override void UnregisterEvents()
     {
         PlayerEvents.Dying -= EventHandler.OnDying;
+        PlayerEvents.PlacingBlood -= EventHandler.OnPlacingBlood;
         PlayerEvents.Joined -= EventHandler.OnJoined;
         EventHandler = null;
     }
@@ -106,8 +108,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             var kills = EventHandler.PlayerStats[pl].Kill;
             gunsInOrder.TryGetFirstIndex(x => kills >= x.KillsRequired, out var indexOfFirst);
 
-            var nextGun = "";
-            var killsNeeded = 0;
+            string nextGun;
+            int killsNeeded;
             if (indexOfFirst <= 0)
             {
                 killsNeeded = gunsInOrder[0].KillsRequired + 1 - kills;
@@ -115,17 +117,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             }
             else
             {
-                /*
-                    * 0 Most Kill Gun
-                    1 Medium Kill Gun
-                    2 Current gun - get current gun - 1 for next
-                    3 Lowest kill gun
-                */
-                killsNeeded = gunsInOrder[indexOfFirst - 1].KillsRequired - kills;
-                nextGun = gunsInOrder[indexOfFirst - 1].Item.ToString();
+                var nextGunRole = gunsInOrder[indexOfFirst - 1];
+                nextGun = nextGunRole.Item == ItemType.None ? "Last Weapon" : nextGunRole.Item.ToString();
+                killsNeeded = nextGunRole.KillsRequired - kills;
             }
 
-            pl.ClearBroadcasts();
             pl.Broadcast(
                 Translation.Cycle.Replace("{name}", Name).Replace("{gun}", nextGun).Replace("{kills}", $"{killsNeeded}")
                     .Replace("{leadnick}", leaderStat.Key.Nickname).Replace("{leadgun}",

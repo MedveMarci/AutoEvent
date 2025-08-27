@@ -5,6 +5,7 @@ using AutoEvent.API.Enums;
 using CustomPlayerEffects;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Features.Wrappers;
+using MEC;
 
 namespace AutoEvent.Games.GunGame;
 
@@ -37,7 +38,6 @@ public class EventHandler
     {
         ev.IsAllowed = false;
 
-        PlayerStats ??= new Dictionary<Player, Stats>();
         if (ev.Attacker != null)
         {
             if (!PlayerStats.TryGetValue(ev.Attacker, out var statsAttacker))
@@ -53,8 +53,11 @@ public class EventHandler
         }
 
         if (ev.Player == null) return;
-        ev.Player.Position = _plugin.SpawnPoints.RandomItem();
-        GetWeaponForPlayer(ev.Player, true);
+        GetWeaponForPlayer(ev.Player);
+        Timing.CallDelayed(Timing.WaitForOneFrame, () =>
+        {
+            ev.Player.Position = _plugin.SpawnPoints.RandomItem();
+        });
     }
 
     public void GetWeaponForPlayer(Player player, bool isHeal = false)
@@ -72,23 +75,19 @@ public class EventHandler
 
         if (!PlayerStats.ContainsKey(player)) PlayerStats.Add(player, new Stats(0));
 
-        PlayerStats[player] ??= new Stats(0);
-
         var itemType = _plugin.Config.Guns.OrderByDescending(y => y.KillsRequired)
             .FirstOrDefault(x => PlayerStats[player].Kill >= x.KillsRequired)!.Item;
-
-        if (itemType is ItemType.None)
-        {
-            LogManager.Debug("GetWeapon - Gun by level is null");
-            itemType = ItemType.GunCOM15;
-        }
-
-        LogManager.Debug($"Getting player {player.Nickname} weapon.");
+        
         player.EnableEffect<SpawnProtected>(1, .1f);
 
         player.Heal(500); // Since the player does not die, his hp goes into negative hp, so need to completely heal the player.
+        if (player.CurrentItem != null && player.CurrentItem.Type == itemType) return;
         player.ClearItems();
-
         player.CurrentItem ??= player.AddItem(itemType);
+    }
+
+    public static void OnPlacingBlood(PlayerPlacingBloodEventArgs ev)
+    {
+        ev.IsAllowed = false;
     }
 }
