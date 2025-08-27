@@ -13,7 +13,7 @@ using Random = UnityEngine.Random;
 
 namespace AutoEvent.Games.Glass;
 
-public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private GameObject _finish;
     private GameObject _lava;

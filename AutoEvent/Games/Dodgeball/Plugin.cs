@@ -15,7 +15,7 @@ using Object = UnityEngine.Object;
 
 namespace AutoEvent.Games.Dodgeball;
 
-public abstract class Plugin : Event<Config, Translation>, IEventMap, IEventSound
+public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 {
     private List<GameObject> _ballItems;
     private ItemType _ballItemType;

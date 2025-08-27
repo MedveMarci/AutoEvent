@@ -13,7 +13,7 @@ using Random = UnityEngine.Random;
 
 namespace AutoEvent.Games.MusicalChairs;
 
-public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private TimeSpan _countdown;
     private EventHandler _eventHandler;

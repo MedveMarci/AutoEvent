@@ -12,7 +12,8 @@ using UnityEngine;
 
 namespace AutoEvent.Games.Versus;
 
-public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+//todo: Players can be hit outside of the area
+public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private TimeSpan _countdown;
     private EventHandler _eventHandler;

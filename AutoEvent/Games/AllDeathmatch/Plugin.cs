@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 
 namespace AutoEvent.Games.AllDeathmatch;
 
-public abstract class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
+public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
 {
     internal Dictionary<string, int> TotalKills;
     public override string Name { get; set; } = "All Deathmatch";

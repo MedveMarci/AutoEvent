@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 
 namespace AutoEvent.Games.Line;
 
-public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private TimeSpan _timeRemaining;
     public override string Name { get; set; } = "Death Line";

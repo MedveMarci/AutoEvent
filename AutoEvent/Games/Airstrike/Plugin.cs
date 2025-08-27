@@ -15,7 +15,7 @@ using Random = UnityEngine.Random;
 
 namespace AutoEvent.Games.Airstrike;
 
-public abstract class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
+public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
 {
     private CoroutineHandle _grenadeCoroutineHandle;
     public List<GameObject> SpawnList;

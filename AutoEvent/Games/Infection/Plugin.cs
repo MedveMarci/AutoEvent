@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace AutoEvent.Games.Infection;
 
-public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private int _overtime = 30;
     internal List<GameObject> SpawnList;

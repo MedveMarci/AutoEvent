@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace AutoEvent.Games.Lava;
 
-public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private GameObject _lava;
     public override string Name { get; set; } = "The floor is LAVA";

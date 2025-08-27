@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace AutoEvent.Games.Deathrun;
 
-public abstract class Plugin : Event<Config, Translation>, IEventMap
+public class Plugin : Event<Config, Translation>, IEventMap
 {
     public override string Name { get; set; } = "Death Run";
     public override string Description { get; set; } = "Go to the end, avoiding death-activated trap along the way";

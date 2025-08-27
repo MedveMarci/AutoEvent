@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace AutoEvent.Games.Jail;
 
-public abstract class Plugin : Event<Config, Translation>, IEventMap
+public class Plugin : Event<Config, Translation>, IEventMap
 {
     private GameObject _ball;
     private List<GameObject> _doors;

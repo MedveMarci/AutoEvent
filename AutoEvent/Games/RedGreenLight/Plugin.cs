@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 
 namespace AutoEvent.Games.Light;
 
-public abstract class Plugin : Event<Config, Translation>, IEventMap
+public class Plugin : Event<Config, Translation>, IEventMap
 {
     private Animator _animator;
     private float _countdown;

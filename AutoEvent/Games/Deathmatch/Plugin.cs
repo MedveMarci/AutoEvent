@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace AutoEvent.Games.Deathmatch;
 
-public abstract class Plugin : Event<Config, Translation>, IEventMap, IEventSound
+public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 {
     private int _needKills;
     public override string Name { get; set; } = "Team Death-Match";

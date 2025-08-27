@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace AutoEvent.Games.Survival;
 
-public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private TimeSpan _remainingTime;
     private GameObject _teleport;

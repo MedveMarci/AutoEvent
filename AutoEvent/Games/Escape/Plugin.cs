@@ -13,7 +13,7 @@ using ElevatorDoor = Interactables.Interobjects.ElevatorDoor;
 
 namespace AutoEvent.Games.Escape;
 
-public abstract class Plugin : Event<Config, Translation>, IEventSound
+public class Plugin : Event<Config, Translation>, IEventSound
 {
     public override string Name { get; set; } = "Atomic Escape";
     public override string Description { get; set; } = "Escape from the facility behind SCP-173 at supersonic speed!";

@@ -21,7 +21,7 @@ namespace AutoEvent.Games.CounterStrike;
 //todo: Make the bomb be on the player's back when carrying it
 //todo: Dropped bomb model, CT can't pick it up.
 
-public abstract class Plugin : Event<Config, Translation>, IEventMap, IEventSound
+public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 {
     private EventHandler _eventHandler;
     internal GameObject BombObject;

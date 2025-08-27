@@ -11,7 +11,7 @@ using Utils.NonAllocLINQ;
 
 namespace AutoEvent.Games.GunGame;
 
-public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private Player _winner;
     public override string Name { get; set; } = "Gun Game";

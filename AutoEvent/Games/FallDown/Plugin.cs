@@ -10,7 +10,7 @@ using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
 
 namespace AutoEvent.Games.FallDown;
 
-public abstract class Plugin : Event<Config, Translation>, IEventSound, IEventMap
+public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private GameObject _lava;
     private bool _noPlatformsRemainingWarning;

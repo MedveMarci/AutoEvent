@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace AutoEvent.Games.Spleef;
 
-public abstract class Plugin : Event<Config, Translation>, IEventMap
+public class Plugin : Event<Config, Translation>, IEventMap
 {
     private TimeSpan _countdown;
 

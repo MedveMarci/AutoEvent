@@ -300,7 +300,7 @@ public static class Extensions
     }
 
     public static AudioPlayer PlayAudio(string fileName, byte volume, bool isLoop, bool isSpatial = false,
-        float minDistance = 5f, float maxDistance = 5f)
+        float minDistance = 5f, float maxDistance = 5000f)
     {
         if (!AudioClipStorage.AudioClips.ContainsKey(fileName))
         {
