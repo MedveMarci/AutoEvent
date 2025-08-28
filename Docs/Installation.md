@@ -4,17 +4,17 @@
 
 ### *You need to download the latest release:*
 
-- [``AutoEvent-LabApi.dll``](https://github.com/RisottoMan/AutoEvent/releases/latest) move to =>
+- [``AutoEvent-LabApi.dll``](https://github.com/MedveMarci/AutoEvent/releases/latest) move to =>
   ``LabApi/plugins/global/``
 
 - [
-  ``ProjectMER.dll``](https://github.com/RisottoMan/AutoEvent/tree/beta14.1-mer/releases/download/v.9.11.1/MapEditorReborn.dll)
+  ``ProjectMER.dll``](github.com/Michal78900/ProjectMER/releases/latest)
   move to => ``LabApi/plugins/global/``
 
-- [``Music.tar.gz``](https://github.com/RisottoMan/AutoEvent/releases/latest) unzip files to =>
+- [``Music.tar.gz``](https://github.com/MedveMarci/AutoEvent/releases/latest) unzip files to =>
   ``LabApi/configs/AutoEvent/Music``
 
-- [``Schematics.tar.gz``](https://github.com/RisottoMan/AutoEvent/releases/latest) unzip files to =>
+- [``Schematics.tar.gz``](https://github.com/MedveMarci/AutoEvent/releases/latest) unzip files to =>
   ``LabApi/configs/AutoEvent/Schematics``
 
 - Ensure that the Config has the following directories, and that they can be accessed to the server.
@@ -50,3 +50,5 @@ ev.*           - Main Permission for all AutoEvent commands.
   - ev.volume   - Change the volume of all events.
   - ev.language - Change language for translations.
 ```
+
+
