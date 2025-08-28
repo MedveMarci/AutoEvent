@@ -3,14 +3,9 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
+using CustomPlayerEffects;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
-using CustomPlayerEffects;
-#endif
 
 namespace AutoEvent.Games.FallDown;
 
@@ -18,7 +13,7 @@ public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
+        if (AvailableMaps is null) AvailableMaps = [];
 
         if (AvailableMaps.Count < 1)
         {
@@ -38,19 +33,16 @@ public class Config : EventConfig
     public bool PlatformsHaveColorWarning { get; set; } = false;
 
     [Description("A List of Loadouts to use.")]
-    public List<Loadout> Loadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> Loadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.ClassD, 100 } },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
+
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
-            ],
-#endif
+            ]
         }
-    };
+    ];
 }

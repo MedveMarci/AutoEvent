@@ -8,10 +8,10 @@ namespace AutoEvent.Interfaces;
 public class EventConfig
 {
     [Description("A list of maps that can be used for this event.")]
-    public List<MapChance> AvailableMaps { get; set; } = new();
+    public List<MapChance> AvailableMaps { get; set; } = [];
 
     [Description("A list of sounds that can be used for this event.")]
-    public List<SoundChance> AvailableSounds { get; set; } = new();
+    public List<SoundChance> AvailableSounds { get; set; } = [];
 
     [Description("Some plugins may override this out of necessity.")]
     public FriendlyFireSettings EnableFriendlyFireAutoban { get; set; } = FriendlyFireSettings.Default;
@@ -42,7 +42,7 @@ public class MapChance
     [Description("Style of this map.")] public SeasonFlags SeasonFlag { get; set; } = SeasonFlags.None;
 }
 
-public class SoundChance
+public abstract class SoundChance
 {
     public SoundChance()
     {

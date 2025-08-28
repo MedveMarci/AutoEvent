@@ -1,30 +1,18 @@
-using UnityEngine;
-#if EXILED
-using Exiled.Events.EventArgs.Player;
-#else
 using LabApi.Events.Arguments.PlayerEvents;
-#endif
+using UnityEngine;
 
 namespace AutoEvent.Games.Deathrun;
 
-public class EventHandler
+public abstract class EventHandler
 {
-#if EXILED
-    public void OnSearchingPickup(SearchingPickupEventArgs ev)
-#else
-    public void OnSearchingPickup(PlayerSearchingPickupEventArgs ev)
-#endif
+    public static void OnPlayerInteractedToy(PlayerInteractedToyEventArgs ev)
     {
-        ev.IsAllowed = false;
-
-        DebugLogger.LogDebug("[Deathrun] click to button");
+        LogManager.Debug("[Deathrun] click to button");
 
         // Start the animation when click on the button
-        var animator = ev.Pickup.GameObject.GetComponentInParent<Animator>();
-        if (animator != null)
-        {
-            DebugLogger.LogDebug($"[Deathrun] activate animation {animator.name}action");
-            animator.Play(animator.name + "action");
-        }
+        var animator = ev.Interactable.GameObject.GetComponentInParent<Animator>();
+        if (animator == null) return;
+        LogManager.Debug($"[Deathrun] activate animation {animator.name}action");
+        animator.Play(animator.name + "action");
     }
 }

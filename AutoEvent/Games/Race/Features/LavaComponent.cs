@@ -1,26 +1,22 @@
-﻿using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-#else
-using LabApi.Features.Wrappers;
-#endif
+﻿using LabApi.Features.Wrappers;
+using UnityEngine;
 
 namespace AutoEvent.Games.Race;
 
 public class LavaComponent : MonoBehaviour
 {
+    private BoxCollider _collider;
     private Plugin _plugin;
-    private BoxCollider collider;
 
     private void Start()
     {
-        collider = gameObject.AddComponent<BoxCollider>();
-        collider.isTrigger = true;
+        _collider = gameObject.AddComponent<BoxCollider>();
+        _collider.isTrigger = true;
     }
 
     private void OnTriggerStay(Collider other)
     {
-        if (Player.Get(other.gameObject) is Player)
+        if (Player.Get(other.gameObject) is not null)
         {
             var pl = Player.Get(other.gameObject);
             pl.Position = _plugin.Spawnpoint.transform.position;

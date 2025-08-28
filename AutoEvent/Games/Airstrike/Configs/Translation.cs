@@ -1,6 +1,6 @@
 ﻿using AutoEvent.Interfaces;
 
-namespace AutoEvent.Games.Airstrike;
+namespace AutoEvent.Games.Airstrike.Configs;
 
 public class Translation : EventTranslation
 {

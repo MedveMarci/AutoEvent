@@ -19,7 +19,7 @@ namespace AutoEvent.Events.Example
         // The name of the event for the `ev run` command.
         public override string CommandName { get; set; } = "example";
         
-        // Make sure you set this to true. Otherwise you must register your plugin via Exiled or NWApi manually.
+        // Make sure you set this to true. Otherwise you must register your plugin via LabApi manually.
         // Add the event to AutoEvent.Events to manually register it.
         public override bool AutoLoad { get; protected set; } = true;
         
@@ -139,7 +139,7 @@ namespace AutoEvent.Events.Example
             {
                 switch (gameObject.name)
                 {
-                    case "Wall": { GameObject.Destroy(gameObject); } break;
+                    case "Wall": { NetworkServer.Destroy(gameObject);; } break;
                     case "Workstation": { _workstations.Add(gameObject); } break;
                 }
             }
@@ -151,7 +151,7 @@ namespace AutoEvent.Events.Example
         {
             // Note the structure of how things are called. Its an abstracted while loop.
             // for debugging, look at the debug commands. it is helpful for testing events. 
-            while (!IsRoundDone() || DebugLogger.AntiEnd)
+            while (!IsRoundDone() || LogManager.AntiEnd)
             {
                 if (KillLoop)
                 {
@@ -163,8 +163,8 @@ namespace AutoEvent.Events.Example
                 }
                 catch (Exception e)
                 {
-                    DebugLogger.LogDebug($"Caught an exception at Event.ProcessFrame().", LogLevel.Warn, true);
-                    DebugLogger.LogDebug($"{e}", LogLevel.Debug);
+                    LogManager.LogDebug($"Caught an exception at Event.ProcessFrame().");
+                    LogManager.LogDebug($"{e}", LogLevel.Debug);
                 }
 
                 EventTime += TimeSpan.FromSeconds(FrameDelayInSeconds);

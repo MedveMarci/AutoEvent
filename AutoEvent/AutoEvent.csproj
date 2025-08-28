@@ -6,14 +6,14 @@
         <Product>AutoEvent</Product>
         <Copyright>Copyright MedveMarci © 2025</Copyright>
         <OutputPath>bin\$(Configuration)\</OutputPath>
-        <Nullable>enable</Nullable>
-        <Configurations>Exiled;LabApi</Configurations>
+        <Configurations>Debug;Release</Configurations>
         <Platforms>x64</Platforms>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <AssemblyName>AutoEvent</AssemblyName>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'EXILED|x64' ">
-        <OutputPath>bin\x64\Exiled</OutputPath>
-        <DefineConstants>TRACE;EXILED</DefineConstants>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+        <OutputPath>bin\x64\Debug</OutputPath>
+        <DefineConstants>TRACE;DEBUG</DefineConstants>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Optimize>true</Optimize>
         <PlatformTarget>x64</PlatformTarget>
@@ -24,9 +24,8 @@
         <TargetFrameworkProfile/>
         <DebugSymbols>true</DebugSymbols>
         <DebugType>embedded</DebugType>
-        <AssemblyName>AutoEvent-Exiled</AssemblyName>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'LabApi|x64' ">
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
         <OutputPath>bin\x64\LabApi</OutputPath>
         <DefineConstants>TRACE;LABAPI</DefineConstants>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -39,27 +38,25 @@
         <TargetFrameworkProfile/>
         <DebugSymbols>true</DebugSymbols>
         <DebugType>embedded</DebugType>
-        <AssemblyName>AutoEvent-LabApi</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Costura.Fody" Version="5.8.0-alpha0098">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="ExMod.Exiled" Version="9.8.1" Condition=" '$(Configuration)' == 'EXILED'"/>
         <PackageReference Include="Fody" Version="6.8.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Lib.Harmony" Version="2.2.2"/>
+        <PackageReference Include="Lib.Harmony" Version="2.4.0"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
         <PackageReference Include="NVorbis" Version="0.10.5"/>
     </ItemGroup>
     <ItemGroup>
         <Reference Include="AudioPlayerApi" HintPath="$(LABAPI_DEPENDENCIES)\AudioPlayerApi.dll"/>
         <Reference Include="CedModV3" HintPath="$(LABAPI_PLUGINS)\CedModV3.dll"/>
-        <Reference Include="LabApi" HintPath="$(SL_REFERENCES)\LabApi.dll" Condition=" '$(Configuration)' != 'EXILED'"/>
-        <Reference Include="YamlDotNet" HintPath="$(SL_REFERENCES)\YamlDotNet.dll" Condition=" '$(Configuration)' != 'EXILED'"/>
+        <Reference Include="LabApi" HintPath="$(SL_REFERENCES)\LabApi.dll"/>
+        <Reference Include="YamlDotNet" HintPath="$(SL_REFERENCES)\YamlDotNet.dll"/>
         <Reference Include="ProjectMER" HintPath="$(LABAPI_PLUGINS)\ProjectMER.dll"/>
         <Reference Include="Assembly-CSharp" HintPath="$(SL_REFERENCES)\Assembly-CSharp-Publicized.dll"/>
         <Reference Include="Mirror" HintPath="$(SL_REFERENCES)\Mirror.dll"/>
@@ -88,16 +85,6 @@
         <Content Include="FodyWeavers.xml"/>
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Remove="Games\Dodgeball\Features\**"/>
-        <EmbeddedResource Remove="SchematicApi\**"/>
-        <EmbeddedResource Remove="SchematicApi\*"/>
-        <EmbeddedResource Remove="PowerupApi\**"/>
-        <EmbeddedResource Remove="PowerupApi\*"/>
-        <EmbeddedResource Remove="ReplaceTextWithVariables\**"/>
-        <EmbeddedResource Remove="ReplaceTextWithVariables\*"/>
-        <EmbeddedResource Remove="InventoryMenu\**"/>
-        <EmbeddedResource Remove="InventoryMenu\*"/>
-        <None Remove="Translations\chinese.yml"/>
         <EmbeddedResource Include="Translations\chinese.yml">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </EmbeddedResource>
@@ -143,36 +130,8 @@
         </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
-        <None Remove="Games\Dodgeball\Features\**"/>
-        <None Remove="SchematicApi\**"/>
-        <None Remove="SchematicApi\*"/>
-        <None Remove="PowerupApi\**"/>
-        <None Remove="PowerupApi\*"/>
-        <None Remove="ReplaceTextWithVariables\**"/>
-        <None Remove="ReplaceTextWithVariables\*"/>
-        <None Remove="InventoryMenu\**"/>
-        <None Remove="InventoryMenu\*"/>
-    </ItemGroup>
-    <ItemGroup>
-        <Compile Remove="Games\Dodgeball\Features\**"/>
-        <Compile Remove="SchematicApi\**"/>
-        <Compile Remove="SchematicApi\*"/>
-        <Compile Remove="PowerupApi\**"/>
-        <Compile Remove="PowerupApi\*"/>
-        <Compile Remove="ReplaceTextWithVariables\**"/>
-        <Compile Remove="ReplaceTextWithVariables\*"/>
-        <Compile Remove="InventoryMenu\**"/>
-        <Compile Remove="InventoryMenu\*"/>
-    </ItemGroup>
-    <ItemGroup>
         <Folder Include="Translations\"/>
     </ItemGroup>
-    <Target Name="RemoveFile" BeforeTargets="ReplaceFile">
-        <Exec Command="if exist $(SolutionDir)VersionInfo.cs del $(SolutionDir)VersionInfo.cs"/>
-    </Target>
-    <Target Name="ReplaceFile" BeforeTargets="ReplaceVars">
-        <Exec Command="copy $(SolutionDir)BlankVersionInfo.txt $(SolutionDir)VersionInfo.cs"/>
-    </Target>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <Target Name="AfterBuild">
         <Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;%appdata%\SCP Secret Laboratory\LabAPI\plugins\global&quot; /y"/>

@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AdminToys;
+using AutoEvent.API;
 using UnityEngine;
 
 namespace AutoEvent.Games.MusicalChairs;
 
-public class Functions
+public abstract class Functions
 {
     public static List<GameObject> GeneratePlatforms(int count, GameObject parent, Vector3 position)
     {
@@ -33,9 +34,9 @@ public class Functions
     public static List<GameObject> RearrangePlatforms(int playerCount, List<GameObject> platforms, Vector3 position)
     {
         if (platforms.Count == 0)
-            return new List<GameObject>();
+            return [];
 
-        for (var i = playerCount; i <= platforms.Count;)
+        for (; playerCount <= platforms.Count;)
         {
             var lastPlatform = platforms.Last();
             Object.Destroy(lastPlatform);

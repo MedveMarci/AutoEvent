@@ -1,24 +1,21 @@
 ﻿using System.Linq;
+using AutoEvent.API;
 using AutoEvent.Interfaces;
-using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-#else
 using LabApi.Features.Wrappers;
-#endif
+using UnityEngine;
 
 namespace AutoEvent.Games.Line;
 
 public class LineComponent : MonoBehaviour
 {
+    private BoxCollider _collider;
     private Plugin _plugin;
     private ObstacleType _type;
-    private BoxCollider collider;
 
     private void Start()
     {
-        collider = gameObject.AddComponent<BoxCollider>();
-        collider.isTrigger = true;
+        _collider = gameObject.AddComponent<BoxCollider>();
+        _collider.isTrigger = true;
     }
 
     private void OnTriggerStay(Collider other)

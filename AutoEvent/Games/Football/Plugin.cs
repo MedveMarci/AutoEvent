@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.API;
 using AutoEvent.Interfaces;
+using LabApi.Features.Wrappers;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-#else
-using LabApi.Features.Wrappers;
-#endif
 
 namespace AutoEvent.Games.Football;
 
@@ -43,11 +40,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         var count = 0;
 
         var spawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint").ToList();
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             if (count % 2 == 0)
             {
@@ -66,7 +59,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _bluePoints = 0;
         _redPoints = 0;
         _ball = new GameObject();
-        _triggers = new List<GameObject>();
+        _triggers = [];
 
         foreach (var gameObject in MapInfo.Map.AttachedBlocks)
             switch (gameObject.name)
@@ -92,23 +85,14 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         // Both Teams have at least 1 player 
         return !(_bluePoints < Config.PointsToWin && _redPoints < Config.PointsToWin &&
                  EventTime.TotalSeconds < Config.MatchDurationInSeconds &&
-#if EXILED
-                 Player.List.Count(r => r.IsNTF) > 0 &&
-                 Player.List.Count(r => r.Role.Team == Team.ClassD) > 0);
-#else
                  Player.ReadyList.Count(r => r.IsNTF) > 0 &&
                  Player.ReadyList.Count(r => r.RoleBase.Team == Team.ClassD) > 0);
-#endif
     }
 
     protected override void ProcessFrame()
     {
         var time = $"{_remainingTime.Minutes:00}:{_remainingTime.Seconds:00}";
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             var text = string.Empty;
             if (Vector3.Distance(_ball.transform.position, player.Position) < 2)
@@ -116,45 +100,36 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 _ball.gameObject.TryGetComponent(out Rigidbody rig);
                 rig.AddForce(player.ReferenceHub.transform.forward + new Vector3(0, 0.1f, 0), ForceMode.Impulse);
             }
-#if EXILED
-            if (player.Role.Team == Team.FoundationForces)
-#else
+
             if (player.RoleBase.Team == Team.FoundationForces)
-#endif
                 text += Translation.BlueTeam;
             else
                 text += Translation.RedTeam;
 
             player.ClearBroadcasts();
-#if EXILED
-            player.Broadcast(1,
-                text + Translation.TimeLeft.Replace("{BluePnt}", $"{_bluePoints}").Replace("{RedPnt}", $"{_redPoints}")
-                    .Replace("{time}", time));
-#else
             player.SendBroadcast(
                 text + Translation.TimeLeft.Replace("{BluePnt}", $"{_bluePoints}").Replace("{RedPnt}", $"{_redPoints}")
                     .Replace("{time}", time), 1);
-#endif
         }
 
         if (Vector3.Distance(_ball.transform.position, _triggers.ElementAt(0).transform.position) < 3)
         {
             _ball.transform.position = MapInfo.Map.Position + new Vector3(0, 2.5f, 0);
-            _ball.GetComponent<Rigidbody>().velocity = Vector3.zero;
+            _ball.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
             _redPoints++;
         }
 
         if (Vector3.Distance(_ball.transform.position, _triggers.ElementAt(1).transform.position) < 3)
         {
             _ball.transform.position = MapInfo.Map.Position + new Vector3(0, 2.5f, 0);
-            _ball.GetComponent<Rigidbody>().velocity = Vector3.zero;
+            _ball.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
             _bluePoints++;
         }
 
         if (_ball.transform.position.y < MapInfo.Map.Position.y - 10f)
         {
             _ball.transform.position = MapInfo.Map.Position + new Vector3(0, 2.5f, 0);
-            _ball.GetComponent<Rigidbody>().velocity = Vector3.zero;
+            _ball.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
         }
 
         _remainingTime -= TimeSpan.FromSeconds(FrameDelayInSeconds);
@@ -163,11 +138,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void OnFinished()
     {
         if (_bluePoints > _redPoints)
-            Extensions.Broadcast($"{Translation.BlueWins}", 10);
+            Extensions.ServerBroadcast($"{Translation.BlueWins}", 10);
         else if (_redPoints > _bluePoints)
-            Extensions.Broadcast($"{Translation.RedWins}", 10);
+            Extensions.ServerBroadcast($"{Translation.RedWins}", 10);
         else
-            Extensions.Broadcast(
+            Extensions.ServerBroadcast(
                 $"{Translation.Draw.Replace("{BluePnt}", $"{_bluePoints}").Replace("{RedPnt}", $"{_redPoints}")}", 3);
     }
 }

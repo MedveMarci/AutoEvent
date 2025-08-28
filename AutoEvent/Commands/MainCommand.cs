@@ -16,7 +16,7 @@ public class MainCommand : ParentCommand
     public override string Description => "Main command for AutoEvent";
     public override string[] Aliases => [];
 
-    public override void LoadGeneratedCommands()
+    public sealed override void LoadGeneratedCommands()
     {
         try
         {
@@ -28,8 +28,7 @@ public class MainCommand : ParentCommand
         }
         catch (Exception e)
         {
-            DebugLogger.LogDebug("Caught an exception while registering commands.", LogLevel.Warn, true);
-            DebugLogger.LogDebug($"{e}");
+            LogManager.Error($"Caught an exception while registering commands.\n{e}");
         }
     }
 

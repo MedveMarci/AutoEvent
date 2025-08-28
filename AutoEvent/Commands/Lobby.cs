@@ -1,13 +1,8 @@
 ﻿using System;
 using CommandSystem;
-using MEC;
-#if EXILED
-using Exiled.API.Features;
-using Exiled.Permissions.Extensions;
-#else
-using LabApi.Features.Wrappers;
 using LabApi.Features.Permissions;
-#endif
+using LabApi.Features.Wrappers;
+using MEC;
 
 namespace AutoEvent.Commands;
 
@@ -19,11 +14,7 @@ internal class Lobby : ICommand
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
-#if EXILED
-        if (!sender.CheckPermission("ev.lobby"))
-#else
         if (!sender.HasPermissions("ev.lobby"))
-#endif
         {
             response = "<color=red>You do not have permission to use this command!</color>";
             return false;
@@ -44,11 +35,7 @@ internal class Lobby : ICommand
 
         Round.IsLocked = true;
 
-#if EXILED
-        if (!Round.IsStarted)
-#else
         if (!Round.IsRoundStarted)
-#endif
         {
             Round.Start();
 

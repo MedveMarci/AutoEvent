@@ -1,12 +1,8 @@
-﻿#if EXILED
-using Exiled.API.Features;
-#else
-using LabApi.Features.Wrappers;
-#endif
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using LabApi.Features.Wrappers;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -38,37 +34,25 @@ public class RoleCount
 
     public List<Player> GetPlayers(bool alwaysLeaveOnePlayer = true, List<Player>? availablePlayers = null)
     {
-#if EXILED
-        var percent = Player.List.Count * (PlayerPercentage / 100f);
-        var players = Mathf.Clamp((int)percent, MinimumPlayers,
-            MaximumPlayers == -1 ? Player.List.Count : MaximumPlayers);
-#else
         var percent = Player.ReadyList.Count() * (PlayerPercentage / 100f);
         var players = Mathf.Clamp((int)percent, MinimumPlayers,
             MaximumPlayers == -1 ? Player.ReadyList.Count() : MaximumPlayers);
-#endif
         var validPlayers = new List<Player>();
-        // DebugLogger.LogDebug($"Selecting Players: {players} < {(int)percent:F2} ({percent}) <  ");
         try
         {
             for (var i = 0; i < players; i++)
             {
-#if EXILED
-                List<Player> playersToPullFrom =
-                    (availablePlayers ?? Player.List).Where(x => !validPlayers.Contains(x)).ToList();
-#else
                 var playersToPullFrom = (availablePlayers ?? Player.ReadyList).Where(x => !validPlayers.Contains(x))
                     .ToList();
-#endif
                 if (playersToPullFrom.Count < 1)
                 {
-                    DebugLogger.LogDebug("Cannot pull more players.");
+                    LogManager.Debug("Cannot pull more players.");
                     break;
                 }
 
                 if (playersToPullFrom.Count < 2)
                 {
-                    DebugLogger.LogDebug("Only one more player available. Pulling that player.");
+                    LogManager.Debug("Only one more player available. Pulling that player.");
                     validPlayers.Add(playersToPullFrom[0]);
                     break;
                 }
@@ -81,14 +65,10 @@ public class RoleCount
         }
         catch (Exception e)
         {
-            DebugLogger.LogDebug("Could not assign player to list.", LogLevel.Warn);
-            DebugLogger.LogDebug($"{e}");
+            LogManager.Error($"Could not assign player to list.\n{e}");
         }
-#if EXILED
-        if (alwaysLeaveOnePlayer && validPlayers.Count >= (availablePlayers ?? Player.List).Count)
-#else
+
         if (alwaysLeaveOnePlayer && validPlayers.Count >= (availablePlayers ?? Player.ReadyList).Count())
-#endif
         {
             var plyToRemove = validPlayers.RandomItem();
             validPlayers.Remove(plyToRemove);

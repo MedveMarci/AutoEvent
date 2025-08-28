@@ -1,12 +1,15 @@
 using System.Collections.Generic;
-using ProjectMER.Features.Objects;
+using AdminToys;
+using LabApi.Features.Wrappers;
+using Mirror;
 using UnityEngine;
 
 namespace AutoEvent.API;
 
 public class MapObject
 {
-    public List<GameObject> AttachedBlocks { get; set; } = new();
+    public List<GameObject> AttachedBlocks { get; set; } = [];
+    public List<AdminToyBase> AdminToyBases { get; set; } = [];
     public GameObject GameObject { get; set; }
 
     public Vector3 Position
@@ -23,6 +26,6 @@ public class MapObject
 
     public void Destroy()
     {
-        SchematicObject.Destroy(GameObject);
+        NetworkServer.Destroy(GameObject);
     }
 }

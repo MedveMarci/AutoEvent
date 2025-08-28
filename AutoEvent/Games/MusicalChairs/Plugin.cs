@@ -1,14 +1,10 @@
-﻿#if EXILED
-using Exiled.API.Features;
-#else
-using CustomPlayerEffects;
-using LabApi.Events.Handlers;
-using LabApi.Features.Wrappers;
-#endif
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.API;
 using AutoEvent.Interfaces;
+using LabApi.Events.Handlers;
+using LabApi.Features.Wrappers;
 using MEC;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -48,28 +44,17 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void RegisterEvents()
     {
         _eventHandler = new EventHandler(this);
-#if EXILED
-        Exiled.Events.Handlers.Player.Hurting += _eventHandler.OnHurting;
-        Exiled.Events.Handlers.Player.Died += _eventHandler.OnDied;
-        Exiled.Events.Handlers.Player.Left += _eventHandler.OnLeft;
-#else
-        PlayerEvents.Hurting += _eventHandler.OnHurting;
+        PlayerEvents.Hurting += EventHandler.OnHurting;
         PlayerEvents.Death += _eventHandler.OnDied;
         PlayerEvents.Left += _eventHandler.OnLeft;
-#endif
     }
 
     protected override void UnregisterEvents()
     {
-#if EXILED
-        Exiled.Events.Handlers.Player.Hurting -= _eventHandler.OnHurting;
-        Exiled.Events.Handlers.Player.Died -= _eventHandler.OnDied;
-        Exiled.Events.Handlers.Player.Left -= _eventHandler.OnLeft;
-#else
-        PlayerEvents.Hurting -= _eventHandler.OnHurting;
+        PlayerEvents.Hurting -= EventHandler.OnHurting;
         PlayerEvents.Death -= _eventHandler.OnDied;
         PlayerEvents.Left -= _eventHandler.OnLeft;
-#endif
+
         _eventHandler = null;
     }
 
@@ -86,30 +71,18 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "Cylinder-Parent": _parentPlatform = gameObject; break;
             }
 
-        var count = Player.List.Count > 40 ? 40 : Player.List.Count - 1;
+        var count = Player.ReadyList.Count() > 40 ? 40 : Player.ReadyList.Count() - 1;
         Platforms = Functions.GeneratePlatforms(count, _parentPlatform, MapInfo.Position);
 
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             player.GiveLoadout(Config.PlayerLoadout);
             player.Position = spawnpoints.RandomItem().transform.position;
-#if EXILED
-            player.IsUsingStamina = false;
-#else
-            player.EnableEffect<Invigorated>();
-#endif
+            Extensions.InfinityStaminaList.Add(player.UserId);
         }
 
         PlayerDict = new Dictionary<Player, PlayerClass>();
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
             PlayerDict.Add(player, new PlayerClass
             {
                 Angle = 0,
@@ -122,7 +95,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         for (var time = 10; time > 0; time--)
         {
             var text = Translation.Start.Replace("{time}", time.ToString());
-            Extensions.Broadcast(text, 1);
+            Extensions.ServerBroadcast(text, 1);
             yield return Timing.WaitForSeconds(1f);
         }
     }
@@ -132,7 +105,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _countdown = _countdown.TotalSeconds > 0
             ? _countdown.Subtract(TimeSpan.FromSeconds(FrameDelayInSeconds))
             : TimeSpan.Zero;
-        return !(Player.List.Count(r => r.IsAlive) > 1);
+        return !(Player.ReadyList.Count(r => r.IsAlive) > 1);
     }
 
     protected override void ProcessFrame()
@@ -146,9 +119,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             case EventState.Ending: UpdateEndingState(ref text); break;
         }
 
-        Extensions.Broadcast(
+        Extensions.ServerBroadcast(
             Translation.Cycle.Replace("{name}", Name).Replace("{state}", text)
-                .Replace("{count}", $"{Player.List.Count(r => r.IsAlive)}"), 1);
+                .Replace("{count}", $"{Player.ReadyList.Count(r => r.IsAlive)}"), 1);
     }
 
     /// <summary>
@@ -182,7 +155,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         text = Translation.RunDontTouch;
 
         // Check only alive players
-        foreach (var player in Player.List.Where(r => r.IsAlive))
+        foreach (var player in Player.ReadyList.Where(r => r.IsAlive))
         {
             var playerAngle = 180f + Mathf.Rad2Deg * Mathf.Atan2(player.Position.z - MapInfo.Position.z,
                 player.Position.x - MapInfo.Position.x);
@@ -199,17 +172,13 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             }
 
             // If the player touches the platform, it will explode || Layer mask is 0 for primitives
-            if (Physics.Raycast(player.Position, Vector3.down, out var hit, 3, 1 << 0))
-            {
-                if (!Platforms.Contains(hit.collider.gameObject))
-                    continue;
+            if (!Physics.Raycast(player.Position, Vector3.down, out var hit, 3, 1 << 0)) continue;
+            if (!Platforms.Contains(hit.collider.gameObject))
+                continue;
 
-                if (hit.collider.GetComponent<PrimitiveObjectToy>())
-                {
-                    Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f, 0);
-                    player.Kill(Translation.TouchAhead);
-                }
-            }
+            if (!hit.collider.GetComponent<PrimitiveObjectToy>()) continue;
+            Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f, 0);
+            player.Kill(Translation.TouchAhead);
         }
 
         if (_countdown.TotalSeconds > 0)
@@ -232,7 +201,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         text = Translation.StandFree;
 
         // Check only alive players
-        foreach (var player in Player.List.Where(r => r.IsAlive))
+        foreach (var player in Player.ReadyList.Where(r => r.IsAlive))
         {
             // Player is not contains in _playerDict
             if (!PlayerDict.TryGetValue(player, out var playerClass))
@@ -243,25 +212,21 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 continue;
 
             // Layer mask is 0 for primitives
-            if (Physics.Raycast(player.Position, Vector3.down, out var hit, 3, 1 << 0))
-            {
-                if (!Platforms.Contains(hit.collider.gameObject))
-                    continue;
+            if (!Physics.Raycast(player.Position, Vector3.down, out var hit, 3, 1 << 0)) continue;
+            if (!Platforms.Contains(hit.collider.gameObject))
+                continue;
 
-                if (hit.collider.TryGetComponent(out PrimitiveObjectToy objectToy))
-                    if (objectToy.NetworkMaterialColor == Color.black)
-                    {
-                        objectToy.NetworkMaterialColor = Color.red;
-                        playerClass.IsStandUpPlatform = true;
-                    }
-            }
+            if (!hit.collider.TryGetComponent(out PrimitiveObjectToy objectToy)) continue;
+            if (objectToy.NetworkMaterialColor != Color.black) continue;
+            objectToy.NetworkMaterialColor = Color.red;
+            playerClass.IsStandUpPlatform = true;
         }
 
         if (_countdown.TotalSeconds > 0)
             return;
 
         // Kill alive players who didn't get up to platform
-        foreach (var player in Player.List.Where(r => r.IsAlive))
+        foreach (var player in Player.ReadyList.Where(r => r.IsAlive))
             if (!PlayerDict[player].IsStandUpPlatform)
             {
                 Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f, 0);
@@ -293,8 +258,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void OnFinished()
     {
-        var text = string.Empty;
-        var count = Player.List.Count(r => r.IsAlive);
+        string text;
+        var count = Player.ReadyList.Count(r => r.IsAlive);
 
         if (count > 1)
         {
@@ -302,7 +267,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
         else if (count == 1)
         {
-            var winner = Player.List.First(r => r.IsAlive);
+            var winner = Player.ReadyList.First(r => r.IsAlive);
             text = Translation.Winner.Replace("{name}", Name).Replace("{winner}", winner.Nickname);
         }
         else
@@ -310,7 +275,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             text = Translation.AllDied.Replace("{name}", Name);
         }
 
-        Extensions.Broadcast(text, 10);
+        Extensions.ServerBroadcast(text, 10);
     }
 
     protected override void OnCleanup()

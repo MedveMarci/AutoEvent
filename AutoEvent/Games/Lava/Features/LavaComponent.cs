@@ -1,49 +1,36 @@
-﻿using PlayerStatsSystem;
+﻿using LabApi.Features.Wrappers;
+using PlayerStatsSystem;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-#else
-using LabApi.Features.Wrappers;
-#endif
 
 namespace AutoEvent.Games.Lava;
 
 public class LavaComponent : MonoBehaviour
 {
-    private readonly float damageCooldown = 3f;
+    private readonly float _damageCooldown = 3f;
+    private BoxCollider _collider;
+    private float _elapsedTime;
     private Plugin _plugin;
-    private BoxCollider collider;
-    private float elapsedTime;
 
     private void Start()
     {
-        collider = gameObject.AddComponent<BoxCollider>();
-        collider.isTrigger = true;
+        _collider = gameObject.AddComponent<BoxCollider>();
+        _collider.isTrigger = true;
     }
 
     private void Update()
     {
-        elapsedTime += Time.deltaTime;
+        _elapsedTime += Time.deltaTime;
     }
 
     private void OnTriggerStay(Collider other)
     {
-        elapsedTime += Time.deltaTime;
+        _elapsedTime += Time.deltaTime;
 
-        if (elapsedTime >= damageCooldown)
-        {
-            elapsedTime = 0f;
+        if (!(_elapsedTime >= _damageCooldown)) return;
+        _elapsedTime = 0f;
 
-            if (Player.Get(other.gameObject) is Player)
-            {
-                var pl = Player.Get(other.gameObject);
-#if EXILED
-                pl.Hurt(new CustomReasonDamageHandler(_plugin.Translation.Died, 30));
-#else
-                pl.Damage(new CustomReasonDamageHandler(_plugin.Translation.Died, 30));
-#endif
-            }
-        }
+        if (Player.Get(other.gameObject) is { } player)
+            player.Damage(new CustomReasonDamageHandler(_plugin.Translation.Died, 30));
     }
 
     public void StartComponent(Plugin plugin)

@@ -4,12 +4,7 @@ using System.Text;
 using AutoEvent.API.Season;
 using AutoEvent.Interfaces;
 using CommandSystem;
-#if EXILED
-using Exiled.Permissions.Extensions;
-#else
 using LabApi.Features.Permissions;
-#endif
-
 
 namespace AutoEvent.Commands;
 
@@ -21,11 +16,7 @@ internal class List : ICommand
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
-#if EXILED
-        if (!sender.CheckPermission("ev.list"))
-#else
         if (!sender.HasPermissions("ev.list"))
-#endif
         {
             response = "<color=red>You do not have permission to use this command!</color>";
             return false;

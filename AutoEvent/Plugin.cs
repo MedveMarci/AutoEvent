@@ -1,94 +1,75 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using AutoEvent.API;
+using AutoEvent.Loader;
 using HarmonyLib;
-#if EXILED
-using Exiled.API.Features;
-#else
+using LabApi.Events.CustomHandlers;
 using LabApi.Features;
 using LabApi.Features.Wrappers;
 using LabApi.Loader.Features.Paths;
 using LabApi.Loader.Features.Plugins;
-#endif
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace AutoEvent;
 
-public class AutoEvent :
-#if EXILED
-    Plugin<Config>
-#else
-    Plugin<Config>
-#endif
+public class AutoEvent : Plugin<Config>
 {
-    public override string Name => "AutoEvent"; 
+    public static AutoEvent Singleton;
+    private static Harmony _harmonyPatch;
+    public static EventManager EventManager;
+    private static EventHandler _eventHandler;
+    public override string Name => "AutoEvent";
 
     public override string Author =>
         "Created by a large community of programmers, map builders and just ordinary people, under the leadership of RisottoMan. MapEditorReborn for 14.1 port by Sakred_. LabApi port by MedveMarci.";
 
-#if LABAPI
-    public override string Description => "A plugin that allows you to play mini-games in SCP:SL. It includes a variety of games such as Spleef, Lava, Hide and Seek, Knives, and more. Each game has its own unique mechanics and rules, providing a fun and engaging experience for players.";
-#endif
+    public override string Description =>
+        "A plugin that allows you to play mini-games in SCP:SL. It includes a variety of games such as Spleef, Lava, Hide and Seek, Knives, and more. Each game has its own unique mechanics and rules, providing a fun and engaging experience for players.";
 
-    public override Version Version => Version.Parse("9.13.1");
-#if EXILED
-    public override Version RequiredExiledVersion => new(9, 8, 1);
-#else
+    public override Version Version => new(9, 14, 0);
+    
+    internal const bool PreRelease = false;
     public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
-#endif
-    public static string BaseConfigPath { get; set; }
-    public static AutoEvent Singleton;
-    public static Harmony HarmonyPatch;
-    public static EventManager EventManager;
-    private EventHandler _eventHandler;
 
-#if EXILED
-    public override void OnEnabled()
-#else
+    public static string BaseConfigPath { get; private set; }
+
     public override void Enable()
-#endif
     {
-        if (!Config.IsEnabled) return;
-
         CosturaUtility.Initialize();
-#if EXILED
-        BaseConfigPath = Path.Combine(Paths.Configs, "AutoEvent");
-#else
         BaseConfigPath = Path.Combine(PathManager.Configs.FullName, "AutoEvent");
-#endif
         try
         {
             Singleton = this;
 
             if (Config.IgnoredRoles.Contains(Config.LobbyRole))
             {
-                DebugLogger.LogDebug(
-                    "The Lobby Role is also in ignored roles. This will break the game if not changed. The plugin will remove the lobby role from ignored roles.",
-                    LogLevel.Error, true);
+                LogManager.Error(
+                    "The Lobby Role is also in ignored roles. This will break the game if not changed. The plugin will remove the lobby role from ignored roles.");
                 Config.IgnoredRoles.Remove(Config.LobbyRole);
             }
 
             FriendlyFireSystem.IsFriendlyFireEnabledByDefault = Server.FriendlyFire;
 
-            DebugLogger.Debug = Config.Debug;
-            if (DebugLogger.Debug) DebugLogger.LogDebug("Debug Mode Enabled", LogLevel.Info, true);
-
             try
             {
-                HarmonyPatch = new Harmony("autoevent");
-                HarmonyPatch.PatchAll();
+                _harmonyPatch = new Harmony("autoevent");
+                _harmonyPatch.PatchAll();
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("Could not patch harmony methods.", LogLevel.Warn, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"Could not patch harmony methods.\n{e}");
             }
 
             try
             {
-                DebugLogger.LogDebug($"Base Conf Path: {BaseConfigPath}");
-                DebugLogger.LogDebug($"Configs paths: \n" +
-                                     $"{Config.SchematicsDirectoryPath}\n" +
-                                     $"{Config.MusicDirectoryPath}\n");
+                LogManager.Debug($"Base Config Path: {BaseConfigPath}");
+                LogManager.Debug($"Configs paths: \n" +
+                                 $"{Config.SchematicsDirectoryPath}\n" +
+                                 $"{Config.MusicDirectoryPath}\n");
                 CreateDirectoryIfNotExists(BaseConfigPath);
                 CreateDirectoryIfNotExists(Config.SchematicsDirectoryPath);
                 CreateDirectoryIfNotExists(Config.MusicDirectoryPath);
@@ -100,25 +81,21 @@ public class AutoEvent :
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("An error has occured while trying to initialize directories.", LogLevel.Warn,
-                    true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"An error has occured while trying to initialize directories.\n{e}");
             }
 
-            _eventHandler = new EventHandler(this);
             EventManager = new EventManager();
             EventManager.RegisterInternalEvents();
+            _eventHandler = new EventHandler();
+            CustomHandlersManager.RegisterEventsHandler(_eventHandler);
+            ConfigManager.LoadConfigsAndTranslations();
 
-            DebugLogger.LogDebug("The mini-games are loaded.", LogLevel.Info, true);
+            LogManager.Info("The mini-games are loaded.");
         }
         catch (Exception e)
         {
-            DebugLogger.LogDebug("Caught an exception while starting plugin.", LogLevel.Warn, true);
-            DebugLogger.LogDebug($"{e}");
+            LogManager.Error($"Caught an exception while starting plugin.\n{e}");
         }
-#if EXILED
-        base.OnEnabled();
-#endif
     }
 
     private static void CreateDirectoryIfNotExists(string path)
@@ -129,8 +106,7 @@ public class AutoEvent :
         }
         catch (Exception e)
         {
-            DebugLogger.LogDebug("An error has occured while trying to create a new directory.", LogLevel.Warn, true);
-            DebugLogger.LogDebug($"Path: {path}\n{e}");
+            LogManager.Error($"An error has occured while trying to create a new directory.\nPath: {path}\n{e}");
         }
     }
 
@@ -142,24 +118,109 @@ public class AutoEvent :
         }
         catch (Exception e)
         {
-            DebugLogger.LogDebug("An error has occured while trying to delete a directory.", LogLevel.Warn, true);
-            DebugLogger.LogDebug($"Path: {path}\n{e}");
+            LogManager.Error($"An error has occured while trying to delete a directory.\nPath: {path}\n{e}");
         }
     }
 
-#if EXILED
-    public override void OnDisabled()
-#else
     public override void Disable()
-#endif
     {
-        _eventHandler = null;
-
-        HarmonyPatch.UnpatchAll();
+        _harmonyPatch.UnpatchAll();
         EventManager = null;
         Singleton = null;
-#if EXILED
-        base.OnDisabled();
-#endif
+        CustomHandlersManager.UnregisterEventsHandler(_eventHandler);
+        _eventHandler = null;
+    }
+
+    internal static async Task CheckForUpdatesAsync(Version currentVersion)
+    {
+        try
+        {
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.UserAgent.ParseAdd($"AutoEvent/{currentVersion}");
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+
+            const string repo = "MedveMarci/AutoEvent";
+            var latestStableJson = await client.GetStringAsync($"https://api.github.com/repos/{repo}/releases/latest").ConfigureAwait(false);
+            var allReleasesJson = await client.GetStringAsync($"https://api.github.com/repos/{repo}/releases?per_page=20").ConfigureAwait(false);
+
+            var latestStable = JObject.Parse(latestStableJson);
+            var all = JArray.Parse(allReleasesJson);
+
+            var stableTag = latestStable.Value<string>("tag_name");
+            var stableVer = ParseVersion(stableTag);
+
+            JObject latestPre = null;
+            Version preVer = null;
+            string preTag = null;
+
+            foreach (var rel in all)
+            {
+                if (rel.Value<bool>("draft")) continue;
+                if (!rel.Value<bool>("prerelease")) continue;
+                if (latestPre == null)
+                {
+                    latestPre = (JObject)rel;
+                }
+                else
+                {
+                    var currPub = rel.Value<DateTime?>("published_at");
+                    var bestPub = latestPre.Value<DateTime?>("published_at");
+                    if (currPub.HasValue && bestPub.HasValue && currPub.Value > bestPub.Value)
+                        latestPre = (JObject)rel;
+                }
+            }
+
+            if (latestPre != null)
+            {
+                preTag = latestPre.Value<string>("tag_name");
+                preVer = ParseVersion(preTag);
+            }
+
+            var outdatedStable = stableVer != null && stableVer > currentVersion;
+            var prereleaseNewer = preVer != null && preVer > currentVersion && !outdatedStable;
+
+            if (outdatedStable)
+            {
+                LogManager.Info($"A new AutoEvent version is available: {stableTag} (current {currentVersion}). Download: https://github.com/MedveMarci/AutoEvent/releases/latest", ConsoleColor.DarkRed);
+            }
+            else if (prereleaseNewer)
+            {
+                LogManager.Info($"A newer pre-release is available: {preTag} (current {currentVersion}). Download: https://github.com/MedveMarci/AutoEvent/releases/tag/{preTag}", ConsoleColor.DarkYellow);
+            }
+            else
+            {
+                LogManager.Info($"AutoEvent v{currentVersion} is up to date.", ConsoleColor.Blue);
+            }
+            if (PreRelease)
+                LogManager.Info("This is a pre-release version. There might be bugs, if you find one, please report it on GitHub or Discord.", ConsoleColor.DarkYellow);
+
+        }
+        catch (Exception e)
+        {
+            LogManager.Debug($"Version check failed.\n{e}");
+        }
+    }
+
+    private static Version ParseVersion(string tag)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return null;
+            var t = tag.Trim();
+            if (t.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+                t = t.Substring(1);
+
+            int cut = t.IndexOfAny(new[] { '-', '+' });
+            if (cut >= 0)
+                t = t.Substring(0, cut);
+
+            return Version.TryParse(t, out var v) ? v : null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

@@ -1,13 +1,9 @@
 ﻿using System;
+using AutoEvent.API;
 using CommandSystem;
-using MEC;
-#if EXILED
-using Exiled.API.Features;
-using Exiled.Permissions.Extensions;
-#else
 using LabApi.Features.Permissions;
 using LabApi.Features.Wrappers;
-#endif
+using MEC;
 
 namespace AutoEvent.Commands;
 
@@ -19,11 +15,7 @@ internal class Vote : ICommand, IUsageProvider
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
-#if EXILED
-        if (!sender.CheckPermission("ev.vote"))
-#else
         if (!sender.HasPermissions("ev.vote"))
-#endif
         {
             response = "<color=red>You do not have permission to use this command!</color>";
             return false;
@@ -66,11 +58,7 @@ internal class Vote : ICommand, IUsageProvider
 
         comp.NewEvent = ev;*/
         Round.IsLocked = true;
-#if EXILED
-        if (!Round.IsStarted)
-#else
         if (!Round.IsRoundStarted)
-#endif
         {
             Round.Start();
 

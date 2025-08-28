@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.API;
 using AutoEvent.Interfaces;
+using LabApi.Features.Wrappers;
 using MEC;
 using UnityEngine;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
-#if EXILED
-using Exiled.API.Features;
-#else
-using LabApi.Features.Wrappers;
-#endif
 using Random = UnityEngine.Random;
 
 namespace AutoEvent.Games.Puzzle;
@@ -50,8 +47,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     /// </summary>
     protected override void OnStart()
     {
-        _platforms = new List<GameObject>();
-        _colorIndicators = new List<GameObject>();
+        _platforms = [];
+        _colorIndicators = [];
         GameObject spawnpoint = new();
 
         foreach (var block in MapInfo.Map.AttachedBlocks)
@@ -65,11 +62,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "Platform": _platforms.Add(block); break;
             }
 
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             player.GiveLoadout(Config.Loadout);
             player.Position = spawnpoint.transform.position;
@@ -84,7 +77,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         for (var time = 10; time > 0; time--)
         {
             var text = Translation.Start.Replace("{name}", Name).Replace("{time}", $"{time}");
-            Extensions.Broadcast(text, 1);
+            Extensions.ServerBroadcast(text, 1);
             yield return Timing.WaitForSeconds(1f);
         }
 
@@ -98,7 +91,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         // Stage is smaller than the final stage && at least one player is alive.
         _countdown = _countdown.TotalSeconds > 0 ? _countdown.Subtract(new TimeSpan(0, 0, 1)) : TimeSpan.Zero;
-        return !(_stage <= Config.Rounds && Player.List.Count(r => r.IsAlive) > 0);
+        return !(_stage <= Config.Rounds && Player.ReadyList.Count(r => r.IsAlive) > 0);
     }
 
     /// <summary>
@@ -125,12 +118,12 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 break;
         }
 
-        DebugLogger.LogDebug(_eventState.ToString());
-        Extensions.Broadcast(Translation.Stage
+        LogManager.Debug(_eventState.ToString());
+        Extensions.ServerBroadcast(Translation.Stage
             .Replace("{name}", Name)
             .Replace("{stageNum}", $"{_stage}")
             .Replace("{stageFinal}", $"{Config.Rounds}")
-            .Replace("{count}", $"{Player.List.Count(r => r.IsAlive)}"), 1);
+            .Replace("{count}", $"{Player.ReadyList.Count(r => r.IsAlive)}"), 1);
     }
 
     /// <summary>
@@ -142,7 +135,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _fallDelay = Config.FallDelay.GetValue(_stage, 10, .3f, 8);
         var safePlatformCount = (int)Config.NonFallingPlatforms.GetValue(_stage, Config.Rounds, 1, 100);
 
-        _fallingPlatforms = new List<GameObject>();
+        _fallingPlatforms = [];
         var shuffledPlatforms = _platforms;
         for (var i = shuffledPlatforms.Count - 1; i > 0; i--)
         {
@@ -178,10 +171,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         // Change the color of those platforms that should fall to magenta
         if (!Config.UseRandomPlatformColors)
             foreach (var platform in _platforms)
-                if (_fallingPlatforms.Contains(platform))
-                    platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = Color.magenta;
-                else
-                    platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = Color.green;
+                platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor =
+                    _fallingPlatforms.Contains(platform) ? Color.magenta : Color.green;
         else
             foreach (var platform in _platforms)
                 platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = new Color(Random.Range(0f, 1f),
@@ -237,7 +228,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void OnFinished()
     {
         string text;
-        var count = Player.List.Count(r => r.IsAlive);
+        var count = Player.ReadyList.Count(r => r.IsAlive);
 
         if (count < 1)
         {
@@ -245,7 +236,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
         else if (count == 1)
         {
-            var nickname = Player.List.First(r => r.IsAlive).Nickname;
+            var nickname = Player.ReadyList.First(r => r.IsAlive).Nickname;
             text = Translation.Winner.Replace("{name}", Name).Replace("{winner}", nickname);
         }
         else
@@ -253,6 +244,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             text = Translation.SomeSurvived.Replace("{name}", Name).Replace("{count}", $"{count}");
         }
 
-        Extensions.Broadcast(text, 10);
+        Extensions.ServerBroadcast(text, 10);
     }
 }

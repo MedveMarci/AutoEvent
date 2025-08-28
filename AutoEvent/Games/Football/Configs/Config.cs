@@ -3,14 +3,9 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
+using CustomPlayerEffects;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
-using CustomPlayerEffects;
-#endif
 
 namespace AutoEvent.Games.Football;
 
@@ -18,14 +13,12 @@ public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
+        AvailableMaps ??= [];
 
-        if (AvailableMaps.Count < 1)
-        {
-            AvailableMaps.Add(new MapChance(50, new MapInfo("Football", new Vector3(0f, 40f, 0f))));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("Football_Xmas2025", new Vector3(0f, 40f, 0f)),
-                SeasonFlags.Christmas));
-        }
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance(50, new MapInfo("Football", new Vector3(0f, 40f, 0f))));
+        AvailableMaps.Add(new MapChance(50, new MapInfo("Football_Xmas2025", new Vector3(0f, 40f, 0f)),
+            SeasonFlags.Christmas));
     }
 
     [Description("How many points a team needs to get to win. [Default: 3]")]
@@ -35,36 +28,28 @@ public class Config : EventConfig
     public int MatchDurationInSeconds { get; set; } = 180;
 
     [Description("A List of Loadouts to use.")]
-    public List<Loadout> BlueTeamLoadout { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> BlueTeamLoadout { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.NtfCaptain, 100 } },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
-            ],
-#endif
+            ]
         }
-    };
+    ];
 
     [Description("A List of Loadouts to use.")]
-    public List<Loadout> OrangeTeamLoadout { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> OrangeTeamLoadout { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.ClassD, 100 } },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
-            ],
-#endif
+            ]
         }
-    };
+    ];
 }

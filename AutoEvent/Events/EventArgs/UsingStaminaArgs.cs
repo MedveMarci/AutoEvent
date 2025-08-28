@@ -1,22 +1,10 @@
-﻿#if EXILED
-using Exiled.API.Features;
-
-#else
-using LabApi.Features.Wrappers;
-#endif
+﻿using LabApi.Features.Wrappers;
 
 namespace AutoEvent.Events.EventArgs;
 
-public class UsingStaminaArgs
+public class UsingStaminaArgs(ReferenceHub ply, float amount, bool isAllowed = true)
 {
-    public UsingStaminaArgs(ReferenceHub ply, float amount, bool isAllowed = true)
-    {
-        Player = Player.Get(ply);
-        Amount = amount;
-        IsAllowed = isAllowed;
-    }
-
-    public Player Player { get; }
-    public float Amount { get; }
-    public bool IsAllowed { get; set; }
+    public Player Player { get; } = Player.Get(ply);
+    public float Amount { get; } = amount;
+    public bool IsAllowed { get; set; } = isAllowed;
 }

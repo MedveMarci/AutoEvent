@@ -6,10 +6,6 @@ using AutoEvent.Interfaces;
 using CustomPlayerEffects;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-using EffectType = Exiled.API.Enums.EffectType;
-#endif
 
 namespace AutoEvent.Games.Versus;
 
@@ -17,16 +13,14 @@ public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
+        AvailableMaps ??= [];
 
-        if (AvailableMaps.Count < 1)
-        {
-            AvailableMaps.Add(new MapChance(50, new MapInfo("35Hp", new Vector3(0, 40f, 0f))));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("35Hp_Xmas2024", new Vector3(0, 40f, 0f)),
-                SeasonFlags.Christmas));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("35Hp_Halloween2024", new Vector3(0, 40f, 0f)),
-                SeasonFlags.Halloween));
-        }
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance(50, new MapInfo("35Hp", new Vector3(0, 40f, 0f))));
+        AvailableMaps.Add(new MapChance(50, new MapInfo("35Hp_Xmas2024", new Vector3(0, 40f, 0f)),
+            SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance(50, new MapInfo("35Hp_Halloween2024", new Vector3(0, 40f, 0f)),
+            SeasonFlags.Halloween));
     }
 
     [Description("Can be used to disable the jailbird charging attack.")]
@@ -36,30 +30,24 @@ public class Config : EventConfig
     public int AutoSelectDelayInSeconds { get; set; } = 10;
 
     [Description("Loadouts for team 1.")]
-    public List<Loadout> Team1Loadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> Team1Loadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.Scientist, 100 } },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
-            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }],
-#endif
+
+            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }]
         }
-    };
+    ];
 
     [Description("Loadouts for team 2.")]
-    public List<Loadout> Team2Loadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> Team2Loadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int> { { RoleTypeId.ClassD, 100 } },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
-            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }],
-#endif
+
+            Effects = [new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }]
         }
-    };
+    ];
 }

@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.API;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
+using LabApi.Events.Handlers;
+using LabApi.Features.Wrappers;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Player = Exiled.API.Features.Player;
-using Exiled.Events.Handlers;
-#else
-using LabApi.Events.Handlers;
-using LabApi.Features.Wrappers;
-#endif
 
 namespace AutoEvent.Games.Versus;
 
@@ -46,24 +42,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void RegisterEvents()
     {
         _eventHandler = new EventHandler(this);
-#if EXILED
-        Exiled.Events.Handlers.Player.Dying += _eventHandler.OnDying;
-        Item.ChargingJailbird += _eventHandler.OnJailbirdCharge;
-#else
         PlayerEvents.Dying += _eventHandler.OnDying;
         PlayerEvents.ProcessingJailbirdMessage += _eventHandler.OnProcessingJailbirdMessage;
-#endif
     }
 
     protected override void UnregisterEvents()
     {
-#if EXILED
-        Exiled.Events.Handlers.Player.Dying -= _eventHandler.OnDying;
-        Item.ChargingJailbird -= _eventHandler.OnJailbirdCharge;
-#else
         PlayerEvents.Dying -= _eventHandler.OnDying;
         PlayerEvents.ProcessingJailbirdMessage -= _eventHandler.OnProcessingJailbirdMessage;
-#endif
+
         _eventHandler = null;
     }
 
@@ -72,14 +59,14 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         Scientist = null;
         ClassD = null;
         _eventState = 0;
-        _triggers = new List<GameObject>();
-        _teleports = new List<GameObject>();
+        _triggers = [];
+        _teleports = [];
         _countdown = new TimeSpan(0, 0, Config.AutoSelectDelayInSeconds);
 
         if (Config.Team1Loadouts == Config.Team2Loadouts)
-            DebugLogger.LogDebug("Warning: Teams should not have the same roles.", LogLevel.Warn, true);
+            LogManager.Debug("Warning: Teams should not have the same roles.");
 
-        List<GameObject> spawnpoints = new();
+        List<GameObject> spawnpoints = [];
         foreach (var block in MapInfo.Map.AttachedBlocks)
             switch (block.name)
             {
@@ -89,11 +76,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             }
 
         var count = 0;
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             if (count % 2 == 0)
             {
@@ -108,7 +91,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
             count++;
 
-            if (player.CurrentItem == null) player.CurrentItem = player.AddItem(ItemType.Jailbird);
+            player.CurrentItem ??= player.AddItem(ItemType.Jailbird);
         }
     }
 
@@ -116,7 +99,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         for (var time = 10; time > 0; time--)
         {
-            Extensions.Broadcast($"<size=100><color=red>{time}</color></size>", 1);
+            Extensions.ServerBroadcast($"<size=100><color=red>{time}</color></size>", 1);
             yield return Timing.WaitForSeconds(1f);
         }
     }
@@ -125,9 +108,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _countdown = _countdown.TotalSeconds > 0 ? _countdown.Subtract(new TimeSpan(0, 0, 1)) : TimeSpan.Zero;
         // At least 1 player on scientists && At least 1 player on dbois
-        return !(Player.List.Any(ply =>
+        return !(Player.ReadyList.Any(ply =>
                      Config.Team1Loadouts.Any(loadout => loadout.Roles.Any(role => ply.Role == role.Key))) &&
-                 Player.List.Any(ply =>
+                 Player.ReadyList.Any(ply =>
                      Config.Team2Loadouts.Any(loadout => loadout.Roles.Any(role => ply.Role == role.Key))));
     }
 
@@ -152,7 +135,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             text = Translation.PlayersDuel.Replace("{scientist}", Scientist.Nickname)
                 .Replace("{classd}", ClassD.Nickname);
 
-        Extensions.Broadcast(text.Replace("{name}", Name).Replace("{remain}", $"{_countdown.TotalSeconds}"), 1);
+        Extensions.ServerBroadcast(text.Replace("{name}", Name).Replace("{remain}", $"{_countdown.TotalSeconds}"), 1);
     }
 
     /// <summary>
@@ -198,11 +181,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             role = RoleTypeId.ClassD;
         }
 
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             if (player.Role != role)
                 continue;
@@ -217,7 +196,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         if (_countdown.TotalSeconds > 0)
             return null;
 
-        chosenPlayer = Player.List.Where(r => r.Role == role).ToList().RandomItem();
+        chosenPlayer = Player.ReadyList.Where(r => r.Role == role).ToList().RandomItem();
 
         End:
         chosenPlayer.Position = _teleports.ElementAt(value).transform.position;
@@ -238,11 +217,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         var text = string.Empty;
 
-        if (Player.List.Count(r => r.Role == RoleTypeId.Scientist) == 0)
+        if (Player.ReadyList.Count(r => r.Role == RoleTypeId.Scientist) == 0)
             text = Translation.ClassDWin.Replace("{name}", Name);
-        else if (Player.List.Count(r => r.Role == RoleTypeId.ClassD) == 0)
+        else if (Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD) == 0)
             text = Translation.ScientistWin.Replace("{name}", Name);
 
-        Extensions.Broadcast(text, 10);
+        Extensions.ServerBroadcast(text, 10);
     }
 }

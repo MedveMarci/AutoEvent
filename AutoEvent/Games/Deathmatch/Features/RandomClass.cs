@@ -4,29 +4,25 @@ using UnityEngine;
 
 namespace AutoEvent.Games.Deathmatch;
 
-internal class RandomClass
+internal abstract class RandomClass
 {
-    public static Vector3 GetRandomPosition(MapObject GameMap)
+    public static Vector3 GetRandomPosition(MapObject gameMap)
     {
-        if (GameMap is null)
+        if (gameMap is null)
         {
-            DebugLogger.LogDebug("Map is null");
+            LogManager.Debug("Map is null");
             return Vector3.zero;
         }
 
-        if (GameMap.AttachedBlocks is null)
+        if (gameMap.AttachedBlocks is null)
         {
-            DebugLogger.LogDebug("Attached Blocks is null");
+            LogManager.Debug("Attached Blocks is null");
             return Vector3.zero;
         }
 
-        var spawnpoint = GameMap.AttachedBlocks.Where(x => x.name == "Spawnpoint").ToList().RandomItem();
-        if (spawnpoint is null)
-        {
-            DebugLogger.LogDebug("Spawnpoint is null");
-            return Vector3.zero;
-        }
-
-        return spawnpoint.transform.position;
+        var spawnpoint = gameMap.AttachedBlocks.Where(x => x.name == "Spawnpoint").ToList().RandomItem();
+        if (spawnpoint is not null) return spawnpoint.transform.position;
+        LogManager.Debug("Spawnpoint is null");
+        return Vector3.zero;
     }
 }

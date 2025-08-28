@@ -51,7 +51,7 @@ namespace AutoEvent.Interfaces
         protected virtual float PostRoundDelay { get; set; } = 10f;
 
         /// <summary>
-        ///     If using NwApi or Exiled as the base plugin, set this to false, and manually add your plugin to Event.Events
+        ///     If using LabApi as the base plugin, set this to false, and manually add your plugin to Event.Events
         ///     (List[Events]).
         ///     This prevents double-loading your plugin assembly.
         /// </summary>
@@ -126,11 +126,11 @@ namespace AutoEvent.Interfaces
         /// <param name="checkIfAutomatic">Should the audio abide by <see cref="SoundInfo.StartAutomatically" /></param>
         protected void StartAudio(bool checkIfAutomatic = false)
         {
-            DebugLogger.LogDebug($"Starting Audio: " +
-                                 $"{(this is IEventSound s ? "true, " +
-                                                             $"{(!string.IsNullOrEmpty(s.SoundInfo.SoundName) ? "true" : "false")}, " +
-                                                             $"{(!checkIfAutomatic ? "true" : "false")}, " +
-                                                             $"{(s.SoundInfo.StartAutomatically ? "true" : "false")}" : "false")}");
+            LogManager.Debug($"Starting Audio: " +
+                             $"{(this is IEventSound s ? "true, " +
+                                                         $"{(!string.IsNullOrEmpty(s.SoundInfo.SoundName) ? "true" : "false")}, " +
+                                                         $"{(!checkIfAutomatic ? "true" : "false")}, " +
+                                                         $"{(s.SoundInfo.StartAutomatically ? "true" : "false")}" : "false")}");
             if (this is IEventSound sound && !string.IsNullOrEmpty(sound.SoundInfo.SoundName) &&
                 (!checkIfAutomatic || sound.SoundInfo.StartAutomatically))
                 sound.SoundInfo.AudioPlayer = Extensions.PlayAudio(sound.SoundInfo.SoundName, sound.SoundInfo.Volume,
@@ -142,9 +142,13 @@ namespace AutoEvent.Interfaces
         /// </summary>
         protected void StopAudio()
         {
-            DebugLogger.LogDebug("Stopping Audio");
-            if (this is IEventSound sound && !string.IsNullOrEmpty(sound.SoundInfo.SoundName))
+            LogManager.Debug("Stopping Audio");
+            if (this is IEventSound sound && 
+                !string.IsNullOrEmpty(sound.SoundInfo.SoundName) && 
+                sound.SoundInfo.AudioPlayer != null)
+            {
                 Extensions.StopAudio(sound.SoundInfo.AudioPlayer);
+            }
         }
 
         /// <summary>
@@ -154,11 +158,11 @@ namespace AutoEvent.Interfaces
         /// <param name="checkIfAutomatic">Should the audio abide by <see cref="MapInfo.SpawnAutomatically" /></param>
         protected void SpawnMap(bool checkIfAutomatic = false)
         {
-            DebugLogger.LogDebug($"Spawning Map: " +
-                                 $"{(this is IEventMap m ? "true, " +
-                                                           $"{(!string.IsNullOrEmpty(m.MapInfo.MapName) ? "true" : "false")}, " +
-                                                           $"{(!checkIfAutomatic ? "true" : "false")}, " +
-                                                           $"{(m.MapInfo.SpawnAutomatically ? "true" : "false")}" : "false")}");
+            LogManager.Debug($"Spawning Map: " +
+                             $"{(this is IEventMap m ? "true, " +
+                                                       $"{(!string.IsNullOrEmpty(m.MapInfo.MapName) ? "true" : "false")}, " +
+                                                       $"{(!checkIfAutomatic ? "true" : "false")}, " +
+                                                       $"{(m.MapInfo.SpawnAutomatically ? "true" : "false")}" : "false")}");
             if (this is IEventMap map && !string.IsNullOrEmpty(map.MapInfo.MapName) &&
                 (!checkIfAutomatic || map.MapInfo.SpawnAutomatically))
                 map.MapInfo.Map = Extensions.LoadMap(map.MapInfo.MapName, map.MapInfo.Position, map.MapInfo.MapRotation,
@@ -170,7 +174,7 @@ namespace AutoEvent.Interfaces
         /// </summary>
         protected void DeSpawnMap()
         {
-            DebugLogger.LogDebug($"DeSpawning Map. {this is IEventMap}");
+            LogManager.Debug($"DeSpawning Map. {this is IEventMap}");
             if (this is IEventMap eventMap) Extensions.UnLoadMap(eventMap.MapInfo.Map);
         }
 
@@ -179,7 +183,7 @@ namespace AutoEvent.Interfaces
         /// </summary>
         public void StartEvent()
         {
-            DebugLogger.LogDebug($"Starting Event {Name}");
+            LogManager.Debug($"Starting Event {Name}");
             OnInternalStart();
         }
 
@@ -188,7 +192,7 @@ namespace AutoEvent.Interfaces
         /// </summary>
         public void StopEvent()
         {
-            DebugLogger.LogDebug($"Stopping Event {Name}");
+            LogManager.Debug($"Stopping Event {Name}");
             OnInternalStop();
         }
 
@@ -278,7 +282,6 @@ namespace AutoEvent.Interfaces
         /// <summary>
         ///     Assigns a random map.
         /// </summary>
-        /// <param name="conf"></param>
         private void SetRandomMap()
         {
             if (InternalConfig.AvailableMaps is null || InternalConfig.AvailableMaps.Count == 0)
@@ -290,7 +293,7 @@ namespace AutoEvent.Interfaces
             // If there are no seasonal maps, then choose the default maps
             if (InternalConfig.AvailableMaps.Count(r => r.SeasonFlag == seasonFlags) == 0) seasonFlags = 0;
 
-            List<MapChance> maps = new();
+            List<MapChance> maps = [];
             foreach (var map in InternalConfig.AvailableMaps)
                 if (map.SeasonFlag == seasonFlags)
                     maps.Add(map);
@@ -322,7 +325,7 @@ namespace AutoEvent.Interfaces
                 eventMap.MapInfo.SpawnAutomatically = spawnAutomatically;
 
                 Message:
-                DebugLogger.LogDebug($"[{Name}] Map {eventMap.MapInfo.MapName} selected.");
+                LogManager.Debug($"[{Name}] Map {eventMap.MapInfo.MapName} selected.");
             }
         }
 
@@ -345,8 +348,7 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("Caught an exception at Event.OnStop().", LogLevel.Warn, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"Caught an exception at Event.OnStop().\n{e}");
             }
 
             EventStopped?.Invoke(Name);
@@ -380,8 +382,7 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("Could not modify friendly fire / ff autoban settings.", LogLevel.Error, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"Could not modify friendly fire / ff autoban settings.\n{e}");
             }
 
             SetRandomMap();
@@ -393,8 +394,7 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("Caught an exception at Event.RegisterEvents().", LogLevel.Warn, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"Caught an exception at Event.RegisterEvents().\n{e}");
             }
 
             try
@@ -403,8 +403,7 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("Caught an exception at Event.OnStart().", LogLevel.Warn, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"Caught an exception at Event.OnStart().\n{e}");
             }
 
             EventStarted?.Invoke(Name);
@@ -427,8 +426,7 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("Caught an exception at Event.CountdownFinished().", LogLevel.Warn, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"Caught an exception at Event.CountdownFinished().\n{e}");
             }
 
             GameCoroutine = Timing.RunCoroutine(RunGameCoroutine(), "Event Coroutine");
@@ -440,8 +438,7 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("Caught an exception at Event.OnFinished().", LogLevel.Warn, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"Caught an exception at Event.OnFinished().\n{e}");
             }
 
             var handle = Timing.CallDelayed(PostRoundDelay, () =>
@@ -467,15 +464,12 @@ namespace AutoEvent.Interfaces
                 }
                 catch (Exception e)
                 {
-                    DebugLogger.LogDebug("Caught an exception at Event.ProcessFrame().", LogLevel.Warn, true);
-                    DebugLogger.LogDebug($"{e}", LogLevel.Error, true);
+                    LogManager.Error($"Caught an exception at Event.ProcessFrame().\n{e}");
                 }
 
                 EventTime += TimeSpan.FromSeconds(FrameDelayInSeconds);
                 yield return Timing.WaitForSeconds(FrameDelayInSeconds);
             }
-
-            yield break;
         }
 
         /// <summary>
@@ -496,8 +490,7 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("Caught an exception at Event.OnUnregisterEvents().", LogLevel.Warn, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"Caught an exception at Event.OnUnregisterEvents().\n{e}");
             }
 
             try
@@ -506,10 +499,8 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug(
-                    "Friendly Fire was not able to be restored. Please ensure it is disabled. PLAYERS MAY BE AUTO-BANNED ACCIDENTALLY OR MAY NOT BE BANNED FOR FF.",
-                    LogLevel.Error, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error(
+                    $"Friendly Fire was not able to be restored. Please ensure it is disabled. PLAYERS MAY BE AUTO-BANNED ACCIDENTALLY OR MAY NOT BE BANNED FOR FF.\n{e}");
             }
 
             try
@@ -521,9 +512,7 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("Caught an exception at Event.OnInternalCleanup().GeneralCleanup().",
-                    LogLevel.Warn, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"Caught an exception at Event.OnInternalCleanup().GeneralCleanup().\n{e}");
             }
 
             try
@@ -532,8 +521,7 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("Caught an exception at Event.OnCleanup().", LogLevel.Warn, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"Caught an exception at Event.OnCleanup().\n{e}");
             }
 
             try
@@ -542,8 +530,7 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                DebugLogger.LogDebug("Caught an exception at Event.CleanupFinished.Invoke().", LogLevel.Warn, true);
-                DebugLogger.LogDebug($"{e}");
+                LogManager.Error($"Caught an exception at Event.CleanupFinished.Invoke().\n{e}");
             }
 
             AutoEvent.EventManager.CurrentEvent = null;

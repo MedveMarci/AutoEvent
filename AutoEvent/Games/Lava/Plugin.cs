@@ -3,20 +3,15 @@ using System.Linq;
 using AutoEvent.API;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
-using MEC;
-using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-#else
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
-#endif
+using MEC;
+using UnityEngine;
 
 namespace AutoEvent.Games.Lava;
 
 public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
-    private EventHandler _eventHandler;
     private GameObject _lava;
     public override string Name { get; set; } = "The floor is LAVA";
     public override string Description { get; set; } = "Survival, in which you need to avoid lava and shoot at others";
@@ -39,22 +34,12 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void RegisterEvents()
     {
-        _eventHandler = new EventHandler(this);
-#if EXILED
-        Exiled.Events.Handlers.Player.Hurting += _eventHandler.OnHurting;
-#else
-        PlayerEvents.Hurting += _eventHandler.OnHurting;
-#endif
+        PlayerEvents.Hurting += EventHandler.OnHurting;
     }
 
     protected override void UnregisterEvents()
     {
-#if EXILED
-        Exiled.Events.Handlers.Player.Hurting -= _eventHandler.OnHurting;
-#else
-        PlayerEvents.Hurting -= _eventHandler.OnHurting;
-#endif
-        _eventHandler = null;
+        PlayerEvents.Hurting -= EventHandler.OnHurting;
     }
 
     protected override void OnStart()
@@ -68,11 +53,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "LavaObject": _lava = obj; break;
             }
 
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             player.GiveLoadout(Config.Loadouts, LoadoutFlags.IgnoreGodMode);
             player.Position = spawnpoints.RandomItem().transform.position;
@@ -83,7 +64,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         for (var time = 10; time > 0; time--)
         {
-            Extensions.Broadcast(Translation.Start.Replace("{time}", $"{time}"), 1);
+            Extensions.ServerBroadcast(Translation.Start.Replace("{time}", $"{time}"), 1);
             yield return Timing.WaitForSeconds(1f);
         }
     }
@@ -91,39 +72,32 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void CountdownFinished()
     {
         _lava.AddComponent<LavaComponent>().StartComponent(this);
-        #if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif 
             player.GiveInfiniteAmmo(AmmoMode.InfiniteAmmo);
     }
 
     protected override bool IsRoundDone()
     {
-        return !(Player.List.Count(r => r.IsAlive) > 1 && EventTime.TotalSeconds < 600);
+        return !(Player.ReadyList.Count(r => r.IsAlive) > 1 && EventTime.TotalSeconds < 600);
     }
 
     protected override void ProcessFrame()
     {
-        string text;
-        if (EventTime.TotalSeconds % 2 == 0)
-            text = "<size=90><color=red><b>《 ! 》</b></color></size>\n";
-        else
-            text = "<size=90><color=red><b>!</b></color></size>\n";
+        var text = EventTime.TotalSeconds % 2 == 0
+            ? "<size=90><color=red><b>《 ! 》</b></color></size>\n"
+            : "<size=90><color=red><b>!</b></color></size>\n";
 
-        Extensions.Broadcast(
-            text + Translation.Cycle.Replace("{count}", $"{Player.List.Count(r => r.IsAlive)}"), 1);
+        Extensions.ServerBroadcast(
+            text + Translation.Cycle.Replace("{count}", $"{Player.ReadyList.Count(r => r.IsAlive)}"), 1);
         _lava.transform.position += new Vector3(0, 0.08f, 0);
     }
 
     protected override void OnFinished()
     {
-        if (Player.List.Count(r => r.IsAlive) == 1)
-            Extensions.Broadcast(
-                Translation.Win.Replace("{winner}", Player.List.First(r => r.IsAlive).Nickname),
-                10);
-        else
-            Extensions.Broadcast(Translation.AllDead, 10);
+        Extensions.ServerBroadcast(
+            Player.ReadyList.Count(r => r.IsAlive) == 1
+                ? Translation.Win.Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname)
+                : Translation.AllDead,
+            10);
     }
 }

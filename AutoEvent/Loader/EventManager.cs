@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using AutoEvent.Interfaces;
 
-namespace AutoEvent;
+namespace AutoEvent.Loader;
 
 public class EventManager
 {
@@ -21,9 +21,8 @@ public class EventManager
         IsMerLoaded = true;
         if (!AppDomain.CurrentDomain.GetAssemblies().Any(x => x.FullName.ToLower().Contains("projectmer")))
         {
-            DebugLogger.LogDebug(
-                "ProjectMER was not detected. The mini-games may not be available until you install ProjectMER.",
-                LogLevel.Error);
+            LogManager.Error(
+                "ProjectMER was not detected. The mini-games may not be available until you install ProjectMER.");
             IsMerLoaded = false;
         }
 
@@ -38,7 +37,7 @@ public class EventManager
                     continue;
 
                 var evBase = Activator.CreateInstance(type);
-                if (evBase is null || evBase is not Event ev)
+                if (evBase is not Event ev)
                     continue;
 
                 if (!ev.AutoLoad)
@@ -55,8 +54,7 @@ public class EventManager
             }
             catch (Exception ex)
             {
-                DebugLogger.LogDebug("[EventLoader] cannot register an event.", LogLevel.Error, true);
-                DebugLogger.LogDebug($"{ex}");
+                LogManager.Error($"[EventLoader] cannot register an event.\n{ex}");
             }
     }
 
@@ -67,15 +65,13 @@ public class EventManager
     /// <returns>The first event found with the same name (Case-Insensitive).</returns>
     public Event GetEvent(string type)
     {
-        Event ev = null;
-
         if (int.TryParse(type, out var id))
             return GetEvent(id);
 
-        if (!TryGetEventByCName(type, out ev))
-            return _events.Values.FirstOrDefault(ev => ev.Name.ToLower() == type.ToLower());
-
-        return ev;
+        return !TryGetEventByCName(type, out var ev)
+            ? _events.Values.FirstOrDefault(@event =>
+                string.Equals(@event.Name, type, StringComparison.CurrentCultureIgnoreCase))
+            : ev;
     }
 
     private Event GetEvent(int id)

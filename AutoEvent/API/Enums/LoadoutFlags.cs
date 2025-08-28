@@ -53,7 +53,7 @@ public enum LoadoutFlags
     /// <summary>
     ///     Player's won't have their Artificial Health set.
     /// </summary>
-    IgnoreAHP = 1 << 5, // 32
+    IgnoreAhp = 1 << 5, // 32
 
     /// <summary>
     ///     Player's won't have their sizes changed.
@@ -98,7 +98,7 @@ public enum LoadoutFlags
     /// <summary>
     ///     Only give players items.
     /// </summary>
-    ItemsOnly = IgnoreStamina | IgnoreGodMode | IgnoreInfiniteAmmo | IgnoreSize | IgnoreAHP | IgnoreHealth |
+    ItemsOnly = IgnoreStamina | IgnoreGodMode | IgnoreInfiniteAmmo | IgnoreSize | IgnoreAhp | IgnoreHealth |
                 IgnoreStamina | IgnoreEffects | IgnoreRole // None + ForceX 
     // 16384
 }

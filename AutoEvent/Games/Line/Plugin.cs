@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.API;
 using AutoEvent.Interfaces;
+using LabApi.Features.Wrappers;
 using MEC;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Features;
-#else
-using LabApi.Features.Wrappers;
-#endif
+using Object = UnityEngine.Object;
+
 
 namespace AutoEvent.Games.Line;
 
@@ -36,11 +35,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _timeRemaining = new TimeSpan(0, 2, 0);
 
-#if EXILED
-        foreach (var player in Player.List)
-#else
         foreach (var player in Player.ReadyList)
-#endif
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = MapInfo.Map.AttachedBlocks.First(x => x.name == "SpawnPoint").transform.position;
@@ -51,7 +46,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         for (var time = 10; time > 0; time--)
         {
-            Extensions.Broadcast($"{time}", 1);
+            Extensions.ServerBroadcast($"{time}", 1);
             yield return Timing.WaitForSeconds(1f);
         }
     }
@@ -64,16 +59,16 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "DeadZone": block.AddComponent<LineComponent>().Init(this, ObstacleType.MiniWalls); break;
                 case "DeadWall": block.AddComponent<LineComponent>().Init(this, ObstacleType.Wall); break;
                 case "Line": block.AddComponent<LineComponent>().Init(this, ObstacleType.Ground); break;
-                case "Shield": GameObject.Destroy(block); break;
+                case "Shield": Object.Destroy(block); break;
             }
     }
 
     protected override void ProcessFrame()
     {
-        Extensions.Broadcast(
+        Extensions.ServerBroadcast(
             Translation.Cycle.Replace("{name}", Name)
                 .Replace("{time}", $"{_timeRemaining.Minutes:00}:{_timeRemaining.Seconds:00}").Replace("{count}",
-                    $"{Player.List.Count(r => r.HasLoadout(Config.Loadouts))}"), 10);
+                    $"{Player.ReadyList.Count(r => r.HasLoadout(Config.Loadouts))}"), 10);
 
         _timeRemaining -= TimeSpan.FromSeconds(FrameDelayInSeconds);
     }
@@ -82,20 +77,20 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         // At least 2 players &&
         // Time is smaller than 2 minutes (+countdown)
-        return !(Player.List.Count(r => r.HasLoadout(Config.Loadouts)) > 1 && EventTime.TotalSeconds < 120);
+        return !(Player.ReadyList.Count(r => r.HasLoadout(Config.Loadouts)) > 1 && EventTime.TotalSeconds < 120);
     }
 
     protected override void OnFinished()
     {
-        if (Player.List.Count(r => r.Role != AutoEvent.Singleton.Config.LobbyRole) > 1)
-            Extensions.Broadcast(
+        if (Player.ReadyList.Count(r => r.Role != AutoEvent.Singleton.Config.LobbyRole) > 1)
+            Extensions.ServerBroadcast(
                 Translation.MorePlayers.Replace("{name}", Name).Replace("{count}",
-                    $"{Player.List.Count(r => r.HasLoadout(Config.Loadouts))}"), 10);
-        else if (Player.List.Count(r => r.Role != AutoEvent.Singleton.Config.LobbyRole) == 1)
-            Extensions.Broadcast(
+                    $"{Player.ReadyList.Count(r => r.HasLoadout(Config.Loadouts))}"), 10);
+        else if (Player.ReadyList.Count(r => r.Role != AutoEvent.Singleton.Config.LobbyRole) == 1)
+            Extensions.ServerBroadcast(
                 Translation.Winner.Replace("{name}", Name).Replace("{winner}",
-                    Player.List.First(r => r.HasLoadout(Config.Loadouts)).Nickname), 10);
+                    Player.ReadyList.First(r => r.HasLoadout(Config.Loadouts)).Nickname), 10);
         else
-            Extensions.Broadcast(Translation.AllDied, 10);
+            Extensions.ServerBroadcast(Translation.AllDied, 10);
     }
 }

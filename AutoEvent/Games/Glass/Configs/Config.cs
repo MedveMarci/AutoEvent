@@ -3,14 +3,9 @@ using System.ComponentModel;
 using AutoEvent.API;
 using AutoEvent.API.Season.Enum;
 using AutoEvent.Interfaces;
+using CustomPlayerEffects;
 using PlayerRoles;
 using UnityEngine;
-#if EXILED
-using Exiled.API.Enums;
-using Exiled.API.Features;
-#else
-using CustomPlayerEffects;
-#endif
 
 namespace AutoEvent.Games.Glass;
 
@@ -18,14 +13,12 @@ public class Config : EventConfig
 {
     public Config()
     {
-        if (AvailableMaps is null) AvailableMaps = new List<MapChance>();
+        AvailableMaps ??= [];
 
-        if (AvailableMaps.Count < 1)
-        {
-            AvailableMaps.Add(new MapChance(50, new MapInfo("Glass", new Vector3(0, 40f, 0f), null, null, false)));
-            AvailableMaps.Add(new MapChance(50,
-                new MapInfo("Glass_Xmas2024", new Vector3(0, 40f, 0f), null, null, false), SeasonFlags.Christmas));
-        }
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance(50, new MapInfo("Glass", new Vector3(0, 40f, 0f), null, null, false)));
+        AvailableMaps.Add(new MapChance(50,
+            new MapInfo("Glass_Xmas2024", new Vector3(0, 40f, 0f), null, null, false), SeasonFlags.Christmas));
     }
 
     [Description(
@@ -50,22 +43,18 @@ public class Config : EventConfig
     public float PushPlayerCooldown { get; set; } = 5;
 
     [Description("The loadouts a player can get.")]
-    public List<Loadout> Loadouts { get; set; } = new()
-    {
-        new Loadout
+    public List<Loadout> Loadouts { get; set; } =
+    [
+        new()
         {
             Roles = new Dictionary<RoleTypeId, int>
             {
                 { RoleTypeId.ClassD, 100 }
             },
-#if EXILED
-            Effects = new List<Effect> { new(EffectType.FogControl, 0) },
-#else
             Effects =
             [
                 new EffectData { Type = nameof(FogControl), Duration = 0, Intensity = 1 }
-            ],
-#endif
+            ]
         }
-    };
+    ];
 }

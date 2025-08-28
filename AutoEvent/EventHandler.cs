@@ -1,221 +1,116 @@
-﻿using AutoEvent.API.Enums;
-using AutoEvent.Interfaces;
+﻿using System;
+using System.Threading.Tasks;
+using AutoEvent.API;
+using AutoEvent.API.Enums;
 using InventorySystem.Items;
-using InventorySystem.Items.Firearms.Attachments;
-#if EXILED
-using Exiled.Events.Handlers;
-using Exiled.API.Extensions;
-using Exiled.Events.EventArgs.Map;
-using Exiled.Events.EventArgs.Player;
-using Exiled.Events.EventArgs.Server;
-#else
 using InventorySystem.Items.Firearms.Modules;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Arguments.ServerEvents;
-using LabApi.Events.Handlers;
-using System.Linq;
-#endif
+using LabApi.Events.CustomHandlers;
 
 namespace AutoEvent;
 
-internal class EventHandler
+internal class EventHandler : CustomEventsHandler
 {
-    private readonly AutoEvent _plugin;
-
-    public EventHandler(AutoEvent plugin)
+    public override void OnServerWaveRespawning(WaveRespawningEventArgs ev)
     {
-        _plugin = plugin;
-#if EXILED
-        Server.RespawningTeam += OnRespawningTeam;
-        Server.SelectingRespawnTeam += OnSelectingRespawnTeam;
-        Map.Decontaminating += OnDecontaminating;
-        Map.PlacingBulletHole += OnPlacingBulletHole;
-        Map.PickupAdded += OnPickupAdded;
-        Player.SpawningRagdoll += OnSpawningRagdoll;
-        Player.Shooting += OnShooting;
-        Player.DroppingAmmo += OnDroppingAmmo;
-        Player.DroppingItem += OnDroppingItem;
-        Player.Handcuffing += OnHandcuffing;
-        Player.Dying += OnDying;
-#else
-        ServerEvents.WaveRespawning += OnWaveRespawning;
-        ServerEvents.WaveTeamSelecting += OnWaveTeamSelecting;
-        ServerEvents.LczDecontaminationStarting += OnLczDecontaminationStarting;
-        PlayerEvents.PlacingBulletHole += OnPlayerPlacingBulletHole;
-        ServerEvents.PickupCreated += OnPickupCreated;
-        PlayerEvents.SpawningRagdoll += OnPlayerSpawningRagdoll;
-        PlayerEvents.ShootingWeapon += OnPlayerShootingWeapon;
-        PlayerEvents.DroppingAmmo += OnPlayerDroppingAmmo;
-        PlayerEvents.DroppingItem += OnPlayerDroppingItem;
-        PlayerEvents.Cuffing += OnPlayerCuffing;
-        PlayerEvents.Dying += OnPlayerDying;
-#endif
+        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreRespawnTeam))
+            ev.IsAllowed = false;
+        base.OnServerWaveRespawning(ev);
     }
 
-    ~EventHandler()
+    public override void OnServerWaveTeamSelecting(WaveTeamSelectingEventArgs ev)
     {
-#if EXILED
-        Server.RespawningTeam -= OnRespawningTeam;
-        Server.SelectingRespawnTeam -= OnSelectingRespawnTeam;
-        Map.Decontaminating -= OnDecontaminating;
-        Map.PlacingBulletHole -= OnPlacingBulletHole;
-        Map.PickupAdded -= OnPickupAdded;
-        Player.SpawningRagdoll -= OnSpawningRagdoll;
-        Player.Shooting -= OnShooting;
-        Player.DroppingAmmo -= OnDroppingAmmo;
-        Player.DroppingItem -= OnDroppingItem;
-        Player.Handcuffing -= OnHandcuffing;
-        Player.Dying -= OnDying;
-#else
-        ServerEvents.WaveRespawning -= OnWaveRespawning;
-        ServerEvents.WaveTeamSelecting -= OnWaveTeamSelecting;
-        ServerEvents.LczDecontaminationStarting -= OnLczDecontaminationStarting;
-        PlayerEvents.PlacingBulletHole -= OnPlayerPlacingBulletHole;
-        ServerEvents.PickupCreated -= OnPickupCreated;
-        PlayerEvents.SpawningRagdoll -= OnPlayerSpawningRagdoll;
-        PlayerEvents.ShootingWeapon -= OnPlayerShootingWeapon;
-        PlayerEvents.DroppingAmmo -= OnPlayerDroppingAmmo;
-        PlayerEvents.DroppingItem -= OnPlayerDroppingItem;
-        PlayerEvents.Cuffing -= OnPlayerCuffing;
-        PlayerEvents.Dying -= OnPlayerDying;
-#endif
+        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreRespawnTeam))
+            ev.IsAllowed = false;
+        base.OnServerWaveTeamSelecting(ev);
     }
 
-#if EXILED
-    private void OnRespawningTeam(RespawningTeamEventArgs ev)
-#else
-    private void OnWaveRespawning(WaveRespawningEventArgs ev)
-#endif
+    public override void OnServerLczDecontaminationStarting(LczDecontaminationStartingEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is Event activeEvent)
-            if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreRespawnTeam))
-                ev.IsAllowed = false;
+        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDecontaminating))
+            ev.IsAllowed = false;
+        base.OnServerLczDecontaminationStarting(ev);
     }
-#if EXILED
-    private void OnSelectingRespawnTeam(SelectingRespawnTeamEventArgs ev)
-#else
-    private void OnWaveTeamSelecting(WaveTeamSelectingEventArgs ev)
-#endif
+
+    public override void OnPlayerPlacingBulletHole(PlayerPlacingBulletHoleEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is Event activeEvent)
-            if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreRespawnTeam))
-                ev.IsAllowed = false;
+        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreBulletHole))
+            ev.IsAllowed = false;
+        base.OnPlayerPlacingBulletHole(ev);
     }
-#if EXILED
-    private void OnDecontaminating(DecontaminatingEventArgs ev)
-#else
-    private void OnLczDecontaminationStarting(LczDecontaminationStartingEventArgs ev)
-#endif
+
+    public override void OnPlayerSpawningRagdoll(PlayerSpawningRagdollEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is Event activeEvent)
-            if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDecontaminating))
-                ev.IsAllowed = false;
+        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreRagdoll))
+            ev.IsAllowed = false;
+        base.OnPlayerSpawningRagdoll(ev);
     }
-#if EXILED
-    private void OnPlacingBulletHole(PlacingBulletHoleEventArgs ev)
-#else
-    private void OnPlayerPlacingBulletHole(PlayerPlacingBulletHoleEventArgs ev)
-#endif
+
+    public override void OnServerPickupCreated(PickupCreatedEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is Event activeEvent)
-            if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreBulletHole))
-                ev.IsAllowed = false;
+        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingAmmo) &&
+            ev.Pickup.Type.GetName().Contains("Ammo"))
+            ev.Pickup.Destroy();
+        base.OnServerPickupCreated(ev);
     }
-#if EXILED
-    private void OnSpawningRagdoll(SpawningRagdollEventArgs ev)
-#else
-    private void OnPlayerSpawningRagdoll(PlayerSpawningRagdollEventArgs ev)
-#endif
+
+    public override void OnPlayerShootingWeapon(PlayerShootingWeaponEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is Event activeEvent)
-            if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreRagdoll))
-                ev.IsAllowed = false;
-    }
-#if EXILED
-    private void OnPickupAdded(PickupAddedEventArgs ev)
-#else
-    private void OnPickupCreated(PickupCreatedEventArgs ev)
-#endif
-    {
-        if (AutoEvent.EventManager.CurrentEvent is Event activeEvent)
-            if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingAmmo) &&
-                ev.Pickup.Type.GetName().Contains("Ammo"))
-                ev.Pickup.Destroy();
-    }
-#if EXILED
-    private void OnShooting(ShootingEventArgs ev)
-#else
-    private void OnPlayerShootingWeapon(PlayerShootingWeaponEventArgs ev)
-#endif
-    {
-        if (AutoEvent.EventManager.CurrentEvent is Event activeEvent)
+        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreInfiniteAmmo))
+            return;
+
+        if (!Extensions.InfiniteAmmoList.ContainsKey(ev.Player.UserId))
+            return;
+
+        if (ev.FirearmItem.Base.TryGetModule<MagazineModule>(out var module))
         {
-            if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreInfiniteAmmo))
-                return;
-
-            if (!Extensions.InfiniteAmmoList.ContainsKey(ev.Player))
-                return;
-#if EXILED
-            if (ev.Firearm.Type is ItemType.ParticleDisruptor)
-                return;
-
-            ushort amount = 1;
-            if (ev.Firearm.Type is ItemType.GunShotgun && ev.Firearm.HasAttachment(AttachmentName.ShotgunDoubleShot))
-                amount = 2;
-            else if (ev.Firearm.Type is ItemType.GunCom45) amount = 3;
-
-            ev.Player.AddAmmo(ev.Firearm.AmmoType, amount);
-#else
-            if (ev.FirearmItem.Type is ItemType.ParticleDisruptor)
-                return;
-
-            ushort amount = 1;
-            if (ev.FirearmItem.Type is ItemType.GunShotgun &&
-                ev.FirearmItem.Base.Attachments.Any(a => a.Name == AttachmentName.ShotgunDoubleShot))
-                amount = 2;
-            else if (ev.FirearmItem.Type is ItemType.GunCom45) amount = 3;
-
-            if (!ev.FirearmItem.Base.TryGetModule<IPrimaryAmmoContainerModule>(out var module))
-                return;
-            ev.Player.AddAmmo(module.AmmoType, amount);
-#endif
+            var playersAmmo = module.AmmoMax - module.AmmoStored;
+            ev.Player.SetAmmo(module.AmmoType, (ushort)playersAmmo);
         }
+
+        if (ev.FirearmItem.Base.TryGetModule<CylinderAmmoModule>(out var revModule))
+        {
+            var playersAmmo = revModule.AmmoMax - revModule.AmmoStored;
+            ev.Player.SetAmmo(revModule.AmmoType, (ushort)playersAmmo);
+        }
+
+        base.OnPlayerShootingWeapon(ev);
     }
-#if EXILED
-    private void OnDroppingAmmo(DroppingAmmoEventArgs ev)
-#else
-    private void OnPlayerDroppingAmmo(PlayerDroppingAmmoEventArgs ev)
-#endif
+
+    public override void OnPlayerDroppingAmmo(PlayerDroppingAmmoEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is Event activeEvent)
-            if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingAmmo))
-                ev.IsAllowed = false;
+        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingAmmo))
+            ev.IsAllowed = false;
+        base.OnPlayerDroppingAmmo(ev);
     }
-#if EXILED
-    private void OnDroppingItem(DroppingItemEventArgs ev)
-#else
-    private void OnPlayerDroppingItem(PlayerDroppingItemEventArgs ev)
-#endif
+
+    public override void OnPlayerDroppingItem(PlayerDroppingItemEventArgs ev)
+
     {
-        if (AutoEvent.EventManager.CurrentEvent is Event activeEvent)
-            if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingItem))
-                ev.IsAllowed = false;
+        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingItem))
+            ev.IsAllowed = false;
+        base.OnPlayerDroppingItem(ev);
     }
-#if EXILED
-    private void OnHandcuffing(HandcuffingEventArgs ev)
-#else
-    private void OnPlayerCuffing(PlayerCuffingEventArgs ev)
-#endif
+
+    public override void OnPlayerCuffing(PlayerCuffingEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is Event activeEvent)
-            if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreHandcuffing))
-                ev.IsAllowed = false;
+        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (!activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreHandcuffing))
+            ev.IsAllowed = false;
+        base.OnPlayerCuffing(ev);
     }
-#if EXILED
-    private void OnDying(DyingEventArgs ev)
-#else
-    private void OnPlayerDying(PlayerDyingEventArgs ev)
-#endif
+
+    public override void OnPlayerDying(PlayerDyingEventArgs ev)
     {
         if (AutoEvent.EventManager.CurrentEvent is null)
             return;
@@ -223,7 +118,22 @@ internal class EventHandler
         if (!ev.IsAllowed)
             return;
 
-        if (Extensions.InfiniteAmmoList is not null && Extensions.InfiniteAmmoList.ContainsKey(ev.Player))
-            Extensions.InfiniteAmmoList.Remove(ev.Player);
+        Extensions.InfinityStaminaList.Remove(ev.Player.UserId);
+        Extensions.InfiniteAmmoList.Remove(ev.Player.UserId);
+        base.OnPlayerDying(ev);
+    }
+
+    public override void OnServerWaitingForPlayers()
+    {
+        try
+        {
+            var currentVersion = AutoEvent.Singleton.Version; // snapshot
+            _ = Task.Run(() => AutoEvent.CheckForUpdatesAsync(currentVersion));
+        }
+        catch (Exception ex)
+        {
+            LogManager.Error($"Version check could not be started.\n{ex}");
+        }
+        base.OnServerWaitingForPlayers();
     }
 }

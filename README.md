@@ -28,4 +28,4 @@
   spawning maps.
 - Special thanks to **Killers0992** for the plugin [AudioPlayerApi](https://github.com/Killers0992/AudioPlayerApi) for
   playing music.
-- The plugin supports the [ExMod-Exiled](https://github.com/ExMod-Team/EXILED) and [Northwood-Studios-LabApi](https://github.com/northwood-studios/LabAPI) framework.
+- The plugin supports the [Northwood-Studios-LabApi](https://github.com/northwood-studios/LabAPI) framework.
