@@ -1,4 +1,6 @@
-﻿using AutoEvent.API;
+﻿using System;
+using System.Threading.Tasks;
+using AutoEvent.API;
 using AutoEvent.API.Enums;
 using InventorySystem.Items;
 using InventorySystem.Items.Firearms.Modules;
@@ -119,5 +121,19 @@ internal class EventHandler : CustomEventsHandler
         Extensions.InfinityStaminaList.Remove(ev.Player.UserId);
         Extensions.InfiniteAmmoList.Remove(ev.Player.UserId);
         base.OnPlayerDying(ev);
+    }
+
+    public override void OnServerWaitingForPlayers()
+    {
+        try
+        {
+            var currentVersion = AutoEvent.Singleton.Version; // snapshot
+            _ = Task.Run(() => AutoEvent.CheckForUpdatesAsync(currentVersion));
+        }
+        catch (Exception ex)
+        {
+            LogManager.Error($"Version check could not be started.\n{ex}");
+        }
+        base.OnServerWaitingForPlayers();
     }
 }
