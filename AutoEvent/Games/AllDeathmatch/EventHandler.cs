@@ -45,4 +45,9 @@ public class EventHandler(Plugin plugin)
         LogManager.Debug(player.Position.ToString());
         Timing.CallDelayed(0.1f, () => player.Position = pos);
     }
+    
+    public static void OnPlacingBlood(PlayerPlacingBloodEventArgs ev)
+    {
+        ev.IsAllowed = false;
+    }
 }

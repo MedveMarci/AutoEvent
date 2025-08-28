@@ -40,12 +40,14 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         EventHandler = new EventHandler(this);
         PlayerEvents.Joined += EventHandler.OnJoined;
         PlayerEvents.Dying += EventHandler.OnDying;
+        PlayerEvents.PlacingBlood += EventHandler.OnPlacingBlood;
     }
 
     protected override void UnregisterEvents()
     {
         PlayerEvents.Joined -= EventHandler.OnJoined;
         PlayerEvents.Dying -= EventHandler.OnDying;
+        PlayerEvents.PlacingBlood -= EventHandler.OnPlacingBlood;
         EventHandler = null;
     }
 

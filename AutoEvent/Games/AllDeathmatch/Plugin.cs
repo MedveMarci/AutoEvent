@@ -48,6 +48,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
         PlayerEvents.Dying += EventHandler.OnPlayerDying;
         PlayerEvents.Joined += EventHandler.OnJoined;
         PlayerEvents.Left += EventHandler.OnLeft;
+        PlayerEvents.PlacingBlood += EventHandler.OnPlacingBlood;
     }
 
     protected override void UnregisterEvents()
@@ -55,6 +56,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
         PlayerEvents.Dying -= EventHandler.OnPlayerDying;
         PlayerEvents.Joined -= EventHandler.OnJoined;
         PlayerEvents.Left -= EventHandler.OnLeft;
+        PlayerEvents.PlacingBlood -= EventHandler.OnPlacingBlood;
         EventHandler = null;
     }
 
@@ -88,7 +90,8 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
                 LoadoutFlags.ForceInfiniteAmmo | LoadoutFlags.IgnoreGodMode | LoadoutFlags.IgnoreWeapons);
             player.Position = SpawnList.RandomItem().transform.position;
 
-            TotalKills.Add(player.UserId, 0);
+            if (!TotalKills.ContainsKey(player.UserId))
+                TotalKills.Add(player.UserId, 0);
         }
     }
 
@@ -169,7 +172,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
                 text = Translation.WinnerEnd.Replace("{winner}", Winner.Nickname).Replace("{time}", time);
 
             text = text.Replace("{count}", TotalKills.First(x => x.Key == player.UserId).Value.ToString());
-            Extensions.ServerBroadcast(text, 10);
+            player.Broadcast(text, 10);
         }
     }
 }
