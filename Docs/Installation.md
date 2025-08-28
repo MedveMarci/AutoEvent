@@ -4,7 +4,7 @@
 
 ### *You need to download the latest release:*
 
-- [``AutoEvent-LabApi.dll``](https://github.com/MedveMarci/AutoEvent/releases/latest) move to =>
+- [``AutoEvent.dll``](https://github.com/MedveMarci/AutoEvent/releases/latest) move to =>
   ``LabApi/plugins/global/``
 
 - [
@@ -50,5 +50,6 @@ ev.*           - Main Permission for all AutoEvent commands.
   - ev.volume   - Change the volume of all events.
   - ev.language - Change language for translations.
 ```
+
 
 
