@@ -139,7 +139,7 @@ namespace AutoEvent.Events.Example
             {
                 switch (gameObject.name)
                 {
-                    case "Wall": { GameObject.Destroy(gameObject); } break;
+                    case "Wall": { NetworkServer.Destroy(gameObject);; } break;
                     case "Workstation": { _workstations.Add(gameObject); } break;
                 }
             }

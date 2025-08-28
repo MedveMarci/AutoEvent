@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using AdminToys;
+using LabApi.Features.Wrappers;
+using Mirror;
 using UnityEngine;
 
 namespace AutoEvent.API;
@@ -6,6 +9,7 @@ namespace AutoEvent.API;
 public class MapObject
 {
     public List<GameObject> AttachedBlocks { get; set; } = [];
+    public List<AdminToyBase> AdminToyBases { get; set; } = [];
     public GameObject GameObject { get; set; }
 
     public Vector3 Position
@@ -22,6 +26,6 @@ public class MapObject
 
     public void Destroy()
     {
-        Object.Destroy(GameObject);
+        NetworkServer.Destroy(GameObject);
     }
 }

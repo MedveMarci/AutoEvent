@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AdminToys;
 using AutoEvent.API;
 using AutoEvent.API.Enums;
 using AutoEvent.Games.CounterStrike.Features;
@@ -9,25 +10,21 @@ using Footprinting;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
 using MEC;
+using Mirror;
 using PlayerRoles;
 using PlayerStatsSystem;
 using UnityEngine;
+using Extensions = AutoEvent.API.Extensions;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace AutoEvent.Games.CounterStrike;
 
-//todo: Make the bomb to be carryable, plantable anywhere on site and defusable
-//todo: Make the bomb be on the player's back when carrying it
-//todo: Dropped bomb model, CT can't pick it up.
-
 public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 {
     private EventHandler _eventHandler;
-    internal GameObject BombObject;
-    internal List<GameObject> BombPoints;
+    internal AdminToyBase BombObject;
     internal BombState BombState;
-    internal List<GameObject> Buttons;
     internal TimeSpan RoundTime;
     public override string Name { get; set; } = "Counter-Strike";
     public override string Description { get; set; } = "Fight between terrorists and counter-terrorists";
@@ -52,37 +49,73 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     protected override void RegisterEvents()
     {
         _eventHandler = new EventHandler(this);
-        PlayerEvents.SearchingPickup += _eventHandler.OnSearchingPickup;
+        PlayerEvents.SearchedToy += _eventHandler.OnSearchedToy;
+        PlayerEvents.SearchingToy += EventHandler.OnSearchingToy;
+        PlayerEvents.SearchToyAborted += EventHandler.OnSearchToyAborted;
+        PlayerEvents.UsingItem += EventHandler.OnUsingItem;
+        PlayerEvents.UsedItem += _eventHandler.OnUsedItem;
+        PlayerEvents.PickingUpItem += _eventHandler.OnPickingUpItem;
+        PlayerEvents.ChangedItem += EventHandler.OnChangedItemEvent;
+        PlayerEvents.CancelledUsingItem += EventHandler.OnCancelledUsingItem;
+        PlayerEvents.DroppedItem += _eventHandler.OnDroppedItem;
+        PlayerEvents.SearchingPickup += EventHandler.OnSearchingPickup;
+        
     }
 
     protected override void UnregisterEvents()
     {
-        PlayerEvents.SearchingPickup -= _eventHandler.OnSearchingPickup;
+        PlayerEvents.SearchedToy -= _eventHandler.OnSearchedToy;
+        PlayerEvents.UsingItem -= EventHandler.OnUsingItem;
+        PlayerEvents.UsedItem -= _eventHandler.OnUsedItem;
+        PlayerEvents.PickingUpItem -= _eventHandler.OnPickingUpItem;
+        PlayerEvents.CancelledUsingItem -= EventHandler.OnCancelledUsingItem;
+        PlayerEvents.ChangedItem -= EventHandler.OnChangedItemEvent;
+        PlayerEvents.SearchingToy += EventHandler.OnSearchingToy;
+        PlayerEvents.SearchToyAborted += EventHandler.OnSearchToyAborted;
+        PlayerEvents.DroppedItem -= _eventHandler.OnDroppedItem;
+        PlayerEvents.SearchingPickup -= EventHandler.OnSearchingPickup;
+        
+        
         _eventHandler = null;
     }
 
     protected override void OnStart()
     {
-        BombObject = new GameObject();
-        Buttons = [];
         BombState = BombState.NoPlanted;
         RoundTime = new TimeSpan(0, 0, Config.TotalTimeInSeconds);
         List<GameObject> ctSpawn = [];
         List<GameObject> tSpawn = [];
 
-        foreach (var gameObject in MapInfo.Map.AttachedBlocks)
+        foreach (var gameObject in MapInfo.Map.AdminToyBases)
             switch (gameObject.name)
             {
-                case "Spawnpoint_Counter": ctSpawn.Add(gameObject); break;
-                case "Spawnpoint_Terrorist": tSpawn.Add(gameObject); break;
+                case "Spawnpoint_Counter": ctSpawn.Add(gameObject.gameObject); break;
+                case "Spawnpoint_Terrorist": tSpawn.Add(gameObject.gameObject); break;
                 case "Bomb": BombObject = gameObject; break;
-                case "Spawnpoint_Bomb": Buttons.Add(gameObject); break;
+                case "ASiteBounds":
+                    EventHandler.ASiteBounds = new Bounds
+                    {
+                        center = gameObject.gameObject.transform.position,
+                        size = gameObject.gameObject.transform.localScale
+                    };
+                    break;
+                case "BSiteBounds":
+                    EventHandler.BSiteBounds = new Bounds
+                    {
+                        center = gameObject.gameObject.transform.position,
+                        size = gameObject.gameObject.transform.localScale
+                    };
+                    break;
+                case "Bomb_Button":
+                    EventHandler.Button = InteractableToy.Get((InvisibleInteractableToy)gameObject);
+                    break;
             }
 
+        var shuffledPlayers = Player.ReadyList.OrderBy(_ => Random.value).ToList();
         var count = 0;
-        foreach (var player in Player.ReadyList)
+        foreach (var player in shuffledPlayers)
         {
-            if (count % 2 == 0)
+            if (count % 2 != 0)
             {
                 player.GiveLoadout(Config.NtfLoadouts);
                 player.Position = ctSpawn.RandomItem().transform.position +
@@ -93,6 +126,15 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
                 player.GiveLoadout(Config.ChaosLoadouts);
                 player.Position = tSpawn.RandomItem().transform.position +
                                   new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
+                if (EventHandler.Bomb == null)
+                {
+                    EventHandler.Bomb = (LabApi.Features.Wrappers.Scp1576Item)player.AddItem(ItemType.SCP1576);
+                    player.SendHint(Translation.PickedUpBomb);
+                    BombObject.gameObject.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+                    BombObject.gameObject.transform.parent = player.GameObject.transform;
+                    BombObject.gameObject.transform.localPosition = new Vector3(0, 0.27f, -0.263f);
+                    BombObject.gameObject.transform.localRotation = new Quaternion(-0.707106829f, 0, 0, 0.707106829f);
+                }
             }
 
             count++;
@@ -215,5 +257,13 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         }
 
         Extensions.ServerBroadcast(text, 10);
+    }
+
+    protected override void OnCleanup()
+    {
+        NetworkServer.Destroy(BombObject.gameObject);
+        BombObject = null;
+        EventHandler.Bomb = null;
+        base.OnCleanup();
     }
 }

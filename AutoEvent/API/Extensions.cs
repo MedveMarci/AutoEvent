@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AdminToys;
 using AutoEvent.API.Enums;
 using Footprinting;
 using InventorySystem;
@@ -224,9 +225,13 @@ public static class Extensions
         {
             var schematicObject = ObjectSpawner.SpawnSchematic(schematicName, pos, rot, scale);
 
+            foreach (var toyBase in schematicObject.AdminToyBases)
+                toyBase.syncInterval = 0;
+            
             return new MapObject
             {
                 AttachedBlocks = schematicObject.AttachedBlocks.ToList(),
+                AdminToyBases = schematicObject.AdminToyBases.ToList(),
                 GameObject = schematicObject.gameObject
             };
         }
@@ -271,8 +276,7 @@ public static class Extensions
 
     public static void ServerBroadcast(string text, ushort time)
     {
-        Server.ClearBroadcasts();
-        Server.SendBroadcast(text, time);
+        Server.SendBroadcast(text, time, global::Broadcast.BroadcastFlags.Normal, true);
     }
 
     public static void Broadcast(this Player player, string text, ushort time)

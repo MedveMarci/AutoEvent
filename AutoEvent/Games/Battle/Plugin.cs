@@ -6,8 +6,10 @@ using AutoEvent.Games.Battle.Configs;
 using AutoEvent.Interfaces;
 using LabApi.Features.Wrappers;
 using MEC;
+using Mirror;
 using PlayerRoles;
 using UnityEngine;
+using Extensions = AutoEvent.API.Extensions;
 
 namespace AutoEvent.Games.Battle;
 
@@ -85,7 +87,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
             {
                 case "Wall":
                 {
-                    Object.Destroy(gameObject);
+                    NetworkServer.Destroy(gameObject);
                 }
                     break;
                 case "Workstation":
