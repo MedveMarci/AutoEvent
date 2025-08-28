@@ -4,7 +4,7 @@
 
 ##### (Click on the logo)
 
-[![](https://github.com/KoT0XleB/AutoEvent/blob/beta14.1-mer/Photos/MiniGames(mini).png)](https://github.com/KoT0XleB/AutoEvent/blob/beta14.1-mer/Docs/ClassicMiniGames.md)
+[![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MiniGames(mini).png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/ClassicMiniGames.md)
 
 ### Winter Mini-Games
 
@@ -12,7 +12,7 @@
 
 ##### (Click on the snow logo)
 
-[![](https://github.com/KoT0XleB/AutoEvent/blob/beta14.1-mer/Photos/MiniGames%20Winter(mini).png)](https://github.com/KoT0XleB/AutoEvent/blob/beta14.1-mer/Docs/NewYearMiniGames.md)
+[![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MiniGames%20Winter(mini).png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/NewYearMiniGames.md)
 
 ### Halloween Mini-Games
 
@@ -20,4 +20,4 @@
 
 ##### (Click on the blood logo)
 
-[![](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/Photos/MiniGames%20Halloween(mini).png)](https://github.com/KoT0XleB/AutoEvent/blob/beta14.1-mer/Docs/NewYearMiniGames.md)
+[![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MiniGames%20Halloween(mini).png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/NewYearMiniGames.md)

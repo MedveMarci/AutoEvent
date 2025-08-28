@@ -4,27 +4,27 @@
 
 List of available languages:
 
-- [English](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/AutoEvent/Translations/english.yml) created by
+- [English](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/english.yml) created by
   SnivyFilms, RedForce
-- [Russian](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/AutoEvent/Translations/russian.yml) created by
+- [Russian](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/russian.yml) created by
   RisottoMan
-- [Polish](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/AutoEvent/Translations/polish.yml) created by
+- [Polish](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/polish.yml) created by
   Vretu, Tksemdem
-- [French](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/AutoEvent/Translations/french.yml) created by
+- [French](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/french.yml) created by
   Robocnop, Antoniofo
-- [Italian](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/AutoEvent/Translations/italian.yml) created by
+- [Italian](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/italian.yml) created by
   NotZer0Two
-- [German](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/AutoEvent/Translations/german.yml) created by
+- [German](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/german.yml) created by
   SeekEDstroy
-- [Thai](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/AutoEvent/Translations/thai.yml) created by
+- [Thai](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/thai.yml) created by
   karorogunso
-- [Chinese](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/AutoEvent/Translations/chinese.yml) created by
+- [Chinese](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/chinese.yml) created by
   kldhsh123
-- [Portuguese](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/AutoEvent/Translations/portuguese.yml) created
+- [Portuguese](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/portuguese.yml) created
   by FireThing
-- [Turkish](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/AutoEvent/Translations/turkish.yml) created by
+- [Turkish](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/turkish.yml) created by
   zurna_sever_58, Rooster
-- [Spanish](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/AutoEvent/Translations/spanish.yml) created by
+- [Spanish](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/spanish.yml) created by
   EnderZ024, ZrNoxb
 
 ### How to change language?

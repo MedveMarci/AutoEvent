@@ -62,7 +62,7 @@
 
 ##### The more players - the more difficult.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/Glass1.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Glass1.png)
 
 ### Zombie Survival [zombie2]
 
@@ -70,7 +70,7 @@
 
 ##### There are a lot of secret positions on the map where you need to survive against zombies.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/Survival1.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Survival1.png)
 
 ### The floor is LAVA [lava]
 
@@ -78,7 +78,7 @@
 
 ##### A small map for survival.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/Lava2.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Lava2.png)
 
 ### Football [ball]
 
@@ -86,7 +86,7 @@
 
 ##### A small map in which you need to score 3 goals for one team to win.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/Football1.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Football1.png)
 
 ### Fall Down [fall]
 
@@ -94,7 +94,7 @@
 
 ##### The last player becomes the winner.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/FallDown.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/FallDown.png)
 
 ### Hide And Seek [hns]
 
@@ -102,7 +102,7 @@
 
 ##### It is necessary to pass the bat to the player in order to survive.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/HideAndSeek.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/HideAndSeek.png)
 
 ### Death Line [line]
 
@@ -110,7 +110,7 @@
 
 ##### Avoid it to survive.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/Line1.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Line1.png)
 
 ### Zombie Escape [zombie3]
 
@@ -118,7 +118,7 @@
 
 ##### A very large map to complete from start to finish.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/Zombie%20Escape.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Zombie%20Escape.png)
 
 ### Battle [battle]
 
@@ -126,7 +126,7 @@
 
 ##### The map is symmetrical, the speed and reaction of the players wins.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/Battle2.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Battle2.png)
 
 ### Puzzle [puzzle]
 
@@ -134,7 +134,7 @@
 
 ##### Find the right platform by the right color to survive.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/Puzzle1.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Puzzle1.png)
 
 ### Finish Way [finish]
 
@@ -142,7 +142,7 @@
 
 ##### An easy mini-game that just makes players relax.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/FinishWay.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/FinishWay.png)
 
 ### Death Party [death]
 
@@ -150,7 +150,7 @@
 
 ##### You have to dodge them to win.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/DeathParty1.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/DeathParty1.png)
 
 ### Boss Battle [boss]
 
@@ -158,10 +158,10 @@
 
 ##### Kill him faster before he does it for you.
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/Boss.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Boss.png)
 
 ### Deathrun [deathrun]
 
 ##### Go to the end, avoiding death-activated trap along the way
 
-![](https://github.com/KoT0XleB/AutoEvent/blob/main/Photos/Deathrun.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Deathrun.png)

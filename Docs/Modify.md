@@ -2,7 +2,7 @@
 
 ## You can easily learn the structure of mini games and can create your own mini games
 
-## Or you can view the source code in the Example folder [here](https://github.com/KoT0XleB/AutoEvent/tree/main/AutoEvent-NWApi/Games/Example)
+## Or you can view the source code in the Games folder [here](https://github.com/MedveMarci/AutoEvent/tree/main/AutoEvent/Games)
 
 ## Once built, you can place them in the AutoEvent/Events folder to load.
 
