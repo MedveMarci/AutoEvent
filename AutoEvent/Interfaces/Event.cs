@@ -143,8 +143,12 @@ namespace AutoEvent.Interfaces
         protected void StopAudio()
         {
             LogManager.Debug("Stopping Audio");
-            if (this is IEventSound sound && !string.IsNullOrEmpty(sound.SoundInfo.SoundName))
+            if (this is IEventSound sound && 
+                !string.IsNullOrEmpty(sound.SoundInfo.SoundName) && 
+                sound.SoundInfo.AudioPlayer != null)
+            {
                 Extensions.StopAudio(sound.SoundInfo.AudioPlayer);
+            }
         }
 
         /// <summary>
