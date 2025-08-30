@@ -5,7 +5,7 @@
 ![image](https://github.com/user-attachments/assets/b96bbf64-e981-4f9a-8200-eb1aab1b8014)
 
 - Read here how to set permissions for your
-  role: [(Press me)](https://github.com/RisottoMan/AutoEvent/blob/beta14.1-mer/Docs/Installation.md)
+  role: [(Press me)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/Installation.md)
 
 ---
 
@@ -57,7 +57,7 @@
 
 - It says what it means. This map is not exist on your server, so the mini-game cannot be run.
 - You need to download *``Schematics.tar.gz``* from
-  the [latest release](https://github.com/RisottoMan/AutoEvent/releases/latest).
+  the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest).
 
 ![image](https://github.com/user-attachments/assets/469eab25-2f94-4414-87dc-7402a5068aaf)
 

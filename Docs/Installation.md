@@ -8,7 +8,7 @@
   ``LabApi/plugins/global/``
 
 - [
-  ``ProjectMER.dll``](github.com/Michal78900/ProjectMER/releases/latest)
+  ``ProjectMER.dll``](https://github.com/Michal78900/ProjectMER/releases/latest)
   move to => ``LabApi/plugins/global/``
 
 - [``Music.tar.gz``](https://github.com/MedveMarci/AutoEvent/releases/latest) unzip files to =>
@@ -50,4 +50,5 @@ ev.*           - Main Permission for all AutoEvent commands.
   - ev.volume   - Change the volume of all events.
   - ev.language - Change language for translations.
 ```
+
 
