@@ -99,7 +99,7 @@ Nuke Run:
   end: |-
     {name}
     <color=red>{players} 名玩家成功逃离</color>
-  name: '花生逃亡'
+  name: '核爆逃亡'
   description: '在核弹爆炸前逃离设施'
   command_name: 'escape'
 Battle:
