@@ -34,6 +34,7 @@
         <DebugSymbols>true</DebugSymbols>
         <DebugType>embedded</DebugType>
         <Optimize>false</Optimize>
+        <AssemblyName>AutoEvent-APAPI</AssemblyName>
         <DefineConstants>DEBUG;TRACE;APAPI</DefineConstants>
         <OutputPath>bin\x64\Debug_APAPI\</OutputPath>
     </PropertyGroup>
@@ -41,6 +42,7 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_APAPI|x64'">
         <DebugType>pdbonly</DebugType>
         <Optimize>true</Optimize>
+        <AssemblyName>AutoEvent-APAPI</AssemblyName>
         <DefineConstants>TRACE;APAPI</DefineConstants>
         <OutputPath>bin\x64\Release_APAPI\</OutputPath>
     </PropertyGroup>
@@ -51,10 +53,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" PrivateAssets="all"/>
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
         <PackageReference Include="Lib.Harmony" Version="2.4.2"/>
         <PackageReference Include="Northwood.LabAPI" Version="1.1.6.1"/>
-        <PackageReference Include="SecretLabNAudio.Core" Version="2.0.0-rc.1" Condition="'$(IsAPAPIBuild)' != 'true'"/>
+        <PackageReference Include="SecretLabNAudio.Core" Version="2.0.0" Condition="'$(IsAPAPIBuild)' != 'true'" />
         <PackageReference Include="System.Net.Http" Version="4.3.4"/>
         <PackageReference Include="System.Text.Json" Version="10.0.5"/>
     </ItemGroup>

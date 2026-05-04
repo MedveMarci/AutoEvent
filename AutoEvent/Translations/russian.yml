@@ -61,7 +61,7 @@ Among Us:
   death_body_reported: '<color=red>{deadPlayer}</color> мертвое тело найдено игроком <color=yellow>{reportedPlayer}</color>!'
   emergency_meetings_reached: 'Ты больше не можешь созывать никаких совещаний!'
   meeting_cooldown: 'Ты не можешь созывать совещаний еще {time} секунд!'
-  cannot_call_meeting_during_sabotage: 'You cannot call an emergency meeting during this sabotage!'
+  cannot_call_meeting_during_sabotage: "Вы не можете созвать экстренное совещание во время этого саботажа!"
   calibrate_distributor: 'Калибровочное распределений'
   chart_course: 'Наметьте курс'
   clean_o2_filter: 'Почисти кислородный фильтр'
@@ -83,8 +83,8 @@ Among Us:
   didnt_vote: 'Не голосовал'
   was_an_impostor: '{player} был предателем.'
   was_not_an_impostor: '{player} не был предателем.'
-  comms_sabotaged: 'Comms Sabotaged!'
-  reactor_meltdown: 'Reactor Meltdown in {time} seconds!'
+  comms_sabotaged: "Связь нарушена!"
+  reactor_meltdown: "Остановка реактора через {time} секунд!"
   name: 'Among Us'
   description: 'Предатель среди нас.'
   command_name: 'amongus'
