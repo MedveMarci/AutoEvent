@@ -11,7 +11,7 @@ public class Config
     public Config()
     {
         var basePath = Path.Combine(PathManager.Configs.FullName, "AutoEvent");
-        SchematicsDirectoryPath = Path.Combine(basePath, "ProjectMER");
+        SchematicsDirectoryPath = Path.Combine(basePath, "Schematics");
         MusicDirectoryPath = Path.Combine(basePath, "Music");
     }
 
