@@ -20,6 +20,20 @@
     error.
 > - Every Dependency installation guide can be found in their GitHub ReadMes.
 
+| Dependency                                                             | Required | Description                                        |
+|------------------------------------------------------------------------|----------|----------------------------------------------------|
+| Harmony                                                                | Yes      | Required for the plugin                            |
+| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | LabAPI utility extensions (*required for Among Us) |
+| [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | Map/schematic loading                              |
+| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | Radio menu system (*required for Among Us)         |
+
+**Audio backend — pick one DLL variant:**
+
+| DLL variant           | Audio plugin                                                    | Notes       |
+|-----------------------|-----------------------------------------------------------------|-------------|
+| `AutoEvent.dll`       | [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)    | Recommended |
+| `AutoEvent.APAPI.dll` | [AudioPlayerAPI](https://github.com/Killers0992/AudioPlayerApi) | Alternative |
+
 ---
 
 ## Step 1 — Download Files
