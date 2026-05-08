@@ -16,7 +16,6 @@ public class Config : EventConfig
 
         if (AvailableMaps.Count >= 1) return;
         AvailableMaps.Add(new MapChance("Battle", new Vector3(0f, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Battle_SFRNVGod", new Vector3(0f, 40f, 0f)));
         AvailableMaps.Add(new MapChance("Battle_Xmas2025", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
     }
 

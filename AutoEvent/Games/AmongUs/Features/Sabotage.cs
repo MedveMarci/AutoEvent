@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using AutoEvent.ApiFeatures;
 using AutoEvent.Games.AmongUs.Enums;
 using CustomPlayerEffects;
 using LabApi.Features.Wrappers;
 using MEC;
+using RadioMenuAPI;
 using UnityEngine;
 using Color = UnityEngine.Color;
 
@@ -23,14 +25,14 @@ public class Sabotage
         if ((DateTime.UtcNow - plugin.LastActivated).TotalSeconds < plugin.Config.SabotageCooldown)
         {
             LogManager.Debug("Sabotage activation ignored due to cooldown.");
-            reason = "Sabotage is on cooldown.";
+            reason = plugin.Translation.SabotageOnCooldown;
             return false;
         }
 
         if (plugin.CurrentSabotage != null)
         {
             LogManager.Debug("A sabotage is already active, ignoring new sabotage activation.");
-            reason = "A sabotage is already active.";
+            reason = plugin.Translation.SabotageAlreadyActive;
             return false;
         }
 
@@ -43,6 +45,20 @@ public class Sabotage
         }
 
         plugin.CurrentSabotage = this;
+
+        foreach (var impostor in plugin.Impostors)
+        {
+            foreach (var radio in impostor.Items.Where(i => i.Type == ItemType.Radio).ToList())
+                RadioMenuManager.RemoveMenu(radio.Serial);
+            impostor.RemoveItem(ItemType.Radio);
+        }
+
+        Timing.CallDelayed(plugin.Config.SabotageCooldown, () =>
+        {
+            foreach (var impostor in plugin.Impostors.Where(i => i.IsAlive))
+                plugin.GiveSabotageMenu(impostor);
+        });
+
         switch (Type)
         {
             /*case SabotageType.OxygenDepleted:

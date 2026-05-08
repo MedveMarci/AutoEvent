@@ -9,7 +9,6 @@ using ProjectMER.Features.Objects;
 using ProjectMER.Features.Serializable;
 using ProjectMER.Features.Serializable.Schematics;
 using UnityEngine;
-using PrimitiveObjectToy = LabApi.Features.Wrappers.PrimitiveObjectToy;
 
 namespace AutoEvent.Integrations.MapEditor;
 
@@ -49,13 +48,13 @@ internal static class ProjectMerIntegration
 
     public static GameObject CreatePlatformByParent(GameObject parent, Vector3 position)
     {
-        var prim = parent.GetComponent<PrimitiveObjectToy>();
+        var prim = parent.GetComponent<AdminToys.PrimitiveObjectToy>();
         var obj = ObjectSpawner.SpawnPrimitive(new SerializablePrimitive
         {
-            PrimitiveType = prim.Type,
+            PrimitiveType = prim.PrimitiveType,
             Position = position,
             Scale = parent.transform.localScale,
-            Color = prim.Color.ToHex()
+            Color = prim.MaterialColor.ToHex()
         });
 
         NetworkServer.Spawn(obj.gameObject);

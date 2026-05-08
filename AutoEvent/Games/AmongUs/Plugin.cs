@@ -39,6 +39,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
     internal List<Player> Crewmates = [];
     internal List<Player> Impostors = [];
     internal bool MeetingCalled;
+    internal bool VotingPhase;
     internal int MeetingCooldown;
 
     internal List<Player> VentedPlayers = [];
@@ -125,6 +126,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         PlayerColors = new Dictionary<uint, string>();
         PlayerTextToys = new Dictionary<uint, TextToy>();
         MeetingCalled = false;
+        VotingPhase = false;
         MeetingCooldown = Config.EmergencyCooldown;
         VentedPlayers = [];
         LastActivated = DateTime.MinValue;
@@ -171,7 +173,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                 TeleportOutList[key] = adminToyBase.transform.position;
             }
 
-        Impostors = Config.Impostors.GetPlayers();
+        Impostors = Player.ReadyList.Where(p => !p.IsDummy).ToList();//Config.Impostors.GetPlayers();
         var ready = Player.ReadyList.ToList();
         Crewmates = ready.Except(Impostors).ToList();
 
@@ -232,6 +234,13 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
 
     protected override void CountdownFinished()
     {
+        CurrentSabotages = GeneratedSabotages[MapInfo.MapName];
+        LogManager.Debug(
+            $"Loaded sabotages for map {MapInfo.MapName}: {string.Join(", ", CurrentSabotages.Select(s => s.Name))}");
+        
+        CreateTasksForPlayers(Crewmates);
+        LogManager.Debug($"Generated tasks for players. Impostors: {Impostors.Count}, Crewmates: {Crewmates.Count}");
+        
         foreach (var impostor in Impostors)
         {
             impostor.Broadcast(Translation.YouAreImpostor);
@@ -254,12 +263,6 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             crewmate.DisableEffect<Ensnared>();
             crewmate.DisableEffect<HeavyFooted>();
         }
-
-        CreateTasksForPlayers(Crewmates);
-        LogManager.Debug($"Generated tasks for players. Impostors: {Impostors.Count}, Crewmates: {Crewmates.Count}");
-        CurrentSabotages = GeneratedSabotages[MapInfo.MapName];
-        LogManager.Debug(
-            $"Loaded sabotages for map {MapInfo.MapName}: {string.Join(", ", CurrentSabotages.Select(s => s.Name))}");
     }
 
     internal IEnumerator<float> BroadcastVotingCountdown(string reason = "", Player starter = null)
@@ -267,6 +270,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         var time = Config.VotingTime;
         var discussionTime = Config.DiscussionTime;
         var shortened = false;
+        VotingPhase = false;
         LogManager.Debug("reason: " + reason);
         foreach (var player in Player.ReadyList.Where(p => Impostors.Contains(p) || Crewmates.Contains(p)))
         {
@@ -304,6 +308,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                 }
 
                 Muted.Clear();
+                VotingPhase = true;
                 GiveVotingMenus();
                 discussionTime--;
             }
@@ -326,6 +331,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         }
 
         MeetingCalled = false;
+        VotingPhase = false;
         var maxVotes = PlayerVotes.Values
             .GroupBy(v => v)
             .OrderByDescending(g => g.Count())
@@ -392,13 +398,11 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         RadioMenuManager.ClearAll();
         foreach (var player in Player.ReadyList)
         {
-            if (Impostors.Contains(player) && player.IsAlive)
-            {
-                player.AddItem(ItemType.SCP1509);
-                GiveSabotageMenu(player);
-            }
-
+            player.RemoveItem(ItemType.Radio);
             player.DisableEffect<Ensnared>();
+
+            if (Impostors.Contains(player) && player.IsAlive)
+                GiveSabotageMenu(player);
         }
 
         foreach (var pair in PlayerSkins.Where(skin => skin.Value.name.Contains("DeathSkin")))
@@ -416,7 +420,25 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
 
         if (MeetingCalled)
         {
-            var participants = Crewmates.Concat(Impostors);
+            MeetingCooldown = Config.EmergencyCooldown;
+
+            if (!VotingPhase)
+                return;
+
+            var participants = Crewmates.Concat(Impostors).ToList();
+
+            var globalSb = StringBuilderPool.Shared.Rent();
+            foreach (var p in participants.Where(p => p.IsAlive))
+            {
+                var voteCount = PlayerVotes.Values.Count(v => v == p.NetworkId);
+                var hasVoted = PlayerVotes.ContainsKey(p.NetworkId);
+                var hex = PlayerColors.TryGetValue(p.NetworkId, out var h) ? h : "#FFFFFF";
+                var votedStatus = hasVoted ? "<color=green>[V]</color>" : "<color=red>[?]</color>";
+                globalSb.AppendLine($"{votedStatus} <color={hex}>{p.DisplayName.Replace("*", "")}</color>: {voteCount} {Translation.Vote}");
+            }
+            var globalHint = globalSb.ToString().TrimEnd();
+            StringBuilderPool.Shared.Return(globalSb);
+
             foreach (var player in participants)
             {
                 if (!PlayerTextToys.TryGetValue(player.NetworkId, out var textToy))
@@ -438,25 +460,12 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                 else
                     text = Translation.NoVotes;
 
-                var didntVote = Impostors.Concat(Crewmates)
-                    .Where(p => p.IsAlive && !PlayerVotes.ContainsKey(p.NetworkId))
-                    .ToList();
-                var hintText = text;
-                if (didntVote.Count > 0)
-                {
-                    hintText += $"\n{Translation.DidntVote}:\n";
-                    hintText += string.Join(", ",
-                        didntVote.Select(p =>
-                            PlayerColors.TryGetValue(p.NetworkId, out var hex)
-                                ? $"<color={hex}>{p.DisplayName}</color>".Replace("*", "")
-                                : p.DisplayName.Replace("*", "")));
-                }
-
                 textToy.TextFormat = $"<size=10>{text}</size>";
-                player.SendHint(hintText, 1.25f);
+
+                if (!RadioMenuManager.IsMenuOpen(player))
+                    player.SendHint(globalHint, 1.25f);
             }
 
-            MeetingCooldown = Config.EmergencyCooldown;
             return;
         }
 
@@ -525,9 +534,9 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             {
                 var cooldown = Math.Max(0, Config.SabotageCooldown - (DateTime.UtcNow - LastActivated).TotalSeconds);
                 if (cooldown > 0)
-                    sb.AppendLine($"Sabotage cooldown: <color=red>{cooldown:0}s</color>");
+                    sb.AppendLine(Translation.SabotageCooldownHint.Replace("{time}", $"{cooldown:0}"));
                 if (CurrentSabotage != null)
-                    sb.AppendLine($"Active sabotage: <color=red>{CurrentSabotage.Name}</color>");
+                    sb.AppendLine(Translation.ActiveSabotageHint.Replace("{name}", CurrentSabotage.Name));
                 player.SendHint(sb.ToString(), 1.25f);
             }
         }
@@ -608,9 +617,12 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         Instance = null;
     }
 
-    private void GiveSabotageMenu(Player impostor)
+    internal void GiveSabotageMenu(Player impostor)
     {
-        var menu = RadioMenuManager.GiveRadioMenu(impostor, "Sabotage");
+        if (CurrentSabotage != null) return;
+        if ((DateTime.UtcNow - LastActivated).TotalSeconds < Config.SabotageCooldown) return;
+
+        var menu = RadioMenuManager.GiveRadioMenu(impostor, Translation.SabotageMenuTitle);
         if (menu == null) return;
         menu.Tag = "sabotage";
         menu.DisplayMode = MenuDisplayMode.List;
@@ -630,10 +642,10 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         var alive = Impostors.Concat(Crewmates).Where(p => p.IsAlive).ToList();
         foreach (var voter in alive)
         {
-            var menu = RadioMenuManager.GiveRadioMenu(voter, "Vote");
+            var menu = RadioMenuManager.GiveRadioMenu(voter, Translation.VoteMenuTitle);
             if (menu == null) continue;
             menu.Tag = "voting";
-            menu.DisplayMode = MenuDisplayMode.List;
+            menu.DisplayMode = MenuDisplayMode.Pager;
             foreach (var target in alive)
             {
                 var t = target;
@@ -1030,18 +1042,18 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                 [
                     new Sabotage
                     {
-                        Name = "Communications", Type = SabotageType.CommsSabotage, EnabledMeetings = false,
+                        Name = Translation.SabotageCommunications, Type = SabotageType.CommsSabotage,
+                        EnabledMeetings = false, IsCritical = false
+                    },
+                    new Sabotage
+                    {
+                        Name = Translation.SabotageLights, Type = SabotageType.FixLights, EnabledMeetings = false,
                         IsCritical = false
                     },
                     new Sabotage
                     {
-                        Name = "Lights", Type = SabotageType.FixLights, EnabledMeetings = false,
-                        IsCritical = false
-                    },
-                    new Sabotage
-                    {
-                        Name = "Door Lockdown", Type = SabotageType.DoorLockdown, EnabledMeetings = true,
-                        IsCritical = false
+                        Name = Translation.SabotageDoorLockdown, Type = SabotageType.DoorLockdown,
+                        EnabledMeetings = true, IsCritical = false
                     } /*,
                     new Sabotage
                     {

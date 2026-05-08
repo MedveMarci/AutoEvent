@@ -9,7 +9,7 @@ namespace AutoEvent.ApiFeatures;
 internal static class LogManager
 {
     private static readonly List<LogEntry> History = [];
-    private static bool DebugEnabled => AutoEvent.Singleton.Config?.Debug ?? false;
+    private static bool DebugEnabled => AutoEvent.Singleton.Config.Debug;
 
     public static void Debug(string message)
     {

@@ -10,7 +10,7 @@
         <Platforms>x64</Platforms>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <Nullable>disable</Nullable>
-        <Configurations>Debug;Release</Configurations>
+        <Configurations>Debug;Release;Debug-APAPI;Release-APAPI</Configurations>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
@@ -32,7 +32,7 @@
         <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
         <PackageReference Include="Northwood.LabAPI" Version="1.1.6.1"/>
         <PackageReference Include="System.Net.Http" Version="4.3.4"/>
-        <PackageReference Include="System.Text.Json" Version="10.0.5"/>
+        <PackageReference Include="System.Text.Json" Version="10.0.7" />
     </ItemGroup>
 
     <ItemGroup>

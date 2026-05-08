@@ -224,6 +224,8 @@ public class EventHandler(Plugin plugin)
     {
         if (Plugin.Instance.MeetingCalled)
         {
+            if (ev.NewItem?.Type == ItemType.Radio)
+                return;
             ev.IsAllowed = false;
             return;
         }
@@ -280,6 +282,14 @@ public class EventHandler(Plugin plugin)
         ev.Player.Kill(plugin.Translation.KilledByImpostor);
         TaskManager.ClearForPlayers([ev.Player]);
         plugin.KillCooldowns[ev.Attacker] = DateTime.UtcNow.AddSeconds(plugin.Config.KillCooldown);
+
+        var attacker = ev.Attacker;
+        attacker.RemoveItem(ItemType.SCP1509);
+        Timing.CallDelayed(plugin.Config.KillCooldown, () =>
+        {
+            if (attacker.IsAlive && plugin.Impostors.Contains(attacker))
+                attacker.AddItem(ItemType.SCP1509);
+        });
     }
 
     internal void OnPlayerInteractedToy(PlayerInteractedToyEventArgs ev)
@@ -306,12 +316,12 @@ public class EventHandler(Plugin plugin)
             if (vented)
             {
                 plugin.VentedPlayers.Remove(ev.Player);
-                ev.Player.DisableEffect<Invisible>();
+                ev.Player.DisableEffect<Lightweight>();
             }
             else
             {
                 plugin.VentedPlayers.Add(ev.Player);
-                ev.Player.EnableEffect<Invisible>();
+                ev.Player.EnableEffect<Lightweight>(100);
             }
 
             LogManager.Debug("PlayerPos_" + (vented ? "Exit" : "Enter"));
