@@ -40,7 +40,7 @@ public class Translation : EventTranslation
     public string AcceptDivertPower { get; set; } = "Accept Divert Power";
     public string DownloadData { get; set; } = "Download Data";
     public string UploadData { get; set; } = "Upload Data";
-    public string NoVotes { get; set; } = "No votes";
+    public string Skip { get; set; } = "Skip";
     public string Vote { get; set; } = "vote";
     public string NoOneVotedOut { get; set; } = "No one was voted out.";
     public string ItsATie { get; set; } = "It's a tie!";

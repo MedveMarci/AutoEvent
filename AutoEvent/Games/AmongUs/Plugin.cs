@@ -63,7 +63,6 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
     internal Dictionary<uint, GameObject> PlayerSkins { get; private set; }
     internal Dictionary<uint, uint> PlayerVotes { get; private set; }
     internal Dictionary<uint, string> PlayerColors { get; private set; }
-    internal Dictionary<uint, TextToy> PlayerTextToys { get; private set; }
 
     private Dictionary<string, List<Task>> GeneratedTasks { get; set; }
     private Dictionary<string, List<Sabotage>> GeneratedSabotages { get; set; }
@@ -124,7 +123,6 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         PlayerSkins = new Dictionary<uint, GameObject>();
         PlayerVotes = new Dictionary<uint, uint>();
         PlayerColors = new Dictionary<uint, string>();
-        PlayerTextToys = new Dictionary<uint, TextToy>();
         MeetingCalled = false;
         VotingPhase = false;
         MeetingCooldown = Config.EmergencyCooldown;
@@ -173,7 +171,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                 TeleportOutList[key] = adminToyBase.transform.position;
             }
 
-        Impostors = Player.ReadyList.Where(p => !p.IsDummy).ToList();//Config.Impostors.GetPlayers();
+        Impostors = [Player.ReadyList.First(player => !player.IsDummy)];//Config.Impostors.GetPlayers();
         var ready = Player.ReadyList.ToList();
         Crewmates = ready.Except(Impostors).ToList();
 
@@ -391,9 +389,6 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         }
 
         PlayerVotes.Clear();
-        foreach (var textToy in PlayerTextToys.Values)
-            textToy.Destroy();
-        PlayerTextToys.Clear();
         LogManager.Debug("Voting ended, cleared votes and text toys");
         RadioMenuManager.ClearAll();
         foreach (var player in Player.ReadyList)
@@ -427,41 +422,35 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
 
             var participants = Crewmates.Concat(Impostors).ToList();
 
-            var globalSb = StringBuilderPool.Shared.Rent();
-            foreach (var p in participants.Where(p => p.IsAlive))
+            var alive = participants.Where(p => p.IsAlive).ToList();
+            var voteLines = new List<string>(alive.Count);
+            foreach (var p in alive)
             {
                 var voteCount = PlayerVotes.Values.Count(v => v == p.NetworkId);
                 var hasVoted = PlayerVotes.ContainsKey(p.NetworkId);
                 var hex = PlayerColors.TryGetValue(p.NetworkId, out var h) ? h : "#FFFFFF";
-                var votedStatus = hasVoted ? "<color=green>[V]</color>" : "<color=red>[?]</color>";
-                globalSb.AppendLine($"{votedStatus} <color={hex}>{p.DisplayName.Replace("*", "")}</color>: {voteCount} {Translation.Vote}");
+                var votedStatus = hasVoted ? "<color=green>✔</color>" : "<color=red>?</color>";
+                string voters = string.Empty;
+                if (!Config.AnonymousVotes && voteCount > 0)
+                    voters = " ← " + string.Join(", ", PlayerVotes
+                        .Where(v => v.Value == p.NetworkId)
+                        .Select(v => Player.Get(v.Key)?.Nickname ?? v.Key.ToString()));
+                voteLines.Add($"{votedStatus} <color={hex}>{p.Nickname}</color>:{voteCount}{voters}");
             }
-            var globalHint = globalSb.ToString().TrimEnd();
+
+            var globalSb = StringBuilderPool.Shared.Rent();
+            for (var i = 0; i < voteLines.Count; i += 2)
+            {
+                if (i + 1 < voteLines.Count)
+                    globalSb.AppendLine($"{voteLines[i]}   {voteLines[i + 1]}");
+                else
+                    globalSb.AppendLine(voteLines[i]);
+            }
+            var globalHint = $"<size=28>{globalSb.ToString().TrimEnd()}</size>";
             StringBuilderPool.Shared.Return(globalSb);
 
             foreach (var player in participants)
             {
-                if (!PlayerTextToys.TryGetValue(player.NetworkId, out var textToy))
-                {
-                    if (player.GameObject == null) continue;
-                    LogManager.Debug($"Creating text toy for {player.Nickname}");
-                    textToy = TextToy.Create(player.GameObject.transform);
-                    textToy.GameObject.transform.localPosition += new Vector3(0, 2, 0);
-                    textToy.Rotation = Quaternion.Euler(0, 180, 0);
-                    PlayerTextToys[player.NetworkId] = textToy;
-                }
-
-                var votes = PlayerVotes.Where(v => v.Value == player.NetworkId).Select(v => v.Key).ToList();
-                string text;
-                if (votes.Count > 0)
-                    text = Config.AnonymousVotes
-                        ? $"{votes.Count} {Translation.Vote}"
-                        : $"{string.Join(", ", votes.Select(id => Player.Get(id)?.Nickname ?? id.ToString()))}\n{votes.Count} {Translation.Vote}";
-                else
-                    text = Translation.NoVotes;
-
-                textToy.TextFormat = $"<size=10>{text}</size>";
-
                 if (!RadioMenuManager.IsMenuOpen(player))
                     player.SendHint(globalHint, 1.25f);
             }
@@ -532,12 +521,16 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             }
             else if (Impostors.Contains(player))
             {
-                var cooldown = Math.Max(0, Config.SabotageCooldown - (DateTime.UtcNow - LastActivated).TotalSeconds);
-                if (cooldown > 0)
-                    sb.AppendLine(Translation.SabotageCooldownHint.Replace("{time}", $"{cooldown:0}"));
+                if (RadioMenuManager.IsMenuOpen(player)) continue;
+                var sabotageCooldown = Math.Max(0, Config.SabotageCooldown - (DateTime.UtcNow - LastActivated).TotalSeconds);
+                if (sabotageCooldown > 0)
+                    sb.AppendLine(Translation.SabotageCooldownHint.Replace("{time}", $"{sabotageCooldown:0}"));
                 if (CurrentSabotage != null)
                     sb.AppendLine(Translation.ActiveSabotageHint.Replace("{name}", CurrentSabotage.Name));
-                player.SendHint(sb.ToString(), 1.25f);
+                if (KillCooldowns.TryGetValue(player, out var killTime) && killTime > DateTime.UtcNow)
+                    sb.AppendLine(Translation.KillCooldown.Replace("{time}", Math.Ceiling((killTime - DateTime.UtcNow).TotalSeconds).ToString()));
+                if (sb.Length > 0)
+                    player.SendHint(sb.ToString(), 1.25f);
             }
         }
 
@@ -583,14 +576,10 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         foreach (var skin in PlayerSkins.Values)
             NetworkServer.Destroy(skin);
 
-        foreach (var textToy in PlayerTextToys.Values.Where(textToy => textToy != null))
-            textToy.Destroy();
-
         PlayerSkins.Clear();
         PlayerVotes.Clear();
         TaskToyList?.Clear();
         PlayerColors.Clear();
-        PlayerTextToys.Clear();
         SpawnList.Clear();
         DoorList.Clear();
         Impostors.Clear();
@@ -620,7 +609,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
     internal void GiveSabotageMenu(Player impostor)
     {
         if (CurrentSabotage != null) return;
-        if ((DateTime.UtcNow - LastActivated).TotalSeconds < Config.SabotageCooldown) return;
+        if ((DateTime.UtcNow - LastActivated).TotalSeconds < Config.SabotageCooldown - 1f) return;
 
         var menu = RadioMenuManager.GiveRadioMenu(impostor, Translation.SabotageMenuTitle);
         if (menu == null) return;
@@ -646,7 +635,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             if (menu == null) continue;
             menu.Tag = "voting";
             menu.DisplayMode = MenuDisplayMode.Pager;
-            foreach (var target in alive)
+            foreach (var target in alive.Where(t => t != voter))
             {
                 var t = target;
                 var hex = PlayerColors.TryGetValue(t.NetworkId, out var h) ? h : "#FFFFFF";
@@ -657,10 +646,10 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                 });
             }
 
-            menu.AddItem(Translation.NoOneVotedOut, (v, _) =>
+            menu.AddItem(Translation.Skip, (v, _) =>
             {
                 PlayerVotes[v.NetworkId] = 0;
-                v.SendHint(Translation.NoOneVotedOut, 2f);
+                v.SendHint(Translation.Skip, 2f);
             });
         }
     }

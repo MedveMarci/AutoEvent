@@ -224,7 +224,9 @@ public class EventHandler(Plugin plugin)
     {
         if (Plugin.Instance.MeetingCalled)
         {
-            if (ev.NewItem?.Type == ItemType.Radio)
+            if (plugin.VotingPhase)
+                return;
+            if (ev.NewItem == null || ev.NewItem.Type == ItemType.Radio)
                 return;
             ev.IsAllowed = false;
             return;
@@ -525,12 +527,6 @@ public class EventHandler(Plugin plugin)
             plugin.Impostors.Remove(ev.Player);
             plugin.KillCooldowns.Remove(ev.Player);
             plugin.VentedPlayers.Remove(ev.Player);
-        }
-
-        if (plugin.PlayerTextToys.TryGetValue(ev.Player.NetworkId, out var textToy))
-        {
-            textToy.Destroy();
-            plugin.PlayerTextToys.Remove(ev.Player.NetworkId);
         }
 
         TaskManager.ClearForPlayers([ev.Player]);

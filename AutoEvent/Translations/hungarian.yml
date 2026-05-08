@@ -51,7 +51,7 @@ Among Us:
   kill_cooldown: 'Még {time} másodpercig nem ölhetsz!'
   voting_info: |-
     {reason}
-    A szavazáshoz írd be a .vote <color/name/skip> parancsot a ClientConsole-ba, amit alapból a ~ gombbal nyithatsz meg.
+    A szavazáshoz vedd elő a <color=yellow>Rádió</color>-t!
     Még {time} másodperc maradt.
   discussion_info: |-
     {reason}
@@ -73,14 +73,13 @@ Among Us:
   accept_divert_power: 'Energiaátirányítás elfogadása'
   download_data: 'Adatok letöltése'
   upload_data: 'Adatok feltöltése'
-  no_votes: 'Senki sem szavazott rád'
+  skip: 'Kihagyás'
   vote: 'szavazat'
   no_one_voted_out: 'Senki sem lett kiszavazva!'
   its_a_tie: 'Döntetlen, senki sem lett kiszavazva!'
   death_message: 'Kiszavazva.'
   voted_out: '{player} ki lett szavazva.'
   tasks: 'Feladatok'
-  didnt_vote: 'Akik nem szavaztak:'
   was_an_impostor: '{player} Imposztor volt.'
   was_not_an_impostor: '{player} nem volt Imposztor.'
   comms_sabotaged: 'Kommunikációs szabotálás!'
