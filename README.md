@@ -20,7 +20,7 @@ includes **26 unique mini-games**.
 [![Commands](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Message2.png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/Commands.md)
 [![Language](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Message3.png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/Language.md)
 [![Problems](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Message4.png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/Problem.md)
-[![Plugin API](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Message5.png)](https://github.com/MedveMarci/AutoEvent/blob/main/PLUGIN_API.md)
+[![Plugin API](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Message5.png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/PluginApi.md)
 [![Configuration](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Message6.png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/Configuration.md)
 
 **Optional Modules:**
