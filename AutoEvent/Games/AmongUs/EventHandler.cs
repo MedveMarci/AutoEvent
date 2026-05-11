@@ -289,7 +289,9 @@ public class EventHandler(Plugin plugin)
         attacker.RemoveItem(ItemType.SCP1509);
         Timing.CallDelayed(plugin.Config.KillCooldown, () =>
         {
-            if (attacker.IsAlive && plugin.Impostors.Contains(attacker))
+            if (!attacker.IsAlive || !plugin.Impostors.Contains(attacker)) return;
+            if (Plugin.Instance.MeetingCalled) return;
+            if (attacker.Items.All(i => i.Type != ItemType.SCP1509))
                 attacker.AddItem(ItemType.SCP1509);
         });
     }
@@ -319,11 +321,13 @@ public class EventHandler(Plugin plugin)
             {
                 plugin.VentedPlayers.Remove(ev.Player);
                 ev.Player.DisableEffect<Lightweight>();
+                ev.Player.DisableEffect<SilentWalk>();
             }
             else
             {
                 plugin.VentedPlayers.Add(ev.Player);
                 ev.Player.EnableEffect<Lightweight>(100);
+                ev.Player.EnableEffect<SilentWalk>(255);
             }
 
             LogManager.Debug("PlayerPos_" + (vented ? "Exit" : "Enter"));
@@ -452,6 +456,7 @@ public class EventHandler(Plugin plugin)
                 player.Position = spawnPos;
                 player.EnableEffect<Ensnared>();
                 player.DisableEffect<Lightweight>();
+                player.DisableEffect<SilentWalk>();
 
                 var direction = meetingPos - player.Position;
                 player.Rotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));

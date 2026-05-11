@@ -185,6 +185,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             player.GiveLoadout(Config.Loadout);
             player.EnableEffect<HeavyFooted>(255);
             player.EnableEffect<Ensnared>(255);
+            player.EnableEffect<SilentWalk>(255);
             player.Position = SpawnList[i % spawnCount].transform.position;
 
             var skin = ProjectMerIntegration.LoadSchematic(new SerializableSchematic
@@ -397,7 +398,11 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             player.DisableEffect<Ensnared>();
 
             if (Impostors.Contains(player) && player.IsAlive)
+            {
+                if (player.Items.All(i => i.Type != ItemType.SCP1509))
+                    player.AddItem(ItemType.SCP1509);
                 GiveSabotageMenu(player);
+            }
         }
 
         foreach (var pair in PlayerSkins.Where(skin => skin.Value.name.Contains("DeathSkin")))
@@ -608,6 +613,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
 
     internal void GiveSabotageMenu(Player impostor)
     {
+        if (MeetingCalled) return;
         if (CurrentSabotage != null) return;
         if ((DateTime.UtcNow - LastActivated).TotalSeconds < Config.SabotageCooldown - 1f) return;
 
@@ -712,7 +718,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
 
                 LogManager.Debug($"Trying to assign toys for task {task.Name}");
                 if (TaskToyList != null)
-                    foreach (var taskToy in TaskToyList.Where(taskToy => !assignedToys.Contains(taskToy)))
+                    foreach (var taskToy in TaskToyList)
                     {
                         if (!EventHandler.TryParseToyName(taskToy.name, out var toyRoom, out var toyName,
                                 out var isToyTask, out _,
@@ -731,7 +737,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                 var addedTask = tm.Tasks[tm.Tasks.Count - 1];
                 if (TaskToyList != null && addedTask.StageTasks is { Count: > 0 })
                     foreach (var st in addedTask.StageTasks)
-                    foreach (var stageToy in TaskToyList.Where(tt => !assignedToys.Contains(tt)))
+                    foreach (var stageToy in TaskToyList)
                     {
                         if (!EventHandler.TryParseToyName(stageToy.name, out var stRoom, out var stName,
                                 out var stIsTask, out _,
@@ -759,11 +765,11 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                     continue;
                 if (!isToyTask) continue;
 
-                var isMainTask = assignedToys.Contains(toy) && tm.Tasks.Any(t =>
+                var isMainTask = tm.Tasks.Any(t =>
                     (string.IsNullOrEmpty(toyName) || t.Name.ToString() == toyName) &&
                     t.RoomName.ToString() == toyRoom);
 
-                var isStageTask = assignedToys.Contains(toy) && tm.Tasks.Any(t =>
+                var isStageTask = !isMainTask && tm.Tasks.Any(t =>
                     t.StageTasks.Any(st =>
                         (string.IsNullOrEmpty(toyName) || st.Name.ToString() == toyName) &&
                         st.RoomName.ToString() == toyRoom));
