@@ -1,5 +1,6 @@
 ﻿using System;
-using System.IO;
+using AutoEvent.API;
+using AutoEvent.ApiFeatures;
 using AutoEvent.Games.CounterStrike.Features;
 using CustomPlayerEffects;
 using LabApi.Events.Arguments.PlayerEvents;
@@ -16,9 +17,9 @@ public class EventHandler(Plugin plugin)
     internal static Bounds ASiteBounds;
     internal static InteractableToy Button;
     internal static Scp1576Item Bomb;
-    private static AudioPlayer _bombAudio;
-    private static AudioPlayer _plantAudio;
-    private static AudioPlayer _defuseAudio;
+    private static IAudioHandle _bombAudio;
+    private static IAudioHandle _plantAudio;
+    private static IAudioHandle _defuseAudio;
 
     public void OnSearchedToy(PlayerSearchedToyEventArgs ev)
     {
@@ -30,9 +31,11 @@ public class EventHandler(Plugin plugin)
         ev.Player.SendHint(plugin.Translation.YouDefused);
         ev.Player.DisableEffect<Ensnared>();
         ev.Player.DisableEffect<HeavyFooted>();
-        _bombAudio.Destroy();
+        _bombAudio?.Stop();
+        if (plugin.BombObject == null) return;
         var lightSource = plugin.BombObject.transform.Find("Bomb_Source/LightSource");
-        NetworkServer.Destroy(lightSource.gameObject);
+        if (lightSource != null)
+            NetworkServer.Destroy(lightSource.gameObject);
     }
 
     public static void OnSearchToyAborted(PlayerSearchToyAbortedEventArgs ev)
@@ -40,7 +43,7 @@ public class EventHandler(Plugin plugin)
         ev.Player.DisableEffect<Ensnared>();
         ev.Player.DisableEffect<HeavyFooted>();
         LogManager.Debug("Player aborted searching the bomb");
-        _defuseAudio?.RemoveAllClips();
+        _defuseAudio?.StopAudio();
     }
 
     public static void OnSearchingToy(PlayerSearchingToyEventArgs ev)
@@ -79,16 +82,11 @@ public class EventHandler(Plugin plugin)
         ev.Player.EnableEffect<Ensnared>(255);
         ev.Player.EnableEffect<HeavyFooted>(255);
         _plantAudio = Extensions.PlayAudio("BombPlanting.ogg", false, true, 20, 30, ev.Player.Position);
-        if (AudioClipStorage.AudioClips.ContainsKey("TBombWin.ogg")) return;
-        var filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, "TBombWin.ogg");
-        LogManager.Debug($"[PlayAudio] File path: {filePath}");
-        if (!AudioClipStorage.LoadClip(filePath, "TBombWin.ogg"))
-            LogManager.Debug("[PlayAudio] The music file TBombWin.ogg was not found for playback");
     }
 
     public void OnUsedItem(PlayerUsedItemEventArgs ev)
     {
-        if (ev.UsableItem.Base.ItemId != Bomb.Base.ItemId) return;
+        if (Bomb == null || ev.UsableItem.Base.ItemId != Bomb.Base.ItemId) return;
         if (!ev.Player.IsChaos) return;
         ev.UsableItem.GlobalCooldownDuration = 0f;
         ev.UsableItem.PersonalCooldownDuration = 0f;
@@ -109,24 +107,24 @@ public class EventHandler(Plugin plugin)
 
     public static void OnCancelledUsingItem(PlayerCancelledUsingItemEventArgs ev)
     {
-        if (ev.UsableItem.Base.ItemId != Bomb.Base.ItemId) return;
+        if (Bomb == null || ev.UsableItem.Base.ItemId != Bomb.Base.ItemId) return;
         Bomb.PersonalCooldownDuration = 0f;
         Bomb.GlobalCooldownDuration = 0f;
         ev.Player.DisableEffect<Ensnared>();
         ev.Player.DisableEffect<HeavyFooted>();
         LogManager.Debug("Player cancelled using the bomb");
-        _plantAudio?.RemoveAllClips();
+        _plantAudio?.StopAudio();
     }
 
     public static void OnSearchingPickup(PlayerSearchingPickupEventArgs ev)
     {
-        if (ev.Pickup.Base.ItemId != Bomb.Base.ItemId) return;
+        if (Bomb == null || ev.Pickup.Base.ItemId != Bomb.Base.ItemId) return;
         if (ev.Player.IsNTF) ev.IsAllowed = false;
     }
 
     public void OnPickingUpItem(PlayerPickingUpItemEventArgs ev)
     {
-        if (ev.Pickup.Base.ItemId != Bomb.Base.ItemId) return;
+        if (Bomb == null || ev.Pickup.Base.ItemId != Bomb.Base.ItemId) return;
         ev.Player.SendHint(plugin.Translation.PickedUpBomb);
         plugin.BombObject.transform.ResetTransform();
         plugin.BombObject.gameObject.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
@@ -137,7 +135,7 @@ public class EventHandler(Plugin plugin)
 
     public void OnDroppedItem(PlayerDroppedItemEventArgs ev)
     {
-        if (ev.Pickup.Base.ItemId != Bomb.Base.ItemId) return;
+        if (Bomb == null || ev.Pickup.Base.ItemId != Bomb.Base.ItemId) return;
         ev.Throw = false;
         ev.Pickup.Rotation = Quaternion.identity;
         plugin.BombObject.gameObject.transform.parent = ev.Pickup.Transform;
@@ -148,6 +146,7 @@ public class EventHandler(Plugin plugin)
 
     public void OnChangedItemEvent(PlayerChangedItemEventArgs ev)
     {
+        if (Bomb == null) return;
         Bomb.PersonalCooldownDuration = 0f;
         Bomb.GlobalCooldownDuration = 0f;
         if (ev.OldItem != null && ev.OldItem.Base.ItemId == Bomb.Base.ItemId)

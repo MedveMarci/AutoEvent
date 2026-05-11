@@ -64,6 +64,6 @@ public class EventHandler(Plugin ev)
     public void OnProcessingJailbirdMessage(PlayerProcessingJailbirdMessageEventArgs ev)
     {
         if (ev.Message == JailbirdMessageType.ChargeLoadTriggered)
-            ev.IsAllowed = false;
+            ev.IsAllowed = Plugin.Config.JailbirdCanCharge;
     }
 }

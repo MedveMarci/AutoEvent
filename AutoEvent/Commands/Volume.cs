@@ -1,11 +1,13 @@
-﻿using System;
-using System.Linq;
+using System;
+using AutoEvent.ApiFeatures;
+using AutoEvent.Interfaces;
 using CommandSystem;
 using LabApi.Features.Permissions;
 
 namespace AutoEvent.Commands;
 
-public class Volume : ICommand, IUsageProvider
+[CommandHandler(typeof(MainCommand))]
+internal class Volume : ICommand, IUsageProvider
 {
     public string Command => nameof(Volume);
     public string Description => "Set the global music volume, takes on 1 argument - the volume from 0%-200%";
@@ -23,12 +25,11 @@ public class Volume : ICommand, IUsageProvider
 
             if (arguments.Count != 1)
             {
-                response =
-                    $"The current volume is {AutoEvent.MusicVolume}%.";
+                response = $"The current volume is {AutoEvent.MusicVolume}%.";
                 return false;
             }
 
-            if (AutoEvent.EventManager.CurrentEvent == null)
+            if (AutoEvent.InternalEventManager.CurrentEvent == null)
             {
                 response = "The mini-game is not running!";
                 return false;
@@ -36,15 +37,9 @@ public class Volume : ICommand, IUsageProvider
 
             var newVolume = float.Parse(arguments.At(0));
             AutoEvent.MusicVolume = newVolume;
-            foreach (var speaker in AudioPlayer.AudioPlayerByName.Values.SelectMany(audioPlayer =>
-                         audioPlayer.SpeakersByName.Values)) speaker.Volume = AutoEvent.MusicVolume / 100f;
+            if (AutoEvent.InternalEventManager.CurrentEvent is IEventSound sound)
+                sound.SoundInfo.AudioPlayer?.SetVolume(newVolume / 100f);
             AutoEvent.Singleton.LoadConfigs();
-            if (AutoEvent.Singleton.Config == null)
-            {
-                response = "Could not save the volume due to an error. This could be a bug.";
-                LogManager.Error("AutoEvent config was null when trying to set volume.");
-                return false;
-            }
 
             AutoEvent.Singleton.Config.Volume = newVolume;
             AutoEvent.Singleton.SaveConfig();

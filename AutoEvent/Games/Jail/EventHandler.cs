@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API;
 using AutoEvent.API.Enums;
+using AutoEvent.ApiFeatures;
 using InventorySystem.Items.Firearms.Modules;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Features.Wrappers;
@@ -45,7 +46,7 @@ public class EventHandler(Plugin plugin)
             return;
         }
 
-        var livesRemaining = plugin.Config.PrisonerLives = plugin.Deaths[ev.Player];
+        var livesRemaining = plugin.Config.PrisonerLives - plugin.Deaths[ev.Player];
         ev.Player.SendHint(plugin.Translation.LivesRemaining.Replace("{lives}", livesRemaining.ToString()), 4f);
         ev.Player.GiveLoadout(plugin.Config.PrisonerLoadouts);
         Timing.CallDelayed(Timing.WaitForOneFrame, () =>

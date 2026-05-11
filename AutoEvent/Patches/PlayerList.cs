@@ -13,7 +13,7 @@ public class PlayerList
         var ready = Player.List.Where(x => x.IsDummy || (x.IsPlayer && x.IsReady));
 
         var ignored = AutoEvent.Singleton.Config?.IgnoredRoles;
-        if (AutoEvent.EventManager.CurrentEvent != null && ignored is { Count: > 0 })
+        if (AutoEvent.InternalEventManager.CurrentEvent != null && ignored is { Count: > 0 })
             ready = ready.Where(x => !ignored.Contains(x.Role));
 
         __result = ready;

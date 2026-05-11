@@ -14,7 +14,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 {
     private int _needKills;
     public override string Name { get; set; } = "Team Death-Match";
-    public override string Description { get; set; } = "Team Death-Match on the Shipment map from MW19";
+    public override string Description { get; set; } = "Team Death-Match between MTF and Chaos Insurgency";
     public override string Author { get; set; } = "RisottoMan/code & xleb.ik/map";
     public override string CommandName { get; set; } = "tdm";
     protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Disable;

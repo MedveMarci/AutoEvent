@@ -5,21 +5,6 @@ namespace AutoEvent.API;
 
 public class ArtificialHealth
 {
-    public ArtificialHealth()
-    {
-    }
-
-    public ArtificialHealth(float initialHealth, float maxHealth = 100f, float regenerationAmount = 1f,
-        float absorptionPercent = 100, bool permanent = true, float duration = 10f, bool clearOtherInstances = true)
-    {
-        InitialAmount = initialHealth;
-        MaxAmount = maxHealth;
-        RegenerationAmount = regenerationAmount;
-        AbsorptionPercent = absorptionPercent;
-        Permanent = permanent;
-        Duration = duration;
-    }
-
     [Description("How much AHP the player will get at first.")]
     public float InitialAmount { get; set; }
 

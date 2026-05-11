@@ -1,22 +1,7 @@
-﻿// <copyright file="Log.cs" company="Redforce04#4091">
-// Copyright (c) Redforce04. All rights reserved.
-// </copyright>
-// -----------------------------------------
-//    Solution:         AutoEvent
-//    Project:          AutoEvent
-//    FileName:         LoadoutFlags.cs
-//    Author:           Redforce04#4091
-//    Revision Date:    09/17/2023 3:32 PM
-//    Created Date:     09/17/2023 3:32 PM
-// -----------------------------------------
-
-using System;
+﻿using System;
 
 namespace AutoEvent.API.Enums;
 
-/// <summary>
-///     A list of flags that can be specified while applying a loadout.
-/// </summary>
 [Flags]
 public enum LoadoutFlags
 {

@@ -1,130 +1,148 @@
-# Halloween Season Mini-Games
+# Halloween Mini-Games
 
-# Currently this readme is outdated. It will be updated soon.
+These mini-games feature special seasonal maps active during the Halloween season.
 
-### Zombie Infection.
+---
 
-#### Zombie infestation. the goal of which is to infect all players.
+### Zombie Infection [`zombie`]
+
+Halloween variant with a Marshmallow zombie skin. Infect all players before time runs out.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Zombie_Winter2.png)
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/ZombieRemake_Winter2.png)
 
-### Airstrike
+---
 
-#### Grenades begin to spawn on the map.
+### Airstrike Party [`airstrike`]
 
-#### Survive to win.
+Halloween map variant. Grenades rain down — survive to win.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/DeathParty-winter.png)
 
-### SnowBall
+---
 
-#### Both teams have balls.
+### Dodgeball [`dodge`]
 
-#### Your task is to kill the opposite team, the team that stays alive wins.
+Halloween map variant. Eliminate the opposing team with balls.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Snowball-winter.png)
 
-### Lava
+---
 
-#### The lava begins to rise, climb one of the towers to confront other players.
+### The Floor is LAVA [`lava`]
 
-#### Weapons will be scattered around the map.
+Halloween map variant. Climb the towers and fight others as lava rises.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Lava-winter.png)
 
-### Tag
+---
 
-#### Run and hide from the players, otherwise you yourself will become caught up.
+### Hide And Seek [`hns`]
 
-#### To survive, pass the bat to another player.
+Halloween map variant. Run and hide from the tagger — pass the bat to survive.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Tag-winter.png)
 
-### Red Light Green Light
+---
 
-#### Red light, Green light. the goal is to run behind Santa Claus, who will simultaneously turn around and watch so that you don’t move.
+### Red Light Green Light [`light`]
 
-#### When Santa Claus is looking at you you can’t walk, when he’s not looking at you you can.
+Halloween map variant. Don't move when you're being watched.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/GreenLightWinterLight.png)
 
-### Knives
+---
 
-#### Knife fight between two teams.
+### Knives of Death [`knives`]
 
-#### It's simple! the team that stays alive wins.
+Halloween map variant. Team knife fight — last team standing wins.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Knives-winter.png)
 
-### Musical Chairs
+---
 
-#### Move to the music and don't stop.
+### Musical Chairs [`chair`]
+
+Halloween map variant. Race for chairs when the music stops.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MusicalChair-winter.png)
 
-### Fall Down
+---
 
-#### The map is destroyed. Survive on the remaining blocks.
+### Fall Down [`fall`]
 
-#### The last player standing is the winner.
+Halloween map variant. The arena collapses — survive on the remaining blocks.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/FallDown-winter.png)
 
-### Versus
+---
 
-#### Players are divided into teams. in the center of the map there is a room in which the competition will take place.
+### Cock Fights [`versus`]
 
-#### To take part you need to go through the door.
+Halloween map variant. Players duel inside the arena box.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Versus-winter.png)
 
-### Glass
+---
 
-#### Select the correct panel to reach the finish line.
+### Dead Jump [`glass`]
+
+Halloween map variant. Choose the correct panel to reach the finish line.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Glass-winter.png)
 
-### Puzzle
+---
 
-#### Players appear on the map with colorful platforms that change color.
+### Puzzle [`puzzle`]
 
-#### Find a suitable platform based on the color indicated on the walls to survive.
+Halloween map variant. Match the correct platform color before the floor disappears.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Puzzle-winter.png)
 
-### Battle
+---
 
-#### MTF fight against CI in an arena
+### Battle [`battle`]
+
+Halloween map variant. MTF vs Chaos Insurgency team battle.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Battle_Winter.png)
 
-### DeathMatch
+---
 
-#### Team Death-Match on the Shipment map from MW19
+### Team Death-Match [`tdm`]
+
+Halloween map variant. MTF vs Chaos on Shipment.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Deathmatch_Winter.png)
 
-### Deathrun
+---
 
-#### Go to the end, avoiding death-activated trap along the way
+### Death Run [`deathrun`]
+
+Halloween map variant. Navigate the trap course to reach the end.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Deathrun_Winter.png)
 
-### Football
+---
 
-#### Score 3 goals to win
+### Football [`football`]
+
+Halloween map variant. Score 3 goals to win.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Football_Winter.png)
 
-### Spleef
+---
 
-#### Shoot at the platforms and don't fall into the void
+### Spleef [`spleef`]
+
+Halloween map variant. Shoot platforms out from under other players.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Spleef_Winter.png)
 
-### Survival
+---
 
-#### Humans surviving from zombies
+### Zombie Survival [`zombie2`]
+
+Halloween map variant. Humans surviving against zombie players.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Survival_Winter.png)

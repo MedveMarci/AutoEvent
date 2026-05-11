@@ -1,4 +1,4 @@
-Airstrike Party:
+﻿Airstrike Party:
   cycle: |-
     <color=yellow>躲避空袭！</color>
     <color=green>已过去 {time} 秒</color>
@@ -49,7 +49,6 @@ Among Us:
   crewmate_win: '<color=#00FFFF>船员</color> 胜利！'
   killed_by_impostor: '你被内鬼杀死了！'
   kill_cooldown: '你还需要等待 {time} 秒才能再次击杀！'
-  too_far: '距离太远 无法击杀！'
   voting_info: |-
     {reason}
     你可以在控制台中输入 .vote <color/name/skip> 进行投票 默认按 ~ 打开控制台
@@ -62,29 +61,38 @@ Among Us:
   death_body_reported: '<color=red>{deadPlayer}</color> 的尸体被 <color=yellow>{reportedPlayer}</color> 发现了！'
   emergency_meetings_reached: '你无法再发起紧急会议了！'
   meeting_cooldown: '你还需要等待 {time} 秒才能再次发起会议！'
+  cannot_call_meeting_during_sabotage: '你不能在破坏期间召开紧急会议！'  
   calibrate_distributor: '校准分配器'
   chart_course: '规划航线'
   clean_o2_filter: '清理 O2 过滤器'
   empty_chute: '清空滑槽'
-  prime_shields: '启动护盾'
   start_reactor: '启动反应堆'
-  submit_scan: '提交扫描'
   fix_wiring: '修复线路'
   align_engine_output: '校准引擎输出'
   divert_power_to: '将电力转移至 {roomName}'
   accept_divert_power: '接收转移的电力'
   download_data: '下载数据'
   upload_data: '上传数据'
-  no_votes: '无投票'
+  skip: '跳过'
   vote: '投票'
   no_one_voted_out: '没有人被投票出局'
   its_a_tie: '平票！'
   death_message: '被投票出局'
   voted_out: '{player} 被投票出局'
   tasks: '任务'
-  didnt_vote: '未投票'
   was_an_impostor: '{player} 是内鬼'
   was_not_an_impostor: '{player} 不是内鬼'
+  comms_sabotaged: '通讯被破坏！'
+  reactor_meltdown: '反应堆将在 {time} 秒后熔毁！'
+  sabotage_menu_title: '破坏'
+  vote_menu_title: '投票'
+  sabotage_cooldown_hint: '破坏冷却：<color=red>{time} 秒</color>'
+  active_sabotage_hint: '正在进行的破坏：<color=red>{name}</color>'
+  sabotage_on_cooldown: '破坏正在冷却中'
+  sabotage_already_active: '已有破坏正在进行'
+  sabotage_communications: '通讯'
+  sabotage_lights: '灯光'
+  sabotage_door_lockdown: '门禁封锁'
   name: '谁是内鬼'
   description: '内鬼就在我们之中'
   command_name: 'amongus'
@@ -99,7 +107,7 @@ Nuke Run:
   end: |-
     {name}
     <color=red>{players} 名玩家成功逃离</color>
-  name: '花生逃亡'
+  name: '核爆逃亡'
   description: '在核弹爆炸前逃离设施'
   command_name: 'escape'
 Battle:

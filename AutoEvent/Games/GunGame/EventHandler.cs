@@ -6,6 +6,7 @@ using CustomPlayerEffects;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Features.Wrappers;
 using MEC;
+using UnityEngine;
 
 namespace AutoEvent.Games.GunGame;
 
@@ -43,12 +44,12 @@ public class EventHandler
             if (!PlayerStats.TryGetValue(ev.Attacker, out var statsAttacker))
             {
                 PlayerStats.Add(ev.Attacker, new Stats(1));
-                GetWeaponForPlayer(ev.Attacker, true);
+                GetWeaponForPlayer(ev.Attacker);
             }
             else
             {
                 statsAttacker.Kill++;
-                GetWeaponForPlayer(ev.Attacker, true);
+                GetWeaponForPlayer(ev.Attacker);
             }
 
             if (ev.Attacker.CurrentItem is JailbirdItem jailbirdItem) jailbirdItem.Base.TotalChargesPerformed = 0;
@@ -56,10 +57,15 @@ public class EventHandler
 
         if (ev.Player == null) return;
         GetWeaponForPlayer(ev.Player);
-        Timing.CallDelayed(Timing.WaitForOneFrame, () => { ev.Player.Position = _plugin.SpawnPoints.RandomItem(); });
+        var deathPos = ev.Player.Position;
+        Timing.CallDelayed(Timing.WaitForOneFrame, () =>
+        {
+            var safe = _plugin.SpawnPoints.Where(p => Vector3.Distance(p, deathPos) > 3f).ToList();
+            ev.Player.Position = safe.Count > 0 ? safe.RandomItem() : _plugin.SpawnPoints.RandomItem();
+        });
     }
 
-    public void GetWeaponForPlayer(Player player, bool isHeal = false)
+    public void GetWeaponForPlayer(Player player)
     {
         if (player is null)
             return;
@@ -77,7 +83,7 @@ public class EventHandler
         var itemType = _plugin.Config.Guns.OrderByDescending(y => y.KillsRequired)
             .FirstOrDefault(x => PlayerStats[player].Kill >= x.KillsRequired)!.Item;
 
-        player.EnableEffect<SpawnProtected>(1, .1f);
+        player.EnableEffect<SpawnProtected>(1, 1.5f);
 
         player.Heal(500); // Since the player does not die, his hp goes into negative hp, so need to completely heal the player.
         if (player.CurrentItem != null && player.CurrentItem.Type == itemType) return;

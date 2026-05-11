@@ -9,8 +9,8 @@ public class Scp1509Patch
 {
     private static bool Prefix(ref bool __result)
     {
-        if (AutoEvent.EventManager.CurrentEvent == null ||
-            AutoEvent.EventManager.CurrentEvent is not Plugin) return true;
+        if (AutoEvent.InternalEventManager.CurrentEvent == null ||
+            AutoEvent.InternalEventManager.CurrentEvent is not Plugin) return true;
         __result = false;
         return false;
     }

@@ -6,10 +6,11 @@ using PlayerRoles;
 
 namespace AutoEvent.Commands;
 
+[CommandHandler(typeof(MainCommand))]
 internal class Stop : ICommand
 {
     public string Command => nameof(Stop);
-    public string Description => "Kills the running mini-game (just kills all the players)";
+    public string Description => "Force-stops the running mini-game";
     public string[] Aliases => [];
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
@@ -20,17 +21,20 @@ internal class Stop : ICommand
             return false;
         }
 
-        if (AutoEvent.EventManager.CurrentEvent == null)
+        if (AutoEvent.InternalEventManager.CurrentEvent == null)
         {
-            response = "The mini-game is not running!";
+            response = "No mini-game is currently running.";
             return false;
         }
 
-        AutoEvent.EventManager.CurrentEvent.StopEvent();
+        var eventName = AutoEvent.InternalEventManager.CurrentEvent.Name;
 
-        foreach (var pl in Player.ReadyList) pl.SetRole(RoleTypeId.Spectator);
+        foreach (var player in Player.ReadyList)
+            player.SetRole(RoleTypeId.Spectator);
 
-        response = "Killed all the players and the mini-game itself will end soon.";
+        AutoEvent.InternalEventManager.CurrentEvent.StopEvent();
+
+        response = $"The mini-game '{eventName}' has been stopped.";
         return true;
     }
 }

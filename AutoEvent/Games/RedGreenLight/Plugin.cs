@@ -93,14 +93,16 @@ public class Plugin : Event<Config, Translation>, IEventMap
     protected override void CountdownFinished()
     {
         _countdown = Random.Range(1.5f, 4);
-        _doll.transform.rotation = Quaternion.identity;
-        Object.Destroy(_wall);
+        if (_doll != null) _doll.transform.rotation = Quaternion.identity;
+        if (_wall != null) Object.Destroy(_wall);
     }
 
     protected override bool IsRoundDone()
     {
         var aliveCount = Player.ReadyList.Count(r => r.IsAlive);
-        var lineCount = Player.ReadyList.Count(player => player.Position.z > _redLine.transform.position.z);
+        var lineCount = _redLine != null
+            ? Player.ReadyList.Count(player => player.Position.z > _redLine.transform.position.z)
+            : 0;
         if (aliveCount == lineCount) return true;
 
         _countdown = _countdown > 0 ? _countdown - FrameDelayInSeconds : 0;
@@ -208,12 +210,13 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
     protected override void OnFinished()
     {
-        foreach (var player in Player.ReadyList)
-            if ((int)_redLine.transform.position.z > (int)player.Position.z)
-            {
-                Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f);
-                player.Kill(Translation.NoTime);
-            }
+        if (_redLine != null)
+            foreach (var player in Player.ReadyList)
+                if ((int)_redLine.transform.position.z > (int)player.Position.z)
+                {
+                    Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f);
+                    player.Kill(Translation.NoTime);
+                }
 
         string text;
         var count = Player.ReadyList.Count(r => r.IsAlive);

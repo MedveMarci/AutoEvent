@@ -13,18 +13,29 @@ public class MapObject
 
     public Vector3 Position
     {
-        get => GameObject.transform.position;
-        set => GameObject.transform.position = value;
+        get => GameObject != null ? GameObject.transform.position : field;
+        set
+        {
+            field = value;
+            if (GameObject != null)
+                GameObject.transform.position = value;
+        }
     }
 
     public Vector3 Rotation
     {
-        get => GameObject.transform.eulerAngles;
-        set => GameObject.transform.eulerAngles = value;
+        get => GameObject != null ? GameObject.transform.eulerAngles : field;
+        set
+        {
+            field = value;
+            if (GameObject != null)
+                GameObject.transform.eulerAngles = value;
+        }
     }
 
     public void Destroy()
     {
-        NetworkServer.Destroy(GameObject);
+        if (GameObject != null)
+            NetworkServer.Destroy(GameObject);
     }
 }

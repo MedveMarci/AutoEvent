@@ -5,10 +5,11 @@ using LabApi.Features.Permissions;
 
 namespace AutoEvent.Commands;
 
+[CommandHandler(typeof(MainCommand))]
 internal class Reload : ICommand
 {
     public string Command => nameof(Reload);
-    public string Description => "Reloads the configs and the languages.";
+    public string Description => "Reloads the configs and the languages";
     public string[] Aliases => [];
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
@@ -19,7 +20,7 @@ internal class Reload : ICommand
             return false;
         }
 
-        if (AutoEvent.EventManager.CurrentEvent != null)
+        if (AutoEvent.InternalEventManager.CurrentEvent != null)
         {
             response = "The mini-game is running!";
             return false;

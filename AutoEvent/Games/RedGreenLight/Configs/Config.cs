@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using AutoEvent.API;
-using AutoEvent.API.Season.Enum;
+using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
 using CustomPlayerEffects;
 using PlayerRoles;
@@ -16,9 +16,8 @@ public class Config : EventConfig
         AvailableMaps ??= [];
 
         if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance(50, new MapInfo("RedLight", new Vector3(0, 40f, 0f))));
-        AvailableMaps.Add(new MapChance(50, new MapInfo("RedLight_Xmas2024", new Vector3(0, 40f, 0f)),
-            SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance("RedLight", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("RedLight_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
     }
 
     [Description("After how many seconds the round will end. [Default: 70]")]

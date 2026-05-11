@@ -7,31 +7,9 @@ namespace AutoEvent.Commands;
 [CommandHandler(typeof(GameConsoleCommandHandler))]
 public class MainCommand : ParentCommand
 {
-    public MainCommand()
-    {
-        LoadGeneratedCommands();
-    }
-
     public override string Command => "ev";
     public override string Description => "Main command for AutoEvent";
     public override string[] Aliases => [];
-
-    public sealed override void LoadGeneratedCommands()
-    {
-        try
-        {
-            RegisterCommand(new List());
-            RegisterCommand(new Run());
-            RegisterCommand(new Stop());
-            RegisterCommand(new Volume());
-            RegisterCommand(new Translations());
-            RegisterCommand(new Reload());
-        }
-        catch (Exception e)
-        {
-            LogManager.Error($"Caught an exception while registering commands.\n{e}");
-        }
-    }
 
     protected override bool ExecuteParent(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
@@ -50,5 +28,9 @@ public class MainCommand : ParentCommand
         }
 
         return false;
+    }
+
+    public override void LoadGeneratedCommands()
+    {
     }
 }

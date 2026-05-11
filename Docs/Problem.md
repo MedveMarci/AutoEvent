@@ -1,109 +1,133 @@
-# Problems :trollface: - *How can I fix my problem?*
-
-## 1) You do not have permission to use this command:
-
-![image](https://github.com/user-attachments/assets/b96bbf64-e981-4f9a-8200-eb1aab1b8014)
-
-- Read here how to set permissions for your
-  role: [(Press me)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/Installation.md)
+# Troubleshooting
 
 ---
 
-## 2) I only have one mini-game. What should I do?
+## 1. "You do not have permission to use this command"
 
-![image](https://github.com/user-attachments/assets/c40ac4d8-7753-4627-bf39-d514d53c3b98)
+You do not have the required permission node assigned to your role.
 
-- You haven't installed MapEditorReborn, so you have mini-games that won't need the maps.
-- Install the MapEditorReborn plugin so that the plugin can load
-  maps: [(Github ProjectMER)](https://github.com/Michal78900/ProjectMER/releases/latest)
+**Fix:** Add `ev.*` (or the specific `ev.<command>` node) to your role in `LabApi/configs/permissions.yml`.
 
-![image](https://github.com/user-attachments/assets/0ed636a3-9d08-4034-bc28-150a6646186b)
-
-- I do not know how to install MapEditorReborn. What should I do?
-
-![image](https://github.com/user-attachments/assets/6f292d36-b87c-4ab6-aa49-899e4480ea2b)
+See [Installation.md](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/Installation.md) for full permission setup
+instructions.
 
 ---
 
-## 3) MapEditorReborn was not detected. AutoEvent will not be loaded until you install MapEditorReborn.
+## 2. Only one mini-game shows in `ev list`
 
-- This is the same problem as in point 2.
-- Install MapEditorReborn so that the plugin can load
-  maps: [(Github ProjectMER)](https://github.com/Michal78900/ProjectMER/releases/latest)
+Only events that do not require a map are available. This means **ProjectMER is not installed or not detected**.
 
-![image](https://github.com/user-attachments/assets/b0355d75-31bc-43b8-980d-11d39e8bcc1c)
----
+**Fix:** Install [ProjectMER](https://github.com/Michal78900/ProjectMER) for map/schematic support.
 
-## 4) You have installed the old version of 'MapEditorReborn' and cannot run this mini-game
-
-![image](https://github.com/user-attachments/assets/e66573f4-1899-43a7-9724-01d3c9cd97ec)
-
-- It says what it means. You have an old version of MapEditorReborn. There are new features or a new version of SCP has
-  been released. Therefore, errors appear.
-- Install the new version of MapEditorReborn so that the plugin can load
-  schematics: [(Github ProjectMER)](https://github.com/Michal78900/ProjectMER/releases/latest)
-
-![image](https://github.com/user-attachments/assets/b0355d75-31bc-43b8-980d-11d39e8bcc1c)
-
-- If the problem persists, download the latest release (or testing release)
-  from [(Discord MER)](https://discord.gg/JwAfeSd79u):
-  ![image](https://github.com/user-attachments/assets/224dbb89-4974-4e9c-bc8b-6df4149dda9f)
+> A working build is available on my [Discord server](https://discord.gg/KmpA8cfaSA).
 
 ---
 
-## 5) You need to download the map (something) to run this mini-game.
+## 3. "ProjectMER was not detected"
 
-![image](https://github.com/user-attachments/assets/1a71fb4f-08b3-4411-a693-25ac9aae26f6)
+ProjectMER is required for map-based events to load.
 
-- It says what it means. This map is not exist on your server, so the mini-game cannot be run.
-- You need to download *``Schematics.tar.gz``* from
-  the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest).
+**Fix:** Install [ProjectMER](https://github.com/Michal78900/ProjectMER).
 
-![image](https://github.com/user-attachments/assets/469eab25-2f94-4414-87dc-7402a5068aaf)
-
-- Unzip *``Schematics.tar.gz``* to ``LabApi/configs/AutoEvent/Schematics`` folder.
-
-![image](https://github.com/user-attachments/assets/1797ee0b-ed3d-42a5-9fea-546bdf8bca12)
-
-![image](https://github.com/user-attachments/assets/02185f33-dbee-4b56-ae6d-73b7910cd0ef)
----
-
-## 6) If you start a mini-game and appear on the map, but something is wrong.
-
-![image](https://github.com/user-attachments/assets/934b43a1-8802-48be-9c95-b84fe25103b9)
-
-- If earlier errors referred to the fact that you did not install something correctly and all responsibility lay with
-  you as a plugin user, now this error refers to me as a plugin developer.
-- Write to the issue detailing the problem:
-  ![image](https://github.com/user-attachments/assets/2a47ffca-c06e-42d1-9516-71d7018abfbd)
-- I will fix the problem as soon as I find some free time.
+> A working build is available on my [Discord server](https://discord.gg/KmpA8cfaSA).
 
 ---
 
-## 7) The mini-game (something) is not found:
+## 4. "You have installed an old version of ProjectMER"
 
-![image](https://github.com/user-attachments/assets/7c828cec-1c5c-4f50-a4d1-9e22ebd961e7)
+Your installed version of ProjectMER is outdated.
 
-- Enter the ev list command in the console:
+**Fix:** Download the fixed version
+from my [Discord server](https://discord.gg/KmpA8cfaSA).
 
-![image](https://github.com/user-attachments/assets/a25398ca-15d1-452f-b555-7a4ad5522db1)
+---
 
-- Find the name of the command in square brackets:
+## 5. "You need to download the map (X) to run this mini-game"
 
-![image](https://github.com/user-attachments/assets/432b6513-ca13-496c-858a-95a7b2b90866)
+The required schematic is missing from your server.
 
-- Enter this command in ev run:
+**Fix:**
 
-![image](https://github.com/user-attachments/assets/fff98a27-b4ac-47e4-8610-a05c3f0f40a6)
----- 
+1. Download `Schematics.tar.gz` from
+   the [latest AutoEvent release](https://github.com/MedveMarci/AutoEvent/releases/latest)
+2. Extract the contents to `LabApi/configs/AutoEvent/Schematics/`
 
-## Enabling Debug Mode (debug-output.log):
+---
 
-Autoevent has 2 methods of logging debug outputs. By default neither modes of logging are on. They can be enabled with
-their respective config options.
+## 6. The event starts but something is wrong on the map
 
-- Method 1 - Console logging (`debug`):
-    - Console logging logs all errors to the console directly.
-- Method 2 - Debug File Logging (`auto_log_debug`):
-    - Debug file logging stores all errors to a debug file in the base autoevent directory.
-        - For LabApi: `~/.config/SCP Secret Laboratory/LabApi/configs/AutoEvent/debug-output.log`
+If the server loads correctly but the event behavior is broken, this is likely a plugin bug.
+
+**Fix:** Open an issue on [GitHub](https://github.com/MedveMarci/AutoEvent/issues) with:
+
+- A description of what happened
+- The event command name
+- Server logs from the time of the issue
+
+---
+
+## 7. "The mini-game (X) is not found"
+
+The command name you used does not match any registered event.
+
+**Fix:**
+
+1. Run `ev list` in the Remote Admin console
+2. Find the command name in square brackets — e.g. `[lava]`
+3. Use that exact name: `ev run lava`
+
+---
+
+## 8. Paths not auto-generating correctly in config
+
+The `schematics_directory_path` or `music_directory_path` values in your config are empty or incorrect.
+
+**Fix:** Manually set them in `LabApi/configs/global/AutoEvent/config.yml`:
+
+```yaml
+schematics_directory_path: /home/container/.config/SCP Secret Laboratory/LabApi/configs/AutoEvent/Schematics
+music_directory_path: /home/container/.config/SCP Secret Laboratory/LabApi/configs/AutoEvent/Music
+```
+
+Adjust the paths to match your server's directory structure.
+
+---
+
+## 9. "Among Us requires RadioMenuAPI to run"
+
+The Among Us event failed to start because RadioMenuAPI is not installed or not detected.
+
+**Fix:** Install [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI):
+
+1. Download the latest release of RadioMenuAPI
+2. Place `RadioMenuAPI.dll` in `LabApi/plugins/global/`
+3. Restart the server
+4. Verify RadioMenuAPI loaded successfully in the server logs
+5. Try starting Among Us again with `ev run amongus`
+
+RadioMenuAPI is required for the Among Us voting and sabotage systems to function.
+
+---
+
+## 10. Among Us menus not appearing
+
+The Among Us event started but voting/sabotage menus don't show.
+
+**Fix:** Verify RadioMenuAPI is properly loaded:
+
+1. Check that `RadioMenuAPI.dll` is in `LabApi/plugins/global/`
+2. Check server logs for RadioMenuAPI load errors
+3. Ensure no other plugins are conflicting with RadioMenuAPI
+4. Restart the server and try again
+
+If RadioMenuAPI was recently added, a full server restart is required.
+
+---
+
+## 11. "AutoEvent is already loaded! Remove the duplicate AutoEvent DLL"
+
+Two AutoEvent DLLs are present simultaneously — one built with SecretLabNAudio and one with AudioPlayerAPI. The second
+one detects this and refuses to load.
+
+**Fix:** Keep only **one** `AutoEvent.dll` in `LabApi/plugins/global/`. Decide which audio backend you want and remove
+the other DLL.

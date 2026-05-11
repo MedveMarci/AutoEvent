@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Threading.Tasks;
 using AutoEvent.API;
 using AutoEvent.API.Enums;
+using AutoEvent.ApiFeatures;
 using CustomPlayerEffects;
 using InventorySystem.Items;
 using InventorySystem.Items.Firearms.Modules;
@@ -16,7 +16,7 @@ internal class EventHandler : CustomEventsHandler
 {
     public override void OnServerWaveRespawning(WaveRespawningEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
         if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.Default))
             ev.IsAllowed = false;
         base.OnServerWaveRespawning(ev);
@@ -24,7 +24,7 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnServerWaveTeamSelecting(WaveTeamSelectingEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
         if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.Default))
             ev.IsAllowed = false;
         base.OnServerWaveTeamSelecting(ev);
@@ -32,7 +32,7 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnServerLczDecontaminationStarting(LczDecontaminationStartingEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
         if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.Default))
             ev.IsAllowed = false;
         base.OnServerLczDecontaminationStarting(ev);
@@ -40,7 +40,7 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnPlayerPlacingBulletHole(PlayerPlacingBulletHoleEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
         if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreBulletHole))
             ev.IsAllowed = false;
         base.OnPlayerPlacingBulletHole(ev);
@@ -48,7 +48,7 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnPlayerSpawningRagdoll(PlayerSpawningRagdollEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
         if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreRagdoll))
             ev.IsAllowed = false;
         base.OnPlayerSpawningRagdoll(ev);
@@ -56,7 +56,7 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnPlayerPlacingBlood(PlayerPlacingBloodEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
         if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreBloodDecal))
             ev.IsAllowed = false;
         base.OnPlayerPlacingBlood(ev);
@@ -64,7 +64,9 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnServerPickupCreated(PickupCreatedEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
+        if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingItem))
+            ev.Pickup.Destroy();
         if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingAmmo) &&
             ev.Pickup.Type.GetName().Contains("Ammo"))
             ev.Pickup.Destroy();
@@ -73,7 +75,7 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnPlayerShootingWeapon(PlayerShootingWeaponEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is null) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is null) return;
 
         if (!Extensions.InfiniteAmmoList.TryGetValue(ev.Player.NetworkId, out var ammoMode))
             return;
@@ -107,7 +109,7 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnPlayerDroppingAmmo(PlayerDroppingAmmoEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
         if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingAmmo))
             ev.IsAllowed = false;
         base.OnPlayerDroppingAmmo(ev);
@@ -116,7 +118,7 @@ internal class EventHandler : CustomEventsHandler
     public override void OnPlayerDroppingItem(PlayerDroppingItemEventArgs ev)
 
     {
-        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
         if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingItem))
             ev.IsAllowed = false;
         base.OnPlayerDroppingItem(ev);
@@ -124,7 +126,7 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnPlayerCuffing(PlayerCuffingEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is not { } activeEvent) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
         if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreHandcuffing))
             ev.IsAllowed = false;
         base.OnPlayerCuffing(ev);
@@ -132,7 +134,7 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnPlayerDeath(PlayerDeathEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is null)
+        if (AutoEvent.InternalEventManager.CurrentEvent is null)
             return;
 
         LogManager.Debug(
@@ -144,7 +146,7 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnPlayerChangedSpectator(PlayerChangedSpectatorEventArgs ev)
     {
-        if (AutoEvent.EventManager.CurrentEvent is null) return;
+        if (AutoEvent.InternalEventManager.CurrentEvent is null) return;
         if (ev.NewTarget is null)
         {
             ev.Player.DisableEffect<FogControl>();
@@ -163,8 +165,7 @@ internal class EventHandler : CustomEventsHandler
     {
         try
         {
-            var currentVersion = AutoEvent.Singleton.Version;
-            _ = Task.Run(() => VersionManager.CheckForUpdatesAsync(currentVersion));
+            ApiManager.CheckForUpdates();
         }
         catch (Exception ex)
         {
@@ -176,24 +177,37 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnServerRoundRestarted()
     {
-        if (AutoEvent.EventManager.CurrentEvent is null) return;
-        AutoEvent.EventManager.CurrentEvent.StopEvent();
+        if (AutoEvent.InternalEventManager.CurrentEvent is null) return;
+        AutoEvent.InternalEventManager.CurrentEvent.StopEvent();
         base.OnServerRoundRestarted();
     }
 
     public override void OnPlayerJoined(PlayerJoinedEventArgs ev)
     {
-        if (AutoEvent.Singleton.Config != null && AutoEvent.Singleton.Config.CreditTagSystem)
+        try
         {
-            CreditTag.GetTagsFromGithub();
-            if (CreditTag.TryGetTag(ev.Player.UserId, out var tag, out var color))
-            {
-                ev.Player.ReferenceHub.serverRoles.SetText(tag);
-                ev.Player.ReferenceHub.serverRoles.SetColor(color);
-                LogManager.Debug($"Applied credit tag to player {ev.Player.Nickname} ({ev.Player.UserId}): {tag}");
-            }
-        }
+            if (AutoEvent.Singleton.Config != null && AutoEvent.Singleton.Config.CreditTagSystem)
+                if (ApiManager.TryGetCreditTag(ev.Player.UserId, out var tag, out var color))
+                {
+                    if (string.IsNullOrEmpty(tag))
+                        return;
+                    ev.Player.ReferenceHub.serverRoles.SetText(tag);
+                    ev.Player.ReferenceHub.serverRoles.SetColor(color);
+                }
 
-        base.OnPlayerJoined(ev);
+            base.OnPlayerJoined(ev);
+        }
+        catch (Exception e)
+        {
+            LogManager.Error($"An error occurred while applying credit tag to player {ev.Player.UserId}.\n{e}");
+        }
+    }
+
+    public override void OnPlayerPickingUpItem(PlayerPickingUpItemEventArgs ev)
+    {
+        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
+        if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnorePickingUpItem))
+            ev.IsAllowed = false;
+        base.OnPlayerPickingUpItem(ev);
     }
 }

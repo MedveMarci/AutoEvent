@@ -1,4 +1,4 @@
-Airstrike Party:
+﻿Airstrike Party:
   cycle: |-
     <color=yellow>Избегай гранат!</color>
     <color=green>Прошло {time} секунд</color>
@@ -21,11 +21,11 @@ Airstrike Party:
 All Deathmatch:
   cycle: |-
     <size=30><i><b>{name}</b>
-    <color=red>Ты - {kills}/{needKills} kills</color>
+    <color=red>Ты - {kills}/{needKills} убийств</color>
     Время раунда: {time}</i></size>
-  hint_cycle: <color=#ff0000>You - {kills}/{needKills} kills</color></size>
+  hint_cycle: <color=#ff0000>Ты - {kills}/{needKills} убийств</color></size>
   leaderboard: Leaderboard
-  leaderboard_content: <color={color}>{num}. {playerName} / {kills} kills</color>
+  leaderboard_content: <color={color}>{num}. {playerName} / {kills} убийств</color>
   no_players: |-
     <color=red>Игра окончена
     Твои убийства {count}</color>
@@ -42,51 +42,59 @@ All Deathmatch:
 Among Us:
   starting_event: |-
     <b>{name}</b>
-    There are {time} seconds before the game starts. Selecting the <color=red><b>Impostors</b></color>.
-  you_are_impostor: 'You are the <color=red>Impostor</color>!'
-  you_are_crewmate: 'You are a <color=#00FFFF>Crewmate</color>!'
-  impostor_win: '<color=red>Impostors</color> have won!'
-  crewmate_win: '<color=#00FFFF>Crewmates</color> have won!'
-  killed_by_impostor: 'You were killed by an Impostor!'
-  kill_cooldown: 'You can''t kill for another {time} seconds!'
-  too_far: 'You are too far away to kill!'
+    Есть {time} секунд до начала игры. Выбираем <color=red><b>предателя</b></color>.
+  you_are_impostor: 'Вы <color=red>предатель</color>!'
+  you_are_crewmate: 'Вы <color=#00FFFF>мирный</color>!'
+  impostor_win: '<color=red>Предатели</color> победили!'
+  crewmate_win: '<color=#00FFFF>Мирные</color> победили!'
+  killed_by_impostor: 'Ты был убит предателем!'
+  kill_cooldown: 'Ты не можешь убивать еще {time} секунд(-у)!'
   voting_info: |-
     {reason}
-    You can vote by writing .vote <color/name/skip> to the Console which you can open with ~ by default.
-    {time} seconds remaining.
+    Вы можете голосовать с помощью команды .vote <color/ник/скип> в консоли.
+    {time} секунд осталось.
   discussion_info: |-
     {reason}
-    Discussion time! You can't chat with other players.
-    {time} seconds remaining, soon you will can speak and vote.
-  meeting_called: 'A meeting has been called by {player}!'
-  death_body_reported: '<color=red>{deadPlayer}</color>''s body found by <color=yellow>{reportedPlayer}</color>!'
-  emergency_meetings_reached: 'You can''t call any more emergency meetings!'
-  meeting_cooldown: 'You can''t call a meeting for another {time} seconds!'
-  calibrate_distributor: 'Calibrate Distributor'
-  chart_course: 'Chart Course'
-  clean_o2_filter: 'Clean O2 Filter'
-  empty_chute: 'Empty Chute'
-  prime_shields: 'Prime Shields'
-  start_reactor: 'Start Reactor'
-  submit_scan: 'Submit Scan'
-  fix_wiring: 'Fix Wiring'
-  align_engine_output: 'Align Engine Output'
-  divert_power_to: 'Divert Power to {roomName}'
-  accept_divert_power: 'Accept Divert Power'
-  download_data: 'Download Data'
-  upload_data: 'Upload Data'
-  no_votes: 'No votes'
-  vote: 'vote'
-  no_one_voted_out: 'No one was voted out.'
-  its_a_tie: 'It''s a tie!'
-  death_message: 'Voted out.'
-  voted_out: '{player} was voted out.'
-  tasks: 'Tasks'
-  didnt_vote: 'Didn''t vote'
-  was_an_impostor: '{player} was an Impostor.'
-  was_not_an_impostor: '{player} was not an Impostor.'
+    Время для обсуждения! Вы не можете общаться в чате с другими игроками
+    {time} остались считанные секунды, и скоро вы сможете высказаться и проголосовать.
+  meeting_called: 'Собрание было созвано игроком {player}!'
+  death_body_reported: '<color=red>{deadPlayer}</color> мертвое тело найдено игроком <color=yellow>{reportedPlayer}</color>!'
+  emergency_meetings_reached: 'Ты больше не можешь созывать никаких совещаний!'
+  meeting_cooldown: 'Ты не можешь созывать совещаний еще {time} секунд!'
+  cannot_call_meeting_during_sabotage: "Вы не можете созвать экстренное совещание во время этого саботажа!"
+  calibrate_distributor: 'Калибровочное распределений'
+  chart_course: 'Наметьте курс'
+  clean_o2_filter: 'Почисти кислородный фильтр'
+  empty_chute: 'Пустой желоб'
+  start_reactor: 'Запусти реактор'
+  fix_wiring: 'Почини проводку'
+  align_engine_output: 'Выровните мощность двигателя'
+  divert_power_to: 'Переноправь энергию в {roomName}'
+  accept_divert_power: 'Подтвердите перенаправку'
+  download_data: 'Скачайте данные'
+  upload_data: 'Выгрузи данные'
+  skip: 'Skip'
+  vote: 'Голосование'
+  no_one_voted_out: 'Ни за кого не проголосовали.'
+  its_a_tie: 'Ничья!'
+  death_message: 'Проголосовали за вас.'
+  voted_out: '{player} был исключен голосованием.'
+  tasks: 'Задания'
+  was_an_impostor: '{player} был предателем.'
+  was_not_an_impostor: '{player} не был предателем.'
+  comms_sabotaged: "Связь нарушена!"
+  reactor_meltdown: "Остановка реактора через {time} секунд!"
+  sabotage_menu_title: 'Sabotage'
+  vote_menu_title: 'Vote'
+  sabotage_cooldown_hint: 'Sabotage cooldown: <color=red>{time}s</color>'
+  active_sabotage_hint: 'Active sabotage: <color=red>{name}</color>'
+  sabotage_on_cooldown: 'Sabotage is on cooldown.'
+  sabotage_already_active: 'A sabotage is already active.'
+  sabotage_communications: 'Communications'
+  sabotage_lights: 'Lights'
+  sabotage_door_lockdown: 'Door Lockdown'
   name: 'Among Us'
-  description: 'The Impostor is among us.'
+  description: 'Предатель среди нас.'
   command_name: 'amongus'
 Nuke Run:
   before_start: |-
@@ -138,7 +146,7 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>Победители: <color=red>Ученые</color></color>
-  max_round_reached: 'You reached the max number of rounds!'
+  max_round_reached: 'Вы выиграли большинство раундов!'
   name: 'Петушиные бои'
   description: 'Дуэль на карте 35hp из CS 1.6'
   command_name: 'versus'
@@ -172,9 +180,9 @@ Counter-Strike:
     <i>Бомба обезврежена!</i>
   you_planted: '<b><color=#ff4c5b>Вы заплентили бомбу.</color></b>'
   you_defused: '<b><color=#42aaff>Вы дефузите бомбу.</color></b>'
-  picked_up_bomb: You picked up the C4!
-  equipped_bomb: You're holding the C4!
-  bomb_death_reason: The Bomb exploded.
+  picked_up_bomb: Вы подняли бомбу!
+  equipped_bomb: Вы держите бомбу!
+  bomb_death_reason: Бомба взорвалась.
   hint_cycle: |-
     <size=30><i><b>{name}</b>
     {kills}
@@ -496,7 +504,7 @@ The floor is LAVA:
     {winner}</b></color>
   all_dead: '<color=red><b>Никто не выжил.</b></color>'
   died: '<color=red>Сгорел в лаве</color>'
-  reload: 'Reload your weapon!'
+  reload: 'Перезарядите оружие!'
   name: 'Пол - это Лава'
   description: 'Избегайте лавы и уничтожьте других игроков.'
   command_name: 'lava'

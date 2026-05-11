@@ -12,6 +12,10 @@ public class EventHandler(Plugin plugin)
     {
         if (!plugin.Config.IsEnablePush)
             return;
+
+        if (plugin.PushCooldown.TryGetValue(ev.Player, out var remaining) && remaining > 0)
+            return;
+
         var transform = ev.Player.Camera.transform;
         var ray = new Ray(transform.position + transform.forward * 0.1f, transform.forward);
 
@@ -29,22 +33,34 @@ public class EventHandler(Plugin plugin)
         Timing.RunCoroutine(PushPlayer(ev.Player, target));
     }
 
-    private IEnumerator<float> PushPlayer(Player player, Player target)
+    private static IEnumerator<float> PushPlayer(Player player, Player target)
     {
-        var pushed = player.Camera.transform.forward * 1.7f;
+        const float pushDistance = 1.7f;
+        const float playerRadius = 0.4f;
+        const float playerHeight = 1.8f;
+        const int steps = 15;
 
-        var endPos = target.Position + new Vector3(pushed.x, 0, pushed.z);
-        var layerAsLayerMask = 0;
+        var dir = player.Camera.transform.forward;
+        dir.y = 0f;
+        if (dir.sqrMagnitude > 0f) dir.Normalize();
 
-        for (var x = 1; x < 8; x++)
-            layerAsLayerMask |= 1 << x;
+        var endPos = target.Position + dir * pushDistance;
 
-        for (var i = 1; i < 15; i++)
+        var layerMask = 0;
+        for (var x = 0; x < 8; x++)
+            layerMask |= 1 << x;
+
+        for (var i = 0; i < steps; i++)
         {
-            const float movementAmount = 1.7f / 15;
+            const float movementAmount = pushDistance / steps;
             var newPos = Vector3.MoveTowards(target.Position, endPos, movementAmount);
+            var moveDir = newPos - target.Position;
+            var dist = moveDir.magnitude;
+            if (dist < 0.001f) yield break;
 
-            if (Physics.Linecast(target.Position, newPos, layerAsLayerMask))
+            var p1 = target.Position + Vector3.up * playerRadius;
+            var p2 = target.Position + Vector3.up * (playerHeight - playerRadius);
+            if (Physics.CapsuleCast(p1, p2, playerRadius, moveDir / dist, dist, layerMask))
                 yield break;
 
             target.Position = newPos;

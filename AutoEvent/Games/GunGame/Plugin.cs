@@ -15,7 +15,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private Player _winner;
     public override string Name { get; set; } = "Gun Game";
-    public override string Description { get; set; } = "Cool GunGame on the Shipment map from MW19";
+    public override string Description { get; set; } = "Cool GunGame mode where you get new guns by killing people";
     public override string Author { get; set; } = "RisottoMan/code & xleb.ik/map";
     public override string CommandName { get; set; } = "gungame";
     protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Enable;

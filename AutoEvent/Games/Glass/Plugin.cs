@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API;
+using AutoEvent.ApiFeatures;
 using AutoEvent.Games.Glass.Features;
+using AutoEvent.Integrations.MapEditor;
 using AutoEvent.Interfaces;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
@@ -127,10 +129,10 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
             // Creating a platform by copying the parent
             var newPlatform =
-                Extensions.CreatePlatformByParent(platform, platform.transform.position + delta * (i + 1));
+                ProjectMerIntegration.CreatePlatformByParent(platform, platform.transform.position + delta * (i + 1));
             _platforms.Add(newPlatform);
             var newPlatform1 =
-                Extensions.CreatePlatformByParent(platform1, platform1.transform.position + delta * (i + 1));
+                ProjectMerIntegration.CreatePlatformByParent(platform1, platform1.transform.position + delta * (i + 1));
             _platforms.Add(newPlatform1);
 
             if (data.LeftSideIsDangerous)

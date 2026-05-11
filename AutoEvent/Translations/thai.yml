@@ -1,4 +1,4 @@
-Airstrike Party:
+﻿Airstrike Party:
   cycle: |-
     <color=yellow>หลบลูกระเบิดจากฟากฟ้า!</color>
     <color=green>เวลา: {time} วินาทีผ่านไป</color>
@@ -49,7 +49,6 @@ Among Us:
   crewmate_win: '<color=#00FFFF>Crewmates</color> have won!'
   killed_by_impostor: 'You were killed by an Impostor!'
   kill_cooldown: 'You can''t kill for another {time} seconds!'
-  too_far: 'You are too far away to kill!'
   voting_info: |-
     {reason}
     You can vote by writing .vote <color/name/skip> to the Console which you can open with ~ by default.
@@ -62,29 +61,38 @@ Among Us:
   death_body_reported: '<color=red>{deadPlayer}</color>''s body found by <color=yellow>{reportedPlayer}</color>!'
   emergency_meetings_reached: 'You can''t call any more emergency meetings!'
   meeting_cooldown: 'You can''t call a meeting for another {time} seconds!'
+  cannot_call_meeting_during_sabotage: 'You cannot call an emergency meeting during this sabotage!'
   calibrate_distributor: 'Calibrate Distributor'
   chart_course: 'Chart Course'
   clean_o2_filter: 'Clean O2 Filter'
   empty_chute: 'Empty Chute'
-  prime_shields: 'Prime Shields'
   start_reactor: 'Start Reactor'
-  submit_scan: 'Submit Scan'
   fix_wiring: 'Fix Wiring'
   align_engine_output: 'Align Engine Output'
   divert_power_to: 'Divert Power to {roomName}'
   accept_divert_power: 'Accept Divert Power'
   download_data: 'Download Data'
   upload_data: 'Upload Data'
-  no_votes: 'No votes'
+  skip: 'Skip'
   vote: 'vote'
   no_one_voted_out: 'No one was voted out.'
   its_a_tie: 'It''s a tie!'
   death_message: 'Voted out.'
   voted_out: '{player} was voted out.'
   tasks: 'Tasks'
-  didnt_vote: 'Didn''t vote'
   was_an_impostor: '{player} was an Impostor.'
   was_not_an_impostor: '{player} was not an Impostor.'
+  comms_sabotaged: 'Comms Sabotaged!'
+  reactor_meltdown: 'Reactor Meltdown in {time} seconds!'
+  sabotage_menu_title: 'Sabotage'
+  vote_menu_title: 'Vote'
+  sabotage_cooldown_hint: 'Sabotage cooldown: <color=red>{time}s</color>'
+  active_sabotage_hint: 'Active sabotage: <color=red>{name}</color>'
+  sabotage_on_cooldown: 'Sabotage is on cooldown.'
+  sabotage_already_active: 'A sabotage is already active.'
+  sabotage_communications: 'Communications'
+  sabotage_lights: 'Lights'
+  sabotage_door_lockdown: 'Door Lockdown'
   name: 'Among Us'
   description: 'The Impostor is among us.'
   command_name: 'amongus'

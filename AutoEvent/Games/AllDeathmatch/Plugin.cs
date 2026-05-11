@@ -86,7 +86,8 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
         foreach (var gameObject in MapInfo.Map.AttachedBlocks)
             switch (gameObject.name)
             {
-                case "Spawnpoint_Deathmatch": SpawnList.Add(gameObject); break;
+                case "Spawnpoint_Deathmatch":
+                case "Spawnpoint": SpawnList.Add(gameObject); break;
                 case "Wall":
                     NetworkServer.Destroy(gameObject);
                     break;

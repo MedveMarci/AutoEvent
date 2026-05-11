@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using AutoEvent.API;
-using AutoEvent.API.Season.Enum;
+using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
 using CustomPlayerEffects;
 using PlayerRoles;
@@ -29,8 +29,8 @@ public class Config : EventConfig
         AvailableMaps ??= [];
 
         if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance(50, new MapInfo("Dodgeball", new Vector3(0, 0, 30))));
-        AvailableMaps.Add(new MapChance(50, new MapInfo("Snowball", new Vector3(0, 0, 30)), SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance("Dodgeball", new Vector3(0, 0, 30)));
+        AvailableMaps.Add(new MapChance("Snowball", new Vector3(0, 0, 30), season: SeasonFlags.Christmas));
     }
 
     [Description("After how many seconds the round will end. [Default: 180]")]

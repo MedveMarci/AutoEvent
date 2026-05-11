@@ -1,136 +1,92 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
-        <LangVersion>latest</LangVersion>
-        <AssemblyTitle>AutoEvent</AssemblyTitle>
-        <Product>AutoEvent</Product>
-        <Copyright>Copyright MedveMarci © 2025</Copyright>
-        <OutputPath>bin\$(Configuration)\</OutputPath>
-        <Configurations>Debug;Release</Configurations>
-        <Platforms>x64</Platforms>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <AssemblyName>AutoEvent</AssemblyName>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
-        <OutputPath>bin\x64\Debug</OutputPath>
-        <DefineConstants>TRACE;DEBUG</DefineConstants>
+        <RootNamespace>AutoEvent</RootNamespace>
+        <LangVersion>latest</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Optimize>true</Optimize>
         <PlatformTarget>x64</PlatformTarget>
-        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-        <FileAlignment>512</FileAlignment>
-        <Deterministic>true</Deterministic>
-        <LangVersion>default</LangVersion>
-        <TargetFrameworkProfile/>
+        <Platforms>x64</Platforms>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <Nullable>disable</Nullable>
+        <Configurations>Debug;Release;Release-APAPI;Debug-APAPI</Configurations>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
         <DebugSymbols>true</DebugSymbols>
         <DebugType>embedded</DebugType>
+        <Optimize>false</Optimize>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <OutputPath>bin\x64\Debug\</OutputPath>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
-        <OutputPath>bin\x64\LabApi</OutputPath>
-        <DefineConstants>TRACE;LABAPI</DefineConstants>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Optimize>true</Optimize>
-        <PlatformTarget>x64</PlatformTarget>
-        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-        <FileAlignment>512</FileAlignment>
-        <Deterministic>true</Deterministic>
-        <LangVersion>default</LangVersion>
-        <TargetFrameworkProfile/>
-        <DebugSymbols>false</DebugSymbols>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
         <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <DefineConstants>TRACE</DefineConstants>
+        <OutputPath>bin\x64\Release\</OutputPath>
     </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-APAPI|x64' ">
+      <DebugType>pdbonly</DebugType>
+      <Optimize>true</Optimize>
+      <AssemblyName>AutoEvent-APAPI</AssemblyName>
+      <DefineConstants>TRACE;APAPI</DefineConstants>
+      <OutputPath>bin\x64\Release_APAPI\</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-APAPI|x64' ">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>embedded</DebugType>
+        <Optimize>false</Optimize>
+        <AssemblyName>AutoEvent-APAPI</AssemblyName>
+        <DefineConstants>DEBUG;TRACE;APAPI</DefineConstants>
+        <OutputPath>bin\x64\Debug_APAPI\</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <IsAPAPIBuild Condition="$(Configuration.Contains('APAPI'))">true</IsAPAPIBuild>
+        <IsAPAPIBuild Condition="'$(IsAPAPIBuild)' == ''">false</IsAPAPIBuild>
+    </PropertyGroup>
+
     <ItemGroup>
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
         <PackageReference Include="Lib.Harmony" Version="2.4.2"/>
-        <PackageReference Include="Northwood.LabAPI" Version="1.1.4"/>
-        <PackageReference Include="System.Buffers" Version="4.6.1"/>
+        <PackageReference Include="Northwood.LabAPI" Version="1.1.6.1"/>
+        <PackageReference Include="SecretLabNAudio.Core" Version="2.0.0" Condition="'$(IsAPAPIBuild)' != 'true'" />
         <PackageReference Include="System.Net.Http" Version="4.3.4"/>
-        <PackageReference Include="System.Text.Json" Version="10.0.0"/>
+        <PackageReference Include="System.Text.Json" Version="10.0.7"/>
     </ItemGroup>
+
     <ItemGroup>
-        <Reference Include="AudioPlayerApi" HintPath="$(LABAPI_DEPENDENCIES)\AudioPlayerApi.dll"/>
+        <Reference Include="System.IO.Compression"/>
+        <Reference Include="System.IO.Compression.FileSystem"/>
+        <Reference Include="Assembly-CSharp" HintPath="$(SL_REFERENCES)\Assembly-CSharp.dll" Publicize="true"/>
+        <Reference Include="Assembly-CSharp-firstpass" HintPath="$(SL_REFERENCES)\Assembly-CSharp-firstpass.dll"/>
+        <Reference Include="Mirror" HintPath="$(SL_REFERENCES)\Mirror.dll"/>
+        <Reference Include="UnityEngine.AnimationModule" HintPath="$(SL_REFERENCES)\UnityEngine.AnimationModule.dll"/>
+        <Reference Include="CommandSystem.Core" HintPath="$(SL_REFERENCES)\CommandSystem.Core.dll"/>
+        <Reference Include="UnityEngine.CoreModule" HintPath="$(SL_REFERENCES)\UnityEngine.CoreModule.dll"/>
+        <Reference Include="UnityEngine.PhysicsModule" HintPath="$(SL_REFERENCES)\UnityEngine.PhysicsModule.dll"/>
+        <Reference Include="NorthwoodLib" HintPath="$(SL_REFERENCES)\NorthwoodLib.dll"/>
+        <Reference Include="ProjectMER" HintPath="$(LABAPI_PLUGINS)\ProjectMER.dll"/>
+        <Reference Include="AudioPlayerApi" HintPath="$(LABAPI_DEPENDENCIES)\AudioPlayerApi.dll" Condition="'$(IsAPAPIBuild)' == 'true'"/>
+        <Reference Include="RadioMenuAPI" HintPath="$(LABAPI_PLUGINS)\RadioMenuAPI.dll"/>
         <Reference Include="CedModV3" HintPath="$(LABAPI_PLUGINS)\CedModV3.dll"/>
         <Reference Include="LabApiExtensions" HintPath="$(LABAPI_DEPENDENCIES)\LabApiExtensions.dll"/>
-        <Reference Include="YamlDotNet" HintPath="$(SL_REFERENCES)\YamlDotNet.dll"/>
-        <Reference Include="ProjectMER" HintPath="$(LABAPI_PLUGINS)\ProjectMER.dll"/>
-        <Reference Include="Assembly-CSharp" HintPath="$(SL_REFERENCES)\Assembly-CSharp-Publicized.dll"/>
-        <Reference Include="Mirror" HintPath="$(SL_REFERENCES)\Mirror.dll"/>
-        <Reference Include="System"/>
-        <Reference Include="System.ComponentModel.DataAnnotations" HintPath="$(SL_REFERENCES)\System.ComponentModel.DataAnnotations.dll"/>
-        <Reference Include="UnityEngine" HintPath="$(SL_REFERENCES)\UnityEngine.dll"/>
-        <Reference Include="UnityEngine.AssetBundleModule" HintPath="$(SL_REFERENCES)\UnityEngine.AssetBundleModule.dll"/>
-        <Reference Include="UnityEngine.ParticleSystem" HintPath="$(SL_REFERENCES)\UnityEngine.ParticleSystemModule.dll"/>
-        <Reference Include="UnityEngine.CoreModule" HintPath="$(SL_REFERENCES)\UnityEngine.CoreModule.dll"/>
-        <Reference Include="UnityEngine.UnityWebRequestModule" HintPath="$(SL_REFERENCES)\UnityEngine.UnityWebRequestModule.dll"/>
-        <Reference Include="UnityEngine.AnimationModule" HintPath="$(SL_REFERENCES)\UnityEngine.AnimationModule.dll"/>
-        <Reference Include="UnityEngine.PhysicsModule" HintPath="$(SL_REFERENCES)\UnityEngine.PhysicsModule.dll"/>
-        <Reference Include="Assembly-CSharp-firstpass" HintPath="$(SL_REFERENCES)\Assembly-CSharp-firstpass.dll"/>
-        <Reference Include="UnityEngine.AudioModule" HintPath="$(SL_REFERENCES)\UnityEngine.AudioModule.dll"/>
-        <Reference Include="CommandSystem.Core" HintPath="$(SL_REFERENCES)\CommandSystem.Core.dll"/>
-        <Reference Include="NorthwoodLib" HintPath="$(SL_REFERENCES)\NorthwoodLib.dll"/>
-        <Reference Include="Pooling" HintPath="$(SL_REFERENCES)\Pooling.dll"/>
     </ItemGroup>
+
     <ItemGroup>
-        <Content Include="..\.gitignore">
-            <Link>.gitignore</Link>
-        </Content>
-        <Content Include="..\Docs\*" Link="Docs\*"/>
-        <Content Include="..\Docs\Translations\*" Link="Docs\Translations\*"/>
+        <Content Include="..\Docs\*" Link="Docs\%(Filename)%(Extension)"/>
+        <Content Include="..\Docs\Translations\*" Link="Docs\Translations\%(Filename)%(Extension)"/>
         <Content Include="..\README.md" Link="README.md"/>
-        <Content Update="..\Docs\HalloweenMiniGames.md">
-            <Link>Docs\HalloweenMiniGames.md</Link>
-        </Content>
+        <Content Include="Translations\*.yml"/>
     </ItemGroup>
-    <ItemGroup>
-        <EmbeddedResource Include="Translations\chinese.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <None Remove="Translations\italian.yml"/>
-        <EmbeddedResource Include="Translations\italian.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <None Remove="Translations\portuguese.yml"/>
-        <EmbeddedResource Include="Translations\portuguese.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <None Remove="Translations\polish.yml"/>
-        <EmbeddedResource Include="Translations\polish.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <None Remove="Translations\german.yml"/>
-        <EmbeddedResource Include="Translations\german.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <None Remove="Translations\turkish.yml"/>
-        <EmbeddedResource Include="Translations\turkish.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <None Remove="Translations\thai.yml"/>
-        <EmbeddedResource Include="Translations\thai.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <None Remove="Translations\russian.yml"/>
-        <EmbeddedResource Include="Translations\russian.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <None Remove="Translations\french.yml"/>
-        <EmbeddedResource Include="Translations\french.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <None Remove="Translations\spanish.yml"/>
-        <EmbeddedResource Include="Translations\spanish.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <None Remove="Translations\english.yml"/>
-        <EmbeddedResource Include="Translations\english.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-        <None Remove="Translations\hungarian.yml"/>
-        <EmbeddedResource Include="Translations\hungarian.yml">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
-    </ItemGroup>
-    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
-    <Target Name="AfterBuild">
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
         <Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;%appdata%\SCP Secret Laboratory\LabAPI\plugins\global&quot; /y"/>
     </Target>
 </Project>

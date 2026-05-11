@@ -1,33 +1,40 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+using AutoEvent.API.Enums;
+using AutoEvent.ApiFeatures;
+using AutoEvent.Integrations.MapEditor;
 using AutoEvent.Interfaces;
 
 namespace AutoEvent.Loader;
 
 public class EventManager
 {
-    private readonly Dictionary<string, Event> _events = new();
-
+    private readonly Dictionary<string, Event> _events = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _internalKeys = new(StringComparer.OrdinalIgnoreCase);
+    private int _nextId;
     public Event CurrentEvent { get; set; }
-
     public List<Event> Events => _events.Values.ToList();
 
+    public ReadOnlyDictionary<string, Event> EventDictionary =>
+        new(_events);
+
+    public int Count => _events.Count;
     public bool IsMerLoaded { get; private set; }
 
     public void RegisterInternalEvents()
     {
-        IsMerLoaded = true;
-        if (!AppDomain.CurrentDomain.GetAssemblies().Any(x => x.FullName.ToLower().Contains("projectmer")))
-        {
-            LogManager.Error(
-                "ProjectMER was not detected. The mini-games may not be available until you install ProjectMER.");
-            IsMerLoaded = false;
-        }
+        // MapSystemIntegration.Detect() is called earlier in Plugin.Enable().
+        IsMerLoaded = MapSystemIntegration.AnyLoaded;
 
-        var callingAssembly = Assembly.GetCallingAssembly();
-        var types = callingAssembly.GetTypes();
+        if (!IsMerLoaded)
+            LogManager.Error(
+                "ProjectMER was not detected. " +
+                "Map-based mini-games will not be available until you install ProjectMER.");
+
+        var types = Assembly.GetCallingAssembly().GetTypes();
 
         foreach (var type in types)
             try
@@ -36,8 +43,7 @@ public class EventManager
                     type.GetInterfaces().All(x => x != typeof(IEvent)))
                     continue;
 
-                var evBase = Activator.CreateInstance(type);
-                if (evBase is not Event ev)
+                if (Activator.CreateInstance(type) is not Event ev)
                     continue;
 
                 if (!ev.AutoLoad)
@@ -46,41 +52,110 @@ public class EventManager
                 if (ev is IEventMap && !IsMerLoaded)
                     continue;
 
-                ev.Id = _events.Count;
-                _events.Add(ev.Name, ev);
+                ev.InternalConfig ??= new EventConfig();
+                ev.InternalTranslation ??= new EventTranslation();
+
+                ev.Id = _nextId++;
+                ev.IsInternal = true;
+                _events[ev.InternalName] = ev;
+                _internalKeys.Add(ev.InternalName);
             }
             catch (MissingMethodException)
             {
+                // No parameterless constructor — skip silently.
             }
             catch (Exception ex)
             {
-                LogManager.Error($"[EventLoader] cannot register an event.\n{ex}");
+                LogManager.Error($"[EventLoader] Failed to register event from type '{type.FullName}'.\n{ex}");
             }
     }
 
-    /// <summary>
-    ///     Gets an event by it's name.
-    /// </summary>
-    /// <param name="type">The name of the event to search for.</param>
-    /// <returns>The first event found with the same name (Case-Insensitive).</returns>
-    public Event GetEvent(string type)
+    public EventRegistrationResult RegisterEvent(Event ev)
     {
-        if (int.TryParse(type, out var id))
-            return GetEvent(id);
+        if (ev is null)
+            return EventRegistrationResult.EventIsNull;
 
-        return !TryGetEventByCName(type, out var ev)
-            ? _events.Values.FirstOrDefault(@event =>
-                string.Equals(@event.Name, type, StringComparison.CurrentCultureIgnoreCase))
-            : ev;
+        if (_events.ContainsKey(ev.InternalName) || _events.Values.Any(x =>
+                string.Equals(x.CommandName, ev.CommandName, StringComparison.OrdinalIgnoreCase)))
+            return EventRegistrationResult.AlreadyRegistered;
+
+        if (ev is IEventMap && !IsMerLoaded)
+            return EventRegistrationResult.MissingProjectMer;
+
+        ev.InternalConfig ??= new EventConfig();
+        ev.InternalTranslation ??= new EventTranslation();
+
+        ev.Id = _nextId++;
+        ev.IsInternal = false;
+        _events[ev.InternalName] = ev;
+
+        LogManager.Info($"[EventManager] External event '{ev.Name}' ({ev.CommandName}) registered by '{ev.Author}'.");
+        return EventRegistrationResult.Success;
     }
 
-    private Event GetEvent(int id)
+    public EventRegistrationResult UnregisterEvent(Event ev)
     {
-        return _events.Values.FirstOrDefault(x => x.Id == id);
+        if (ev is null)
+            return EventRegistrationResult.EventIsNull;
+
+        if (!_events.ContainsKey(ev.InternalName))
+            return EventRegistrationResult.NotFound;
+
+        if (_internalKeys.Contains(ev.InternalName))
+            return EventRegistrationResult.CannotUnregisterInternal;
+
+        _events.Remove(ev.InternalName);
+
+        LogManager.Info($"[EventManager] External event '{ev.Name}' ({ev.CommandName}) unregistered.");
+        return EventRegistrationResult.Success;
     }
 
-    private bool TryGetEventByCName(string type, out Event ev)
+    public EventRegistrationResult UnregisterEvent(string commandName)
     {
-        return (ev = _events.Values.FirstOrDefault(x => x.CommandName == type)) != null;
+        if (string.IsNullOrWhiteSpace(commandName))
+            return EventRegistrationResult.NotFound;
+
+        var ev = _events.Values.FirstOrDefault(x =>
+            string.Equals(x.CommandName, commandName, StringComparison.OrdinalIgnoreCase));
+
+        return ev is null ? EventRegistrationResult.NotFound : UnregisterEvent(ev);
+    }
+
+    public bool IsRegistered(string commandName)
+    {
+        return _events.Values.Any(x =>
+            string.Equals(x.CommandName, commandName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public Event GetEvent(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return null;
+
+        return TryGetEvent(query, out var ev) ? ev : null;
+    }
+
+    public bool TryGetEvent(string query, out Event ev)
+    {
+        ev = null;
+        if (string.IsNullOrWhiteSpace(query))
+            return false;
+
+        if (int.TryParse(query, out var id))
+        {
+            ev = _events.Values.FirstOrDefault(x => x.Id == id);
+            return ev != null;
+        }
+
+        if (_events.TryGetValue(query, out ev))
+            return true;
+
+        ev = _events.Values.FirstOrDefault(x =>
+            string.Equals(x.CommandName, query, StringComparison.OrdinalIgnoreCase));
+        if (ev != null) return true;
+
+        ev = _events.Values.FirstOrDefault(x =>
+            string.Equals(x.Name, query, StringComparison.OrdinalIgnoreCase));
+        return ev != null;
     }
 }

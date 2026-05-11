@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+using AutoEvent.ApiFeatures;
 using CedMod;
+using GameCore;
 using LabApi.Features.Wrappers;
 using PlayerStatsSystem;
 
@@ -69,13 +71,13 @@ public abstract class FriendlyFireSystem
         FriendlyFireAutoban.AdminDisabled = false;
     }
 
-    public static void EnableFriendlyFireDetector()
+    public static void UnPauseFriendlyFireDetector()
     {
         LogManager.Debug("Enabling Friendly Fire Detector.");
         try
         {
             FriendlyFireConfig.PauseDetector = false;
-            AttackerDamageHandler.RefreshConfigs();
+            AttackerDamageHandler._ffMultiplier = ConfigFile.ServerConfig.GetFloat("friendly_fire_multiplier", 0.4f);
 
             if (CedModIsPresent) _cedmodFFEnable();
         }
@@ -86,15 +88,15 @@ public abstract class FriendlyFireSystem
         }
     }
 
-    public static void DisableFriendlyFireDetector()
+    public static void PauseFriendlyFireDetector()
     {
         try
         {
             LogManager.Debug("Disabling Friendly Fire Detector.");
             FriendlyFireConfig.PauseDetector = true;
-            AttackerDamageHandler._ffMultiplier = 1f;
 
-            if (CedModIsPresent) _cedmodFFDisable();
+            if (CedModIsPresent)
+                _cedmodFFDisable();
         }
         catch (Exception e)
         {
@@ -113,7 +115,7 @@ public abstract class FriendlyFireSystem
     public static void DisableFriendlyFire()
     {
         LogManager.Debug("Disabling Friendly Fire.");
-
+        AttackerDamageHandler._ffMultiplier = ConfigFile.ServerConfig.GetFloat("friendly_fire_multiplier", 0.4f);
         Server.FriendlyFire = false;
     }
 

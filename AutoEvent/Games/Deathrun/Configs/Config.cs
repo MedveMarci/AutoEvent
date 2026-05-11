@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using AutoEvent.API;
-using AutoEvent.API.Season.Enum;
+using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
 using CustomPlayerEffects;
 using PlayerRoles;
@@ -17,9 +17,9 @@ public class Config : EventConfig
 
         if (AvailableMaps.Count < 1)
         {
-            AvailableMaps.Add(new MapChance(50, new MapInfo("TempleMap", new Vector3(0f, 30f, 30f))));
-            AvailableMaps.Add(new MapChance(50, new MapInfo("TempleMap_Xmas2025", new Vector3(0f, 30f, 30f)),
-                SeasonFlags.Christmas));
+            AvailableMaps.Add(new MapChance("TempleMap", new Vector3(0f, 30f, 30f)));
+            AvailableMaps.Add(new MapChance("TempleMap_Xmas2025", new Vector3(0f, 30f, 30f),
+                season: SeasonFlags.Christmas));
         }
     }
 

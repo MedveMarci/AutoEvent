@@ -56,15 +56,18 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 case "PoisonTrigger": block.AddComponent<PoisonComponent>(); break;
             }
 
-        for (var i = 0; Player.ReadyList.Count() / 20 >= i; i++)
+        var deathCount = Math.Max(1, Player.ReadyList.Count() / 20);
+        var availablePlayers = Player.ReadyList.ToList();
+        for (var i = 0; i < deathCount && availablePlayers.Count > 0; i++)
         {
-            var death = Player.ReadyList.Where(r => r.Role != RoleTypeId.Scientist).ToList().RandomItem();
+            var death = availablePlayers.RandomItem();
+            availablePlayers.Remove(death);
             death.GiveLoadout(Config.DeathLoadouts);
             death.Position = deathSpawns.RandomItem().transform.position;
         }
 
         // Teleport runners to spawnpoint
-        foreach (var runner in Player.ReadyList.Where(r => r.Role != RoleTypeId.Scientist))
+        foreach (var runner in Player.ReadyList.Where(r => r.Role == RoleTypeId.ClassD))
         {
             runner.GiveLoadout(Config.PlayerLoadouts);
             runner.Position = RunnerSpawns.RandomItem().transform.position;

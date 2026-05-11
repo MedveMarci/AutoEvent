@@ -4,11 +4,21 @@ using AutoEvent.API;
 using AutoEvent.Interfaces;
 using CustomPlayerEffects;
 using PlayerRoles;
+using UnityEngine;
 
 namespace AutoEvent.Games.AllDeathmatch.Configs;
 
 public class Config : EventConfig
 {
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("sl_waterworld", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("de_dust2", new Vector3(0, 40f, 0f)));
+    }
+
     [Description("How many minutes should we wait for the end of the round.")]
     public int TimeMinutesRound { get; set; } = 10;
 

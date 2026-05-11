@@ -6,6 +6,6 @@ public interface IEvent
     string Description { get; }
     string Author { get; }
     string CommandName { get; }
-    void StartEvent();
+    void StartEvent(string mapName = "");
     void StopEvent();
 }

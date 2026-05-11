@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AutoEvent.Integrations.MapEditor;
 using Mirror;
 using UnityEngine;
-using Extensions = AutoEvent.API.Extensions;
 
 namespace AutoEvent.Games.MusicalChairs;
 
@@ -24,7 +24,7 @@ public abstract class Functions
             var pos = new Vector3(x, parent.transform.position.y, z);
 
             // Creating a platform by copying the parent
-            var platform = Extensions.CreatePlatformByParent(parent, pos);
+            var platform = ProjectMerIntegration.CreatePlatformByParent(parent, pos);
             platformes.Add(platform);
         }
 

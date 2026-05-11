@@ -1,23 +1,33 @@
-### Classic Mini-Games
+# Mini-Games
 
-##### Here are all the classic maps for mini-games
+AutoEvent includes **26 mini-games** split into three seasonal categories.
 
-##### (Click on the logo)
+---
+
+## Classic Mini-Games
+
+All 26 mini-games are available year-round with their standard maps.
+
+[View Classic Mini-Games](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/ClassicMiniGames.md)
 
 [![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MiniGames(mini).png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/ClassicMiniGames.md)
 
-### Winter Mini-Games
+---
 
-##### Here are all the maps and mini-games that were changed in the New Year update.
+## Winter Mini-Games
 
-##### (Click on the snow logo)
+Selected mini-games feature special Winter/Christmas seasonal maps.
 
-[![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MiniGames%20Winter(mini).png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/NewYearMiniGames.md)
+[View Winter Mini-Games](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/ChristmasMiniGames.md)
 
-### Halloween Mini-Games
+[![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MiniGames%20Winter(mini).png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/ChristmasMiniGames.md)
 
-##### Here are all the maps and mini-games that were changed in the Halloween update.
+---
 
-##### (Click on the blood logo)
+## Halloween Mini-Games
 
-[![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MiniGames%20Halloween(mini).png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/NewYearMiniGames.md)
+Selected mini-games feature special Halloween seasonal maps.
+
+[View Halloween Mini-Games](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/HalloweenMiniGames.md)
+
+[![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MiniGames%20Halloween(mini).png)](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/HalloweenMiniGames.md)

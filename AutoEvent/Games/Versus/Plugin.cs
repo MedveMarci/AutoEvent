@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API;
 using AutoEvent.API.Enums;
+using AutoEvent.ApiFeatures;
 using AutoEvent.Interfaces;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
@@ -145,7 +146,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         {
             if (Scientist.Items.All(item => item.Type != ItemType.Jailbird))
                 Scientist.CurrentItem ??= Scientist.AddItem(ItemType.Jailbird);
-            if (ClassD.Items.All(item => item.Type == ItemType.Jailbird))
+            if (ClassD.Items.All(item => item.Type != ItemType.Jailbird))
                 ClassD.CurrentItem ??= ClassD.AddItem(ItemType.Jailbird);
 
             text = Translation.PlayersDuel.Replace("{scientist}", Scientist.Nickname)
@@ -155,9 +156,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         Extensions.ServerBroadcast(text.Replace("{name}", Name).Replace("{remain}", $"{_countdown.TotalSeconds}"), 1);
     }
 
-    /// <summary>
-    ///     Updating variables before starting the game
-    /// </summary>
     protected void UpdateWaitingState()
     {
         _countdown = new TimeSpan(0, 0, Config.AutoSelectDelayInSeconds);
@@ -181,9 +179,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _eventState = EventState.Playing;
     }
 
-    /// <summary>
-    ///     Choosing a new player
-    /// </summary>
     protected Player UpdateChoosePlayerState(bool isScientist)
     {
         ushort value = 0;
@@ -211,7 +206,10 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         if (_countdown.TotalSeconds > 0)
             return null;
 
-        chosenPlayer = Player.ReadyList.Where(r => r.Role == role).ToList().RandomItem();
+        var candidates = Player.ReadyList.Where(r => r.Role == role).ToList();
+        if (candidates.Count == 0)
+            return null;
+        chosenPlayer = candidates.RandomItem();
 
         End:
         chosenPlayer.Position = _teleports.ElementAt(value).transform.position;
@@ -224,9 +222,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         return chosenPlayer;
     }
 
-    /// <summary>
-    ///     Game in process
-    /// </summary>
     protected void UpdatePlayingState()
     {
         if (ClassD is null || Scientist is null)

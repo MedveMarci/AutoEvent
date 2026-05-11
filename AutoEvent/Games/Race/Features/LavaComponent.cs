@@ -16,11 +16,8 @@ public class LavaComponent : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if (Player.Get(other.gameObject) is not null)
-        {
-            var pl = Player.Get(other.gameObject);
-            pl.Position = _plugin.Spawnpoint.transform.position;
-        }
+        if (Player.Get(other.gameObject) is { } player)
+            player.Position = _plugin.Spawnpoint.transform.position;
     }
 
     public void StartComponent(Plugin plugin)

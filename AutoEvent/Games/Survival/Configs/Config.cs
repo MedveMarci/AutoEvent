@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using AutoEvent.API;
-using AutoEvent.API.Season.Enum;
+using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
 using CustomPlayerEffects;
 using PlayerRoles;
@@ -16,9 +16,8 @@ public class Config : EventConfig
         AvailableMaps ??= [];
 
         if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance(50, new MapInfo("Survival", new Vector3(0f, 40f, 0f))));
-        AvailableMaps.Add(new MapChance(50, new MapInfo("Survival_Xmas2025", new Vector3(0f, 40f, 0f)),
-            SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance("Survival", new Vector3(0f, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Survival_Xmas2025", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
     }
 
     [Description("How long the round should last in seconds.")]
@@ -68,7 +67,7 @@ public class Config : EventConfig
     ];
 
     [Description("The amount of Zombies that can spawn.")]
-    public RoleCount Zombies { get; set; } = new() { MinimumPlayers = 1, MaximumPlayers = 3, PlayerPercentage = 10 };
+    public RoleCount Zombies { get; set; } = new() { MinimumPlayers = 1, MaximumPlayers = 3, Percentage = 10 };
 
     [Description("Zombie screams sounds.")]
     public List<string> ZombieScreams { get; set; } = ["human_death_01.ogg", "human_death_02.ogg"];

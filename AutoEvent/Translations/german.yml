@@ -1,4 +1,4 @@
-Airstrike Party:
+﻿Airstrike Party:
   cycle: |-
     <color=yellow>Weiche den Luftangriffen aus!</color>
     <color=green>{time} Sekunden vergangen</color>
@@ -46,7 +46,6 @@ Among Us:
   crewmate_win: '<color=#00FFFF>Besatzungsmitglieder</color> haben gewonnen!'
   killed_by_impostor: 'Du wurdest von einem Verräter getötet!'
   kill_cooldown: 'Du kannst noch nicht für {time} Sekunden töten!'
-  too_far: 'Du bist viel zu weit weck um jemanden zu töten!'
   voting_info: |-
     {reason}
     Du kannst abstimmen in dem du .vote <color/name/skip> in die Konsole eingibst, was du mit ö öffnen kannst.
@@ -59,29 +58,38 @@ Among Us:
   death_body_reported: '<color=red>{deadPlayer}</color>''s Leiche wurde von <color=yellow>{reportedPlayer}</color> gefunden!'
   emergency_meetings_reached: 'Du kannst keine weitere Notfall-Sitzungen anfordern!'
   meeting_cooldown: 'Du kannst keine Sitzung für {time} Sekunden anfordern!'
+  cannot_call_meeting_during_sabotage: 'Du kannst während dieser Sabotage kein Notfalltreffen einberufen!'
   calibrate_distributor: 'Verteiler kalibrieren'
   chart_course: 'Kurs legen'
   clean_o2_filter: 'O2 Filter reinigen'
   empty_chute: 'Schacht leeren'
-  prime_shields: 'Primär schilde'
   start_reactor: 'Reaktor starten'
-  submit_scan: 'Scannen absenden'
   fix_wiring: 'Kabel reparieren'
   align_engine_output: 'Motor ausrichten'
   divert_power_to: 'Strom umleiten zu {roomName}'
   accept_divert_power: 'Umleitungsstrom akzeptieren'
   download_data: 'Datein Runterladen'
   upload_data: 'Datein Hochladen'
-  no_votes: 'keine abstimmung'
+  skip: 'Skip'
   vote: 'abstimmung'
   no_one_voted_out: 'Niemand wurde rausgewählt.'
   its_a_tie: 'Es ist ein Unentschieden!'
   death_message: 'Rausgewählt.'
   voted_out: '{player} wurde rausgewählt.'
   tasks: 'Aufgaben'
-  didnt_vote: 'Nicht gewählt'
   was_an_impostor: '{player} war der Verräter.'
   was_not_an_impostor: '{player} war nicht der Verräter.'
+  comms_sabotaged: 'Kommunikation sabotiert!'
+  reactor_meltdown: 'Reaktorschmelze in {time} Sekunden!'
+  sabotage_menu_title: 'Sabotage'
+  vote_menu_title: 'Vote'
+  sabotage_cooldown_hint: 'Sabotage cooldown: <color=red>{time}s</color>'
+  active_sabotage_hint: 'Active sabotage: <color=red>{name}</color>'
+  sabotage_on_cooldown: 'Sabotage is on cooldown.'
+  sabotage_already_active: 'A sabotage is already active.'
+  sabotage_communications: 'Communications'
+  sabotage_lights: 'Lights'
+  sabotage_door_lockdown: 'Door Lockdown'
   name: 'Among Us'
   description: 'among us aber in SCP:SL'
   command_name: 'amongus'

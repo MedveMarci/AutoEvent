@@ -23,7 +23,7 @@ public class EventHandler(Plugin plugin)
     {
         Timing.CallDelayed(3f, () =>
         {
-            if (AutoEvent.EventManager.CurrentEvent is Plugin)
+            if (AutoEvent.InternalEventManager.CurrentEvent is Plugin)
                 ev.Player.CurrentItem = ev.Player.AddItem(ItemType.GrenadeHE);
         });
     }

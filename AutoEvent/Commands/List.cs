@@ -5,9 +5,11 @@ using AutoEvent.API.Season;
 using AutoEvent.Interfaces;
 using CommandSystem;
 using LabApi.Features.Permissions;
+using EventManager = AutoEvent.API.EventManager;
 
 namespace AutoEvent.Commands;
 
+[CommandHandler(typeof(MainCommand))]
 internal class List : ICommand
 {
     public string Command => nameof(List);
@@ -25,10 +27,7 @@ internal class List : ICommand
         var builder = new StringBuilder();
 
         var isConsole = sender is ServerConsoleSender;
-        if (!isConsole)
-            builder.AppendLine("\"<color=yellow><b>List of events</b></color>:");
-        else
-            builder.AppendLine("\"List of events:");
+        builder.AppendLine(!isConsole ? "<color=yellow><b>List of events</b></color>:" : "List of events:");
 
         var style = SeasonMethod.GetSeasonStyle();
         var color = style.PrimaryColor;
@@ -36,16 +35,15 @@ internal class List : ICommand
         if (style.Text != null)
             builder.AppendLine(style.Text);
 
-        var eventList = AutoEvent.EventManager.Events.Where(ev => ev is not IHiddenCommand).OrderBy(x => x.Name)
+        var eventList = EventManager.Events.OrderBy(x => x.Name)
             .ToList();
         foreach (IEvent ev in eventList)
-            if (!isConsole)
-                builder.AppendLine(
-                    $"<color={color}>{ev.Name}</color> [<color=yellow>{ev.CommandName}</color>]: <color=white>{ev.Description}</color>");
-            else
-                builder.AppendLine($"{ev.Name} [{ev.CommandName}]: {ev.Description}");
+            builder.AppendLine(
+                !isConsole
+                    ? $"<color={color}>{ev.Name}</color> [<color=yellow>{ev.CommandName}</color>]: <color=white>{ev.Description}</color>"
+                    : $"{ev.Name} [{ev.CommandName}]: {ev.Description}");
 
-        if (!AutoEvent.EventManager.IsMerLoaded)
+        if (!EventManager.IsMerLoaded)
             builder.AppendLine(
                 "\n<i><color=red>MapEditorReborn is not loaded. There are only those mini-games that don't run maps.</color></i>");
 

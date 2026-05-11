@@ -24,7 +24,7 @@ public class EventHandler(Plugin plugin)
     public void OnPlayerDying(PlayerDyingEventArgs ev)
     {
         ev.IsAllowed = false;
-        if (ev.Attacker != null)
+        if (ev.Attacker != null && plugin.TotalKills.ContainsKey(ev.Attacker.NetworkId))
             plugin.TotalKills[ev.Attacker.NetworkId]++;
         SpawnPlayerAfterDeath(ev.Player);
     }

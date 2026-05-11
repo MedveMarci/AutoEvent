@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API;
 using AutoEvent.API.Enums;
+using AutoEvent.ApiFeatures;
 using AutoEvent.Interfaces;
 using LabApi.Features.Wrappers;
 using MEC;
@@ -45,9 +46,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         Loop = true
     };
 
-    /// <summary>
-    ///     Interaction with players and objects before the start of the game
-    /// </summary>
     protected override void OnStart()
     {
         _platforms = [];
@@ -72,9 +70,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
     }
 
-    /// <summary>
-    ///     Broadcast before the start of the game
-    /// </summary>
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
         for (var time = 10; time > 0; time--)
@@ -97,9 +92,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         return !(_stage <= Config.Rounds && Player.ReadyList.Count(r => r.IsAlive) > 0);
     }
 
-    /// <summary>
-    ///     The logic of the mini-game
-    /// </summary>
     protected override void ProcessFrame()
     {
         switch (_eventState)
@@ -129,9 +121,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             .Replace("{count}", $"{Player.ReadyList.Count(r => r.IsAlive)}"), 1);
     }
 
-    /// <summary>
-    ///     Setting the initial values
-    /// </summary>
     protected void UpdateWaitingState()
     {
         var selectionDelay = Config.SelectionTime.GetValue(_stage, 10, 0, 10);
@@ -155,9 +144,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _eventState++;
     }
 
-    /// <summary>
-    ///     The game is in an active process when the platforms change their color
-    /// </summary>
     protected void UpdateStartingState()
     {
         foreach (var platform in _platforms)
@@ -220,9 +206,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _eventState++;
     }
 
-    /// <summary>
-    ///     At the end of the time, the selected platforms will fall
-    /// </summary>
     protected void UpdateFallingState()
     {
         if (_countdown.TotalSeconds > 0)
@@ -234,9 +217,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _eventState++;
     }
 
-    /// <summary>
-    ///     At the end of the time, the selected platforms will return
-    /// </summary>
     protected void UpdateReturningState()
     {
         if (_countdown.TotalSeconds > 0)
@@ -248,17 +228,14 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _eventState++;
     }
 
-    /// <summary>
-    ///     Waiting for the next stage
-    /// </summary>
     protected void UpdateEndingState()
     {
         if (_countdown.TotalSeconds > 0)
             return;
 
-        _speed -= 0.39f;
+        _speed = Math.Max(0.5f, _speed - 0.39f);
         _stage++;
-        _timeDelay -= 0.039f;
+        _timeDelay = Math.Max(0.05f, _timeDelay - 0.039f);
         _eventState = 0;
     }
 

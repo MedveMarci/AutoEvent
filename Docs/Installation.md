@@ -1,53 +1,154 @@
 # Installation
 
-## 1. Download and Setup :moyai:
+## Requirements
 
-### *You need to download the latest release:*
+- Harmony — required for the plugin (included as `0Harmony.dll`)
+- LabAPI **1.1.6+**
+- [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) — **optional, required only for Among Us event
+  **
+- **Audio Backend** — AutoEvent comes in two DLL variants, pick one:
+    - `AutoEvent.dll` — built with [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio) *(recommended)*
+    - `AutoEvent.APAPI.dll` — built with [AudioPlayerAPI](https://github.com/Killers0992/AudioPlayerApi)
+- **Map Plugin**:
+    - [ProjectMER](https://github.com/Michal78900/ProjectMER) — required for map/schematic support
+- [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI) — **optional, required only for Among Us event and
+  AutoEvent.Vote plugin**
 
-- [``AutoEvent-LabApi.dll``](https://github.com/MedveMarci/AutoEvent/releases/latest) move to =>
-  ``LabApi/plugins/global/``
+> - A verified working build of ProjectMER is available on
+    the [AutoEvent Discord server](https://discord.gg/KmpA8cfaSA).
+> - **Only install one AutoEvent DLL at a time.** If both are present the second one will refuse to load and log an
+    error.
+> - Every Dependency installation guide can be found in their GitHub ReadMes.
 
-- [
-  ``ProjectMER.dll``](https://github.com/Michal78900/ProjectMER/releases/latest)
+| Dependency                                                             | Required | Description                                        |
+|------------------------------------------------------------------------|----------|----------------------------------------------------|
+| Harmony                                                                | Yes      | Required for the plugin                            |
+| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | LabAPI utility extensions (*required for Among Us) |
+| [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | Map/schematic loading                              |
+| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | Radio menu system (*required for Among Us)         |
 
-  move to => ``LabApi/plugins/global/``
+**Audio backend — pick one DLL variant:**
 
-- [``Music.tar.gz``](https://github.com/MedveMarci/AutoEvent/releases/latest) unzip files to =>
-  ``LabApi/configs/AutoEvent/Music``
+| DLL variant           | Audio plugin                                                    | Notes       |
+|-----------------------|-----------------------------------------------------------------|-------------|
+| `AutoEvent.dll`       | [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)    | Recommended |
+| `AutoEvent.APAPI.dll` | [AudioPlayerAPI](https://github.com/Killers0992/AudioPlayerApi) | Alternative |
 
-- [``Schematics.tar.gz``](https://github.com/MedveMarci/AutoEvent/releases/latest) unzip files to =>
-  ``LabApi/configs/AutoEvent/Schematics``
+---
 
-- Ensure that the Config has the following directories, and that they can be accessed to the server.
+## Step 1 — Download Files
 
-```yml
-# Where the schematics directory is located. By default it is located in the AutoEvent folder.
+Download the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest). You need:
+
+- `AutoEvent.dll` *(SecretLabNAudio variant)* **or** `AutoEvent.APAPI.dll` *(AudioPlayerAPI variant)* — pick one
+- `0Harmony.dll` (if you don't already have Harmony installed)
+- `Music.zip`
+
+---
+
+## Step 2 — Install Files
+
+**Plugin DLLs** — place in `LabApi/plugins/global/`:
+
+```
+AutoEvent.dll    ← use either the SecretLabNAudio or APAPI variant (not both!)
+ProjectMER.dll
+```
+
+> If you downloaded the APAPI variant (`AutoEvent.APAPI.dll`), rename it to `AutoEvent.dll` before placing it in the
+> folder.
+
+**Harmony** — place `0Harmony.dll` in:
+
+```
+LabApi/dependencies/global/
+```
+
+**Music files** — extract `Music.zip` to:
+
+```
+LabApi/configs/AutoEvent/Music/
+```
+
+**Optional: AutoEvent.Vote Plugin** — for the voting system (allows players to vote on mini-games):
+
+Download `AutoEvent.Vote.dll` from the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest) and
+place it in:
+
+```
+LabApi/plugins/global/AutoEvent.Vote.dll
+```
+
+> **Requirements for Vote plugin:**
+> - RadioMenuAPI must be installed
+> - Permission `ev.vote` must be configured in `permissions.yml`
+> - See [Vote Documentation](Vote.md) for full setup and commands
+
+---
+
+## Step 3 — Configure Paths
+
+After first launch, verify the following paths in the AutoEvent config (`LabApi/configs/global/AutoEvent/config.yml`):
+
+```yaml
+# Path to the schematics folder
 schematics_directory_path: /home/container/.config/SCP Secret Laboratory/LabApi/configs/AutoEvent/Schematics
-# Where the music directory is located. By default it is located in the AutoEvent folder.
+
+# Path to the music folder
 music_directory_path: /home/container/.config/SCP Secret Laboratory/LabApi/configs/AutoEvent/Music
 ```
 
-- ***Sometimes these settings fail to auto-generate in the config properly, so please double check they are valid before
-  reaching out to us.***
+Adjust these paths to match your server's file system if needed. These settings sometimes do not auto-generate
+correctly — verify them manually before reporting issues.
 
-## 2. Permission :gem:
+---
 
-### *Give permission to your role in ``LabApi/configs/permissions.yml``:*
+## Step 4 — Set Permissions
 
-```
+Edit `LabApi/configs/permissions.yml` and add `ev.*` to the desired role:
+
+```yaml
 owner:
-  inheritance: [ ]
+  inheritance: []
   permissions:
     - ev.*
 ```
 
-Available Permission Tress:
+Available granular permissions:
 
 ```
-ev.*           - Main Permission for all AutoEvent commands.
-  - ev.list    - View the available events.
-  - ev.run      - Run an event.
-  - ev.stop     - Stop an event.
-  - ev.volume   - Change the volume of all events.
-  - ev.language - Change language for translations.
+ev.*           — All AutoEvent permissions
+  ev.list      — View available events
+  ev.run       — Start an event
+  ev.stop      — Stop an event
+  ev.reload    — Reload configs and translations
+  ev.update    — Update schematics to latest versions
+  ev.vote      — Start and end voting (requires AutoEvent.Vote plugin)
+  ev.volume    — Change music volume
+  ev.language  — Change language/translation
 ```
+
+---
+
+## Step 5 — Start the Server
+
+Start your server and install the schematics using:
+
+```
+ev update
+```
+
+Verify AutoEvent loaded successfully by running:
+
+```
+ev list
+```
+
+If you see all mini-games listed, the installation is complete.
+
+---
+
+## Troubleshooting
+
+See [Problem.md](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/Problem.md) for common installation issues and
+solutions.

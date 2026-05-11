@@ -1,42 +1,61 @@
-# Language :rocket:
+# Language & Translations
 
-### The language for the mini-games is loaded automatically by the server location.
+AutoEvent supports multiple languages. The language is loaded from the server's locale by default, but can be changed
+manually.
 
-List of available languages:
+---
 
-- [English](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/english.yml) created by
-  SnivyFilms, RedForce
-- [Russian](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/russian.yml) created by
-  RisottoMan
-- [Polish](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/polish.yml) created by
-  Vretu, Tksemdem
-- [French](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/french.yml) created by
-  Robocnop, Antoniofo
-- [Italian](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/italian.yml) created by
-  NotZer0Two
-- [German](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/german.yml) created by
-  SeekEDstroy
-- [Thai](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/thai.yml) created by
-  karorogunso
-- [Chinese](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/chinese.yml) created by
-  kldhsh123
-- [Portuguese](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/portuguese.yml) created
-  by FireThing
-- [Turkish](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/turkish.yml) created by
-  zurna_sever_58, Rooster
-- [Spanish](https://github.com/MedveMarci/AutoEvent/blob/main/AutoEvent/Translations/spanish.yml) created by
-  EnderZ024, ZrNoxb
+## Available Languages
 
-### How to change language?
+| Language   | Contributors            |
+|------------|-------------------------|
+| English    | SnivyFilms, RedForce    |
+| Russian    | RisottoMan              |
+| Polish     | Vretu, Tksemdem         |
+| French     | Robocnop, Antoniofo     |
+| Hungarian  | Öcsi, MedveMarci        |
+| Italian    | NotZer0Two              |
+| German     | SeekEDstroy             |
+| Thai       | karorogunso             |
+| Chinese    | kldhsh123               |
+| Portuguese | FireThing               |
+| Turkish    | zurna_sever_58, Rooster |
+| Spanish    | EnderZ024, ZrNoxb       |
 
-- Write command ``ev language list`` to find your language.
-- Write command ``ev language load [name]`` to load translation, for example, ``ev language load english``.
-- The translation will replace the old one. You must wait for the server to restart completely.
+---
 
-### If my language is not on the list?
+## How to Change Language
 
-- You can create a translation and add your language to the repository.
+1. List available translations:
+   ```
+   ev language list
+   ```
 
-### I found a mistake in the translation, what can I do?
+2. Load a translation:
+   ```
+   ev language load english
+   ev language load russian
+   ev language load polish
+   ```
 
-- Go to the selected translation and correct it. We will include the change in the latest release.
+3. Restart the server for the change to take full effect.
+
+The loaded translation replaces `translation.yml` in the AutoEvent config folder.
+
+---
+
+## Adding a New Language
+
+If your language is not listed, you can create a translation and contribute it to the repository:
+
+1. Copy an existing translation file from `AutoEvent/Translations/`
+2. Translate all string values
+3. Submit a pull request to the [repository](https://github.com/MedveMarci/AutoEvent)
+
+---
+
+## Fixing a Translation Error
+
+1. Find the translation file in `AutoEvent/Translations/`
+2. Correct the relevant line
+3. Submit a pull request with the fix — it will be included in the next release

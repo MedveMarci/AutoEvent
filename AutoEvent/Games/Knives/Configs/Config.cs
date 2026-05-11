@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using AutoEvent.API;
-using AutoEvent.API.Season.Enum;
+using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
 using CustomPlayerEffects;
 using PlayerRoles;
@@ -16,11 +16,10 @@ public class Config : EventConfig
         AvailableMaps ??= [];
 
         if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance(50, new MapInfo("35hp_2", new Vector3(0, 40f, 0f))));
-        AvailableMaps.Add(new MapChance(50, new MapInfo("35hp_2_Xmas2024", new Vector3(0, 40f, 0f)),
-            SeasonFlags.Christmas));
-        AvailableMaps.Add(new MapChance(50, new MapInfo("35hp_2_Halloween2024", new Vector3(0, 40f, 0f)),
-            SeasonFlags.Halloween));
+        AvailableMaps.Add(new MapChance("35hp_2", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("35hp_2_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance("35hp_2_Halloween2024", new Vector3(0, 40f, 0f),
+            season: SeasonFlags.Halloween));
     }
 
     [Description("A list of loadouts that players on team 1 can get.")]

@@ -7,7 +7,8 @@ using LabApi.Features.Permissions;
 
 namespace AutoEvent.Commands;
 
-public class Translations : ICommand, IUsageProvider
+[CommandHandler(typeof(MainCommand))]
+internal class Translations : ICommand, IUsageProvider
 {
     public string Command => "Language";
     public string[] Aliases { get; } = [];

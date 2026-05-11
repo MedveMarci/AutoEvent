@@ -22,7 +22,7 @@ public class Config : EventConfig
     };
 
     [Description("The amount of Impostors that can spawn.")]
-    public RoleCount Impostors { get; set; } = new() { MinimumPlayers = 1, MaximumPlayers = 3, PlayerPercentage = 10 };
+    public RoleCount Impostors { get; set; } = new() { MinimumPlayers = 1, MaximumPlayers = 3, Percentage = 10 };
 
     public float KillCooldown { get; set; } = 45f;
     public float SabotageCooldown { get; set; } = 45f;

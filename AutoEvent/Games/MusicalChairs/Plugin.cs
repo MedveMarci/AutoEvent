@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API;
+using AutoEvent.ApiFeatures;
 using AutoEvent.Interfaces;
 using CustomPlayerEffects;
 using LabApi.Events.Handlers;
@@ -125,10 +126,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 .Replace("{count}", $"{Player.ReadyList.Count(r => r.IsAlive)}"), 1);
     }
 
-    /// <summary>
-    ///     The state in which we set the initial values for the new game
-    /// </summary>
-    /// <param name="text"></param>
     protected void UpdateWaitingState(ref string text)
     {
         text = Translation.RunDontTouch;
@@ -137,16 +134,16 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             return;
 
         // Reset the parameters in the dictionary
-        foreach (var value in PlayerDict.Values) value.IsStandUpPlatform = false;
+        foreach (var value in PlayerDict.Values)
+        {
+            value.IsStandUpPlatform = false;
+            value.StationaryTime = 0f;
+        }
 
         _countdown = new TimeSpan(0, 0, Random.Range(2, 10));
         _eventState++;
     }
 
-    /// <summary>
-    ///     Game cycle in which we check that the player runs around the center and does not touch the platforms
-    /// </summary>
-    /// <param name="text"></param>
     protected void UpdatePlayingState(ref string text)
     {
         text = Translation.RunDontTouch;
@@ -154,10 +151,22 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         // Check only alive players
         foreach (var player in Player.ReadyList.Where(r => r.IsAlive))
         {
-            if (player.Velocity == Vector3.zero)
+            if (!PlayerDict.TryGetValue(player, out var pc)) continue;
+
+            // Accumulate stationary time; kill only after 0.5 s of being barely still
+            if (player.Velocity.sqrMagnitude < 0.09f) // ~0.3 m/s threshold
             {
-                Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f, 0);
-                player.Kill(Translation.StopRunning);
+                pc.StationaryTime += FrameDelayInSeconds;
+                if (pc.StationaryTime >= 0.5f)
+                {
+                    Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f, 0);
+                    player.Kill(Translation.StopRunning);
+                    continue;
+                }
+            }
+            else
+            {
+                pc.StationaryTime = 0f;
             }
 
             // If the player touches the platform, it will explode || Layer mask is 0 for primitives
@@ -180,10 +189,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _eventState++;
     }
 
-    /// <summary>
-    ///     The game stops and the players have to stand on the platforms
-    /// </summary>
-    /// <param name="text"></param>
     protected void UpdateStoppingState(ref string text)
     {
         text = Translation.StandFree;
@@ -216,7 +221,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
         // Kill alive players who didn't get up to platform
         foreach (var player in Player.ReadyList.Where(r => r.IsAlive))
-            if (!PlayerDict[player].IsStandUpPlatform)
+            if (!PlayerDict.TryGetValue(player, out var pc) || !pc.IsStandUpPlatform)
             {
                 Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f, 0);
                 player.Kill(Translation.NoTime);
@@ -226,10 +231,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _eventState++;
     }
 
-    /// <summary>
-    ///     Kill players who did not manage to stand on the platforms
-    /// </summary>
-    /// <param name="text"></param>
     protected void UpdateEndingState(ref string text)
     {
         text = Translation.StandFree;

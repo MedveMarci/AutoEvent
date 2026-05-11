@@ -1,16 +1,4 @@
-﻿// <copyright file="Log.cs" company="Redforce04#4091">
-// Copyright (c) Redforce04. All rights reserved.
-// </copyright>
-// -----------------------------------------
-//    Solution:         AutoEvent
-//    Project:          AutoEvent
-//    FileName:         FriendlyFireSettings.cs
-//    Author:           Redforce04#4091
-//    Revision Date:    09/27/2023 12:18 AM
-//    Created Date:     09/27/2023 12:18 AM
-// -----------------------------------------
-
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace AutoEvent.API.Enums;
 

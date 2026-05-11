@@ -94,9 +94,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         Extensions.ServerBroadcast(text, 1);
     }
 
-    /// <summary>
-    ///     Choosing the player(s) who will catch up with other players
-    /// </summary>
     protected void SelectPlayers(ref string text)
     {
         text = Translation.Broadcast.Replace("{time}", $"{_countdown.TotalSeconds}");
@@ -116,9 +113,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _eventState++;
     }
 
-    /// <summary>
-    ///     Just waiting N seconds until the time runs out
-    /// </summary>
     protected void UpdateTagPeriod(ref string text)
     {
         text = Translation.Cycle.Replace("{time}", $"{_countdown.TotalSeconds}");
@@ -127,9 +121,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             _eventState++;
     }
 
-    /// <summary>
-    ///     Kill players who are taggers.
-    /// </summary>
     protected void KillTaggers(ref string text)
     {
         text = Translation.Cycle.Replace("{time}", $"{_countdown.TotalSeconds}");
@@ -145,9 +136,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _eventState++;
     }
 
-    /// <summary>
-    ///     Wait for N seconds before choosing next batch.
-    /// </summary>
     protected void UpdatePlayerBreak(ref string text)
     {
         text = Translation.Broadcast.Replace("{time}", $"{_countdown.TotalSeconds}");

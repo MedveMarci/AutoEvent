@@ -1,185 +1,234 @@
-## I'll introduce you to the 26 mini-games:
+# Classic Mini-Games
 
-### AirStrike [airstrike]
+All 26 mini-games available in AutoEvent with their standard maps.
 
-##### Survive as grenades rain down from above.
+---
+
+### Airstrike Party [`airstrike`]
+
+Survive as grenades rain down from above. Each round gets more intense.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Airstrike.png)
 
-### Among Us [amongus]
+---
 
-##### TThe classic Among Us game, where you have to find the imposter among the Crewmates in the Skeld map.
+### Among Us [`amongus`]
+
+The classic Among Us experience. Find the Impostor among the Crewmates on the Skeld map. Features tasks, sabotages,
+vents, a voting system via radio menus, and a meeting button.
+
+**Requires:** [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)
+and [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions)
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/AmongUs.png)
 
-### Battle [battle]
+---
 
-##### Players are divided into two teams and must kill each other.
+### Battle [`battle`]
 
-##### The map is symmetrical, the speed and reaction of the players wins.
+MTF vs Chaos Insurgency on a symmetrical arena. Players are divided into two teams and fight until one side is
+eliminated. Speed and reaction decide the winner.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Battle.png)
 
-### Counter-Strike [cs]
+---
 
-##### Fight between Terrorists and Counter-Terrorists, just like in the real CS in Dust2.
+### Musical Chairs [`chair`]
+
+Race to claim a chair when the music stops. Each round one chair is removed. The last player without a chair is
+eliminated.
+
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MusicalChair.png)
+
+---
+
+### Counter-Strike [`cs`]
+
+Terrorists vs Counter-Terrorists on de_dust2. Plant or defuse the bomb to win.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/CounterStrike.png)
 
-### Territory of Death or Deathmatch [deathmatch]
+---
 
-##### Players are divided into teams and they need to kill players to become a winner.
+### Death Run [`deathrun`]
 
-##### A small closed map with a lot of spawns on it, so the gameplay is cheerful.
-
-![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Deathmatch.png)
-
-### Deathrun [deathrun]
-
-##### Go to the end, avoiding death-activated trap along the way
+Navigate a trap course to reach the end. The Death activates traps from a control room. Runners have one extra life.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Deathrun.png)
 
-### DodgeBall [dodge]
+---
 
-##### Defeat the enemy with balls.
+### All Deathmatch [`dm`]
+
+Free-for-all deathmatch. The player with the most kills when time runs out wins. Top 3 killers are announced at the end.
+
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Deathmatch.png)
+
+---
+
+### Dodgeball [`dodge`]
+
+Two teams fight using SCP-018 balls (or snowballs during Christmas). The team that eliminates all opponents wins.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Dodge.png)
 
-### Fall Down [fall]
+---
 
-##### The map starts to break. You have to survive from the lava.
+### Fall Down [`fall`]
 
-##### The last player becomes the winner.
+The map platforms are progressively destroyed. Survive on the remaining blocks as the arena collapses. The last player
+standing wins.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/FallDown.png)
 
-### Football [ball]
+---
 
-##### Players are divided into teams to score each other a goal.
+### Football [`football`]
 
-##### A small map in which you need to score 3 goals for one team to win.
+Two teams compete to score 3 goals. Use the ball to score in the opponent's net.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Football1.png)
 
-### Dead Jump [glass]
+---
 
-##### You need to reach the end of the map through obstacles. Don't forget that you don't have much time.
+### Dead Jump [`glass`]
 
-##### The more players - the more difficult.
+Jump across fragile glass platforms to reach the end of the map. Only one panel in each row is safe — choose wrong and
+fall. The more players, the more difficult it gets.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Glass1.png)
 
-### Quick Hands or GunGame [gungame]
+---
 
-##### Every man for himself. Each player starts with a pistol and gradually finishes with big guns. In the end, you have to kill the players with a bat.
+### Gun Game [`gungame`]
 
-##### A small closed map with a lot of spawns on it, so the gameplay is cheerful.
+Every man for himself. Each kill earns you a new, better weapon. The last weapon is a bat — get a kill with it to win.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/GunGame.png)
 
-### Zombie Infection [infection]
+---
 
-##### Zombie mode, the purpose of which is to infect all players.
+### Hide And Seek [`hns`]
 
-![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Zombie.png)
-![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Zombie2.png)
+One player is "It" and must tag others. Pass the bat to another player to transfer the role. Last player without the bat
+wins.
 
-### Simon's Prison [jail]
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Tag.png)
 
-##### You play as a Jailer and have to conduct games for Prisoners, for example, get into parkour or Simon says.
+---
 
-##### This mini-game requires an understanding of how to conduct the Jail mode, which is why I find it difficult.
+### Simon's Prison [`jail`]
+
+CS 1.6-style jail mode. One player acts as the Jailer and runs challenges for Prisoners — parkour, Simon Says, and more.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Jail.png)
 
-### Knives of Death [knife]
+---
 
-##### The battle of the teams on knives.
+### Knives of Death [`knives`]
 
-##### It's very simple! The team that remains last survives.
+Team knife fight on the CS 1.6 35hp map. No guns — only knives. The team that survives wins.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Knife.png)
 
-### The floor is LAVA [lava]
+---
 
-##### The lava begins to rise. You have to climb one of the tops of the towers to survive against the rest of the players.
+### The Floor is LAVA [`lava`]
 
-##### A small map for survival.
+Lava rises from below. Climb the towers and fight other players to be the last one standing.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Lava2.png)
 
-### Death Line [line]
+---
 
-##### You get to the map on which the mechanism is spinning.
+### Red Light Green Light [`light`]
 
-##### Avoid it to survive.
+Reach the finish line. When the light is red you cannot move — get caught moving and you're eliminated.
+
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/RedGreenLight.png)
+
+---
+
+### Death Line [`line`]
+
+A spinning mechanism rotates on the map. Jump over it or duck under it to survive. Last player alive wins.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Line.png)
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Line1.png)
 
-### Musical Chairs [chair]
+---
 
-##### Competition with other players for free chairs to funny music.
+### Nuke Run [`nukerun`]
 
-![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MusicalChair.png)
-
-### Nuke Run [nukerun]
-
-##### Escape from the facility before the Nuke explodes!
-
-##### You can escape as SCP-173 or as a human, it's up to you.
+Escape the facility before the warhead detonates. You can play as a human or as SCP-173. The facility doors open
+progressively as you move toward the exit.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Escape.png)
 
-### Puzzle [puzzle]
+---
 
-##### Players appear on the map with different platforms that change their color.
+### Puzzle [`puzzle`]
 
-##### Find the right platform by the right color to survive.
+Platforms change color. A target color is shown — stand on a platform with the matching color before the timer runs out
+or fall into the void.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Puzzle1.png)
 
-### Race [race]
+---
 
-##### Get to the end of the map to win
+### Race [`race`]
+
+A straightforward race to the end of the map. First player to reach the finish line wins.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Race.png)
 
-### Red light Green light [light]
+---
 
-##### Reach the end of the finish line.
+### Spleef [`spleef`]
 
-##### If it's red light, you can't move, or you'll be killed.
-
-![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/RedGreenLight.png)
-
-### Spleef [spleef]
-
-##### Shoot at the platforms and don't fall into the void.
+Shoot the platforms beneath other players' feet. Don't fall into the void. Last player standing on the platform wins.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Spleef.png)
 
-### Zombie Survival [zombie2]
+---
 
-##### You have come to an object where a dangerous T-Virus has leaked. Stop the threat or become a zombie.
+### Tag [`tag`]
 
-##### There are a lot of secret positions on the map where you need to survive against zombies.
-
-![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Survival1.png)
-
-### Hide And Seek [hns]
-
-##### Run away and hide from the players, otherwise you will become a catch-up yourself.
-
-##### It is necessary to pass the bat to the player in order to survive.
+One player is the "tagger". They must tag all other players within the time limit. If they fail, the humans win.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Tag.png)
 
-### Cock Fights [versus]
+---
 
-##### The players are divided into teams. There is a box on the map in which members of different teams duel.
+### Team Death-Match [`tdm`]
 
-##### To participate, you need to go through the door.
+MTF vs Chaos Insurgency on the Shipment map from MW2019. The team with the most kills at the end wins.
+
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Deathmatch.png)
+
+---
+
+### Cock Fights [`versus`]
+
+Players are split into two teams. Members from opposing teams duel inside an arena box. Walk through the door to
+participate.
 
 ![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Versus.png)
+
+---
+
+### Zombie Infection [`zombie`]
+
+One or more players start as zombies and must infect everyone before time runs out. If any humans survive, they win.
+
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Zombie.png)
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Zombie2.png)
+
+---
+
+### Zombie Survival [`zombie2`]
+
+A T-Virus has leaked. Human players must survive against zombie players for the duration of the round. Features multiple
+hidden positions on the map.
+
+![](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/Survival1.png)

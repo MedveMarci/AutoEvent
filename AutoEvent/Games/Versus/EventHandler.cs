@@ -13,16 +13,24 @@ public class EventHandler(Plugin plugin)
         {
             plugin.ClassD = null;
             plugin.ClassDLifespan = 0;
-            plugin.Scientist.CurrentItem = null;
-            plugin.Scientist.RemoveItem(ItemType.Jailbird);
+            if (plugin.Scientist != null)
+            {
+                plugin.Scientist.CurrentItem = null;
+                plugin.Scientist.RemoveItem(ItemType.Jailbird);
+            }
+
             plugin.ScientistLifespan += 1;
         }
         else if (ev.Player == plugin.Scientist)
         {
             plugin.Scientist = null;
             plugin.ScientistLifespan = 0;
-            plugin.ClassD.CurrentItem = null;
-            plugin.ClassD.RemoveItem(ItemType.Jailbird);
+            if (plugin.ClassD != null)
+            {
+                plugin.ClassD.CurrentItem = null;
+                plugin.ClassD.RemoveItem(ItemType.Jailbird);
+            }
+
             plugin.ClassDLifespan += 1;
         }
 

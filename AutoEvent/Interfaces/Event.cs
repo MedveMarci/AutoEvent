@@ -4,6 +4,7 @@ using System.Linq;
 using AutoEvent.API;
 using AutoEvent.API.Enums;
 using AutoEvent.API.Season;
+using AutoEvent.ApiFeatures;
 using AutoEvent.Interfaces;
 using MEC;
 using Random = UnityEngine.Random;
@@ -12,123 +13,53 @@ namespace AutoEvent.Interfaces
 {
     public abstract class Event : IEvent
     {
-        #region Abstract Implementations // Tools that have been abstracted into the event class.
+        #region Abstract Implementations
 
-        #region Event Information // Information that event authors can specify about the event.
+        #region Event Information
 
-        /// <summary>
-        ///     The name of the event.
-        /// </summary>
         public abstract string Name { get; set; }
-
-        /// <summary>
-        ///     The translated name of the event.
-        /// </summary>
         internal string InternalName { get; set; }
-
-        /// <summary>
-        ///     The Id of the event. It is set by AutoEvent.
-        /// </summary>
         public int Id { get; internal set; }
-
-        /// <summary>
-        ///     A description of the event.
-        /// </summary>
+        public bool IsInternal { get; internal set; }
         public abstract string Description { get; set; }
-
-        /// <summary>
-        ///     The name of the author of the event.
-        /// </summary>
         public abstract string Author { get; set; }
-
-        /// <summary>
-        ///     The name of the map that is used to run the map via command.
-        /// </summary>
         public abstract string CommandName { get; set; }
 
         #endregion
 
-        #region Event Settings // Settings that event authors can define to modify the abstracted implementations
+        #region Event Settings
 
-        /// <summary>
-        ///     How long to wait after the round finishes, before the cleanup begins. Default is 10 seconds.
-        /// </summary>
-        protected virtual float PostRoundDelay { get; set; } = 10f;
-
-        /// <summary>
-        ///     If using LabApi as the base plugin, set this to false, and manually add your plugin to Event.Events
-        ///     (List[Events]).
-        ///     This prevents double-loading your plugin assembly.
-        /// </summary>
+        public virtual float PostRoundDelay { get; set; } = 10f;
         public virtual bool AutoLoad { get; protected set; } = true;
-
-        /// <summary>
-        ///     Used to safely kill the while loop, without have to forcible kill the coroutine. <seealso cref="OnStop" />
-        /// </summary>
         protected virtual bool KillLoop { get; set; }
-
-        /// <summary>
-        ///     How many seconds the event waits after each ProcessFrame().
-        /// </summary>
         protected virtual float FrameDelayInSeconds { get; set; } = 1f;
-
-        /// <summary>
-        ///     Use this to force specific settings for friendly fire.
-        /// </summary>
         protected virtual FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Default;
 
-        /// <summary>
-        ///     Use this to force specific settings for friendly fire autoban.
-        /// </summary>
         protected virtual FriendlyFireSettings ForceEnableFriendlyFireAutoban { get; set; } =
             FriendlyFireSettings.Default;
 
-        /// <summary>
-        ///     Use this to change the settings of the event handlers.
-        /// </summary>
         public virtual EventFlags EventHandlerSettings { get; set; } = EventFlags.Default;
 
         #endregion
 
-        #region Event Variables // Variables that the event author has access too, which are abstracted into the event system.
+        #region Event Variables
 
-        /// <summary>
-        ///     The coroutine handle of the main event thread which calls ProcessFrame().
-        /// </summary>
         protected virtual CoroutineHandle GameCoroutine { get; set; }
-
-        /// <summary>
-        ///     The coroutine handle for the start countdown broadcast.
-        /// </summary>
         protected virtual CoroutineHandle BroadcastCoroutine { get; set; }
-
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
-        /// <summary>
-        ///     The DateTime (UTC) that the plugin started at.
-        /// </summary>
         public virtual DateTime StartTime { get; protected set; }
-
-        /// <summary>
-        ///     The elapsed time since the plugin started.
-        /// </summary>
         public virtual TimeSpan EventTime { get; protected set; }
 
         #endregion
 
-        #region Event Configs // Configs that can change event parameters.
+        #region Event Configs
 
         public EventConfig InternalConfig { get; set; }
         public EventTranslation InternalTranslation { get; set; }
 
         #endregion
 
-        #region Event API Methods // Methods that can be used as api calls such as starting music / spawning map. 
+        #region Event API Methods
 
-        /// <summary>
-        ///     Starts the defined Audio. Can be used to trigger a late audio cue.
-        ///     <seealso cref="SoundInfo.StartAutomatically">SoundInfo.StartAutomatically</seealso>
-        /// </summary>
-        /// <param name="checkIfAutomatic">Should the audio abide by <see cref="SoundInfo.StartAutomatically" /></param>
         protected void StartAudio(bool checkIfAutomatic = false)
         {
             LogManager.Debug($"Starting Audio: " +
@@ -141,9 +72,6 @@ namespace AutoEvent.Interfaces
                 sound.SoundInfo.AudioPlayer = Extensions.PlayAudio(sound.SoundInfo.SoundName, sound.SoundInfo.Loop);
         }
 
-        /// <summary>
-        ///     Can be used to stop the running audio.
-        /// </summary>
         protected void StopAudio()
         {
             LogManager.Debug("Stopping Audio");
@@ -153,45 +81,40 @@ namespace AutoEvent.Interfaces
                 sound.SoundInfo.AudioPlayer.StopAudio();
         }
 
-        /// <summary>
-        ///     Spawns the defined Map. Can be used to trigger a late Map spawn.
-        ///     <seealso cref="MapInfo.SpawnAutomatically">MapInfo.SpawnAutomatically</seealso>
-        /// </summary>
-        /// <param name="checkIfAutomatic">Should the audio abide by <see cref="MapInfo.SpawnAutomatically" /></param>
         protected void SpawnMap(bool checkIfAutomatic = false)
         {
-            LogManager.Debug($"Spawning Map: " +
-                             $"{(this is IEventMap m ? "true, " +
-                                                       $"{(!string.IsNullOrEmpty(m.MapInfo.MapName) ? "true" : "false")}, " +
-                                                       $"{(!checkIfAutomatic ? "true" : "false")}, " +
-                                                       $"{(m.MapInfo.SpawnAutomatically ? "true" : "false")}" : "false")}");
-            if (this is IEventMap map && !string.IsNullOrEmpty(map.MapInfo.MapName) &&
-                (!checkIfAutomatic || map.MapInfo.SpawnAutomatically))
-                map.MapInfo.Map = Extensions.LoadMap(map.MapInfo.MapName, map.MapInfo.Position, map.MapInfo.MapRotation,
-                    map.MapInfo.Scale);
+            try
+            {
+                LogManager.Debug($"Spawning Map: " +
+                                 $"{(this is IEventMap m ? "true, " +
+                                                           $"{(!string.IsNullOrEmpty(m.MapInfo.MapName) ? "true" : "false")}, " +
+                                                           $"{(!checkIfAutomatic ? "true" : "false")}, " +
+                                                           $"{(m.MapInfo.SpawnAutomatically ? "true" : "false")}" : "false")}");
+                if (this is IEventMap map && !string.IsNullOrEmpty(map.MapInfo.MapName) &&
+                    (!checkIfAutomatic || map.MapInfo.SpawnAutomatically))
+                    map.MapInfo.Map = Extensions.LoadMap(map.MapInfo.MapName, map.MapInfo.Position,
+                        map.MapInfo.MapRotation,
+                        map.MapInfo.Scale);
+            }
+            catch (Exception e)
+            {
+                LogManager.Error($"Could not spawn map for event {Name}.\n{e}");
+                AutoEvent.InternalEventManager.CurrentEvent.StopEvent();
+            }
         }
 
-        /// <summary>
-        ///     Can be used to de-spawn the map.
-        /// </summary>
         protected void DeSpawnMap()
         {
             LogManager.Debug($"DeSpawning Map. {this is IEventMap}");
             if (this is IEventMap eventMap) Extensions.UnLoadMap(eventMap.MapInfo.Map);
         }
 
-        /// <summary>
-        ///     Used to start the event safely.
-        /// </summary>
-        public void StartEvent()
+        public void StartEvent(string mapName = "")
         {
             LogManager.Debug($"Starting Event {Name}");
-            OnInternalStart();
+            OnInternalStart(mapName);
         }
 
-        /// <summary>
-        ///     Used to stop the event safely.
-        /// </summary>
         public void StopEvent()
         {
             LogManager.Debug($"Stopping Event {Name}");
@@ -200,137 +123,102 @@ namespace AutoEvent.Interfaces
 
         #endregion
 
-        #region Event Methods // Methods that event authors can / must utilize that are abstracted into the event system.
+        #region Event Methods
 
-        /// <summary>
-        ///     Base constructor for an event.
-        /// </summary>
         public Event()
         {
             InternalName = Name;
         }
 
-        /// <summary>
-        ///     Called when the event is started.
-        /// </summary>
         protected abstract void OnStart();
 
-        /// <summary>
-        ///     Used to register events for plugins.
-        /// </summary>
         protected virtual void RegisterEvents()
         {
         }
 
-        /// <summary>
-        ///     Called after start in a coroutine. Can be used as a countdown coroutine.
-        /// </summary>
         protected virtual IEnumerator<float> BroadcastStartCountdown()
         {
             yield break;
         }
 
-        /// <summary>
-        ///     Called after <see cref="BroadcastStartCountdown" /> is finished. Can be used to remove walls, or give players
-        ///     items.
-        /// </summary>
         protected virtual void CountdownFinished()
         {
         }
 
-        /// <summary>
-        ///     Used to determine whether the event should end or not.
-        /// </summary>
-        /// <returns>True if the round is finished. False if the round should continue running.</returns>
         protected abstract bool IsRoundDone();
 
-        /// <summary>
-        ///     Called once a second.
-        /// </summary>
         protected virtual void ProcessFrame()
         {
         }
 
-        /// <summary>
-        ///     Called when the event is finished. If the event is stopped via <see cref="OnStop" />, this won't be called, as the
-        ///     event never truly finishes properly.
-        /// </summary>
         protected abstract void OnFinished();
 
-        /// <summary>
-        ///     Called if the event is forcibly stopped. If this is called, <see cref="OnFinished" /> won't be called.
-        /// </summary>
         protected virtual void OnStop()
         {
         }
 
-        /// <summary>
-        ///     Used to unregister events for plugins.
-        /// </summary>
         protected virtual void UnregisterEvents()
         {
         }
 
-        /// <summary>
-        ///     The overridable class for after and event is finished / stopped and cleanup is occuring.
-        /// </summary>
         protected virtual void OnCleanup()
         {
         }
 
         #endregion
 
-        #region Internal Event Methods // Methods that are for the internal use by the event system to call or modify other abstracted properties or methods.
+        #region Internal Event Methods
 
-        /// <summary>
-        ///     Assigns a random map.
-        /// </summary>
-        private void SetRandomMap()
+        private void SetMap(string mapName = "")
         {
-            if (InternalConfig.AvailableMaps is null || InternalConfig.AvailableMaps.Count == 0)
+            if (InternalConfig?.AvailableMaps is null || InternalConfig.AvailableMaps.Count == 0)
                 return;
 
-            // We get the current style and check the maps by their style
             var seasonFlags = SeasonMethod.GetSeasonStyle().SeasonFlag;
 
-            // If there are no seasonal maps, then choose the default maps
-            if (InternalConfig.AvailableMaps.Count(r => r.SeasonFlag == seasonFlags) == 0) seasonFlags = 0;
+            if (InternalConfig.AvailableMaps.Count(r => r.Season == SeasonFlags.None) == 0)
+                seasonFlags = SeasonFlags.None;
 
             List<MapChance> maps = [];
-            maps.AddRange(InternalConfig.AvailableMaps.Where(map => map.SeasonFlag == seasonFlags));
+            maps.AddRange(InternalConfig.AvailableMaps.Where(map =>
+                map.Season == seasonFlags || map.Season == SeasonFlags.None));
+
+            if (!string.IsNullOrEmpty(mapName))
+                maps =
+                [
+                    InternalConfig.AvailableMaps.FirstOrDefault(x =>
+                        x.MapName.Contains(mapName, StringComparison.OrdinalIgnoreCase))
+                ];
 
             if (this is not IEventMap eventMap) return;
             var spawnAutomatically = eventMap.MapInfo.SpawnAutomatically;
             if (maps.Count == 1)
             {
-                eventMap.MapInfo = maps[0].Map;
+                eventMap.MapInfo = maps[0].ToMapInfo();
                 eventMap.MapInfo.SpawnAutomatically = spawnAutomatically;
                 goto Message;
             }
 
-            foreach (var mapItem in maps.Where(x => x.Chance <= 0))
-                mapItem.Chance = 1;
+            foreach (var mapItem in maps.Where(x => x.Weight <= 0))
+                mapItem.Weight = 1;
 
-            var totalChance = maps.Sum(x => x.Chance);
+            var totalWeight = maps.Sum(x => x.Weight);
 
             for (var i = 0; i < maps.Count - 1; i++)
-                if (Random.Range(0, totalChance) <= maps[i].Chance)
+                if (Random.Range(0, totalWeight) <= maps[i].Weight)
                 {
-                    eventMap.MapInfo = maps[i].Map;
+                    eventMap.MapInfo = maps[i].ToMapInfo();
                     eventMap.MapInfo.SpawnAutomatically = spawnAutomatically;
                     goto Message;
                 }
 
-            eventMap.MapInfo = maps[maps.Count - 1].Map;
+            eventMap.MapInfo = maps[maps.Count - 1].ToMapInfo();
             eventMap.MapInfo.SpawnAutomatically = spawnAutomatically;
 
             Message:
             LogManager.Debug($"[{Name}] Map {eventMap.MapInfo.MapName} selected.");
         }
 
-        /// <summary>
-        ///     Triggers internal actions to stop an event.
-        /// </summary>
         private void OnInternalStop()
         {
             KillLoop = true;
@@ -353,37 +241,42 @@ namespace AutoEvent.Interfaces
             EventStopped?.Invoke(Name);
         }
 
-        /// <summary>
-        ///     Used to trigger plugin events in the right order.
-        /// </summary>
-        private void OnInternalStart()
+        private void OnInternalStart(string mapName = "")
         {
             KillLoop = false;
             _cleanupRun = false;
-            AutoEvent.EventManager.CurrentEvent = this;
+            AutoEvent.InternalEventManager.CurrentEvent = this;
             EventTime = TimeSpan.Zero;
             StartTime = DateTime.UtcNow;
 
             try
             {
-                if (ForceEnableFriendlyFire == FriendlyFireSettings.Enable)
-                    FriendlyFireSystem.EnableFriendlyFire();
+                switch (ForceEnableFriendlyFire)
+                {
+                    case FriendlyFireSettings.Enable:
+                        FriendlyFireSystem.EnableFriendlyFire();
+                        break;
+                    case FriendlyFireSettings.Disable:
+                        FriendlyFireSystem.DisableFriendlyFire();
+                        break;
+                }
 
-                if (ForceEnableFriendlyFire == FriendlyFireSettings.Disable)
-                    FriendlyFireSystem.DisableFriendlyFire();
-
-                if (ForceEnableFriendlyFireAutoban == FriendlyFireSettings.Enable)
-                    FriendlyFireSystem.EnableFriendlyFireDetector();
-
-                if (ForceEnableFriendlyFireAutoban == FriendlyFireSettings.Disable)
-                    FriendlyFireSystem.DisableFriendlyFireDetector();
+                switch (ForceEnableFriendlyFireAutoban)
+                {
+                    case FriendlyFireSettings.Enable:
+                        FriendlyFireSystem.UnPauseFriendlyFireDetector();
+                        break;
+                    case FriendlyFireSettings.Disable:
+                        FriendlyFireSystem.PauseFriendlyFireDetector();
+                        break;
+                }
             }
             catch (Exception e)
             {
                 LogManager.Error($"Could not modify friendly fire / ff autoban settings.\n{e}");
             }
 
-            SetRandomMap();
+            SetMap(mapName);
             SpawnMap(true);
 
             try
@@ -409,10 +302,6 @@ namespace AutoEvent.Interfaces
             Timing.RunCoroutine(RunTimingCoroutine(), "TimingCoroutine");
         }
 
-        /// <summary>
-        ///     Used to prevent blocking the main game thread while triggering other coroutines.
-        /// </summary>
-        /// <returns></returns>
         private IEnumerator<float> RunTimingCoroutine()
         {
             BroadcastCoroutine = Timing.RunCoroutine(BroadcastStartCountdown(), "Broadcast Coroutine");
@@ -446,11 +335,6 @@ namespace AutoEvent.Interfaces
             yield return Timing.WaitUntilDone(handle);
         }
 
-        /// <summary>
-        ///     The coroutine that is called for processing frames. We recommend avoiding overrides to this, since this may mess
-        ///     with other logic.
-        /// </summary>
-        /// <returns></returns>
         protected virtual IEnumerator<float> RunGameCoroutine()
         {
             while (!IsRoundDone())
@@ -470,15 +354,8 @@ namespace AutoEvent.Interfaces
             }
         }
 
-        /// <summary>
-        ///     Used to prevent double cleanups.
-        /// </summary>
         private bool _cleanupRun;
 
-        /// <summary>
-        ///     The internal method used to trigger cleanup for maps, ragdolls, items, sounds, and teleporting players to the spawn
-        ///     room.
-        /// </summary>
         private void OnInternalCleanup()
         {
             _cleanupRun = true;
@@ -531,12 +408,12 @@ namespace AutoEvent.Interfaces
                 LogManager.Error($"Caught an exception at Event.CleanupFinished.Invoke().\n{e}");
             }
 
-            AutoEvent.EventManager.CurrentEvent = null;
+            AutoEvent.InternalEventManager.CurrentEvent = null;
         }
 
         #endregion
 
-        #region Event Events // These events are triggered internally and can be used by an event manager to detect when certain stages are complete.
+        #region Event Events
 
         public delegate void EventStoppedHandler(string eventName);
 
@@ -544,20 +421,8 @@ namespace AutoEvent.Interfaces
 
         public delegate void EventStartedHandler(string eventName);
 
-        /// <summary>
-        ///     Called when the event start is triggered.
-        /// </summary>
         public virtual event EventStartedHandler EventStarted;
-
-        /// <summary>
-        ///     Called when the event cleanup is finished. The event is completely finished and disposed of once this is called.
-        /// </summary>
         public virtual event CleanupFinishedHandler CleanupFinished;
-
-        /// <summary>
-        ///     Called when the event is stopped. When the event is stopped, OnFinished() won't be called, but OnCleanup() will be
-        ///     called.
-        /// </summary>
         public virtual event EventStoppedHandler EventStopped;
 
         #endregion

@@ -1,4 +1,4 @@
-﻿namespace AutoEvent.API.Season.Enum;
+﻿namespace AutoEvent.API.Enums;
 
 public enum SeasonFlags
 {

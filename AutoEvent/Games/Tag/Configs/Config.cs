@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using AutoEvent.API;
-using AutoEvent.API.Season.Enum;
+using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
 using CustomPlayerEffects;
 using PlayerRoles;
@@ -16,11 +16,10 @@ public class Config : EventConfig
         AvailableMaps ??= [];
 
         if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance(50, new MapInfo("HideAndSeek", new Vector3(0, 30, 30))));
-        AvailableMaps.Add(new MapChance(50, new MapInfo("HideAndSeek_Xmas2024", new Vector3(0, 30, 30)),
-            SeasonFlags.Christmas));
-        AvailableMaps.Add(new MapChance(50, new MapInfo("HideAndSeek_Halloween2024", new Vector3(0, 30, 30)),
-            SeasonFlags.Halloween));
+        AvailableMaps.Add(new MapChance("HideAndSeek", new Vector3(0, 30, 30)));
+        AvailableMaps.Add(new MapChance("HideAndSeek_Xmas2024", new Vector3(0, 30, 30), season: SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance("HideAndSeek_Halloween2024", new Vector3(0, 30, 30),
+            season: SeasonFlags.Halloween));
     }
 
     [Description(

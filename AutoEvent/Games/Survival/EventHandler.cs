@@ -73,7 +73,8 @@ public class EventHandler(Plugin plugin)
         {
             ev.Player.GiveLoadout(plugin.Config.PlayerLoadouts);
             ev.Player.Position = plugin.SpawnList.RandomItem().transform.position;
-            ev.Player.CurrentItem = ev.Player.Items.ElementAt(1);
+            if (ev.Player.Items.Count() > 1)
+                ev.Player.CurrentItem = ev.Player.Items.ElementAt(1);
         }
     }
 

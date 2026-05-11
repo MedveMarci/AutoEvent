@@ -1,13 +1,20 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using AutoEvent.API;
+using AutoEvent.ApiFeatures;
+using AutoEvent.Integrations.MapEditor;
 using AutoEvent.Loader;
+using AutoEvent.Patches;
 using HarmonyLib;
 using LabApi.Events.CustomHandlers;
 using LabApi.Features;
 using LabApi.Features.Wrappers;
+using LabApi.Loader;
 using LabApi.Loader.Features.Paths;
 using LabApi.Loader.Features.Plugins;
+using LabApi.Loader.Features.Plugins.Enums;
+using EventManager = AutoEvent.Loader.EventManager;
 
 namespace AutoEvent;
 
@@ -15,7 +22,7 @@ public class AutoEvent : Plugin<Config>
 {
     public static AutoEvent Singleton;
     private static Harmony _harmonyPatch;
-    public static EventManager EventManager;
+    internal static EventManager InternalEventManager;
     private static EventHandler _eventHandler;
     internal static float MusicVolume;
     public override string Name => "AutoEvent";
@@ -26,20 +33,50 @@ public class AutoEvent : Plugin<Config>
     public override string Description =>
         "A plugin that allows you to play mini-games in SCP:SL. It includes a variety of games such as Spleef, Lava, Hide and Seek, Knives, and more. Each game has its own unique mechanics and rules, providing a fun and engaging experience for players.";
 
-    public override Version Version => new(9, 15, 0);
+    public override Version Version => new(10, 0, 0, 1);
     public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
+    public override LoadPriority Priority => LoadPriority.High;
 
     public static string BaseConfigPath { get; private set; }
 
     public override void Enable()
     {
         BaseConfigPath = Path.Combine(PathManager.Configs.FullName, "AutoEvent");
+        Singleton = this;
+
         try
         {
-            Singleton = this;
-            
-            if (Config.CreditTagSystem)
-                CreditTag.GetTagsFromGithub();
+            if (PluginLoader.Plugins.Any(p => p.Key != this && p.Key.Name == "AutoEvent"))
+            {
+                LogManager.Error("AutoEvent is already loaded! Remove the duplicate AutoEvent DLL from plugins.");
+                Singleton = null;
+                return;
+            }
+
+#if APAPI
+            if (!PluginLoader.Dependencies.Any(p => p.FullName.Contains("AudioPlayerApi", StringComparison.OrdinalIgnoreCase)))
+            {
+                LogManager.Error("AudioPlayerApi is not loaded! Please install AudioPlayerApi to use AutoEvent. The plugin will not load without it.");
+                Singleton = null;
+                return;
+            }
+            LogManager.Info("AutoEvent built with AudioPlayerAPI audio backend.");
+#else
+            if (!PluginLoader.Plugins.Any(p =>
+                    p.Key != this && p.Key.Name.Contains("SecretLabNAudio", StringComparison.OrdinalIgnoreCase)))
+            {
+                LogManager.Error(
+                    "SecretLabNAudio is not loaded! Please install SecretLabNAudio to use AutoEvent. The plugin will not load without it.");
+                Singleton = null;
+                return;
+            }
+
+            LogManager.Info("AutoEvent built with SecretLabNAudio audio backend.");
+#endif
+
+            if (Singleton.Config.CreditTagSystem)
+                ApiManager.LoadCreditTags();
+
 
             if (Config.IgnoredRoles.Contains(Config.LobbyRole))
             {
@@ -49,6 +86,8 @@ public class AutoEvent : Plugin<Config>
             }
 
             FriendlyFireSystem.IsFriendlyFireEnabledByDefault = Server.FriendlyFire;
+
+            MapSystemIntegration.Detect();
 
             try
             {
@@ -75,8 +114,8 @@ public class AutoEvent : Plugin<Config>
                 LogManager.Error($"An error has occured while trying to initialize directories.\n{e}");
             }
 
-            EventManager = new EventManager();
-            EventManager.RegisterInternalEvents();
+            InternalEventManager = new EventManager();
+            InternalEventManager.RegisterInternalEvents();
             _eventHandler = new EventHandler();
             CustomHandlersManager.RegisterEventsHandler(_eventHandler);
             ConfigManager.LoadConfigsAndTranslations();
@@ -104,7 +143,7 @@ public class AutoEvent : Plugin<Config>
     public override void Disable()
     {
         _harmonyPatch.UnpatchAll();
-        EventManager = null;
+        InternalEventManager = null;
         Singleton = null;
         CustomHandlersManager.UnregisterEventsHandler(_eventHandler);
         _eventHandler = null;

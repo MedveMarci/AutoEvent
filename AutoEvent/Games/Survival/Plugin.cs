@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API;
 using AutoEvent.API.Enums;
+using AutoEvent.ApiFeatures;
 using AutoEvent.Interfaces;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
@@ -152,16 +153,12 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             text = Translation.SurvivalHumanWinTime;
         }
 
-        foreach (var player in AudioPlayer.AudioPlayerByName.Values)
-            player.StopAudio();
-
+        StopAudio();
         Extensions.PlayAudio(musicName);
         Extensions.ServerBroadcast(text, 10);
     }
 
     protected override void OnCleanup()
     {
-        foreach (var player in AudioPlayer.AudioPlayerByName.Values)
-            player.StopAudio();
     }
 }

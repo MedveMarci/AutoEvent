@@ -16,8 +16,8 @@ public class Translation : EventTranslation
     public string KillCooldown { get; set; } = "You can't kill for another {time} seconds!";
 
     public string VotingInfo { get; set; } =
-        "{reason}\nYou can vote by writing .vote <color/name/skip> to the Console which you can open with ~ by default.\n{time} seconds remaining.";
-
+        "{reason}\nEquip your <color=yellow>Radio</color> to open the voting menu!\n{time} seconds remaining.";
+    
     public string DiscussionInfo { get; set; } =
         "{reason}\nDiscussion time! You can't chat with other players.\n{time} seconds remaining, soon you will can speak and vote.";
 
@@ -40,16 +40,24 @@ public class Translation : EventTranslation
     public string AcceptDivertPower { get; set; } = "Accept Divert Power";
     public string DownloadData { get; set; } = "Download Data";
     public string UploadData { get; set; } = "Upload Data";
-    public string NoVotes { get; set; } = "No votes";
+    public string Skip { get; set; } = "Skip";
     public string Vote { get; set; } = "vote";
     public string NoOneVotedOut { get; set; } = "No one was voted out.";
     public string ItsATie { get; set; } = "It's a tie!";
     public string DeathMessage { get; set; } = "Voted out.";
     public string VotedOut { get; set; } = "{player} was voted out.";
     public string Tasks { get; set; } = "Tasks";
-    public string DidntVote { get; set; } = "Didn't vote";
     public string WasAnImpostor { get; set; } = "{player} was an Impostor.";
     public string WasNotAnImpostor { get; set; } = "{player} was not an Impostor.";
     public string CommsSabotaged { get; set; } = "Comms Sabotaged!";
     public string ReactorMeltdown { get; set; } = "Reactor Meltdown in {time} seconds!";
+    public string SabotageMenuTitle { get; set; } = "Sabotage";
+    public string VoteMenuTitle { get; set; } = "Vote";
+    public string SabotageCooldownHint { get; set; } = "Sabotage cooldown: <color=red>{time}s</color>";
+    public string ActiveSabotageHint { get; set; } = "Active sabotage: <color=red>{name}</color>";
+    public string SabotageOnCooldown { get; set; } = "Sabotage is on cooldown.";
+    public string SabotageAlreadyActive { get; set; } = "A sabotage is already active.";
+    public string SabotageCommunications { get; set; } = "Communications";
+    public string SabotageLights { get; set; } = "Lights";
+    public string SabotageDoorLockdown { get; set; } = "Door Lockdown";
 }

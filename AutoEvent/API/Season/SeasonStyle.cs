@@ -1,5 +1,5 @@
 ﻿using System;
-using AutoEvent.API.Season.Enum;
+using AutoEvent.API.Enums;
 
 namespace AutoEvent.API.Season;
 

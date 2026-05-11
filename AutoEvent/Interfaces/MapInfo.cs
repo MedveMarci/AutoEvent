@@ -38,6 +38,5 @@ public class MapInfo
     [Description("The scale of the map.")] public Vector3 Scale { get; set; } = Vector3.one;
 
     [YamlIgnore] public MapObject Map { get; set; }
-
     [YamlIgnore] public bool SpawnAutomatically { get; set; } = true;
 }
