@@ -171,7 +171,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                 TeleportOutList[key] = adminToyBase.transform.position;
             }
 
-        Impostors = [Player.ReadyList.First(player => !player.IsDummy)];//Config.Impostors.GetPlayers();
+        Impostors = Config.Impostors.GetPlayers();
         var ready = Player.ReadyList.ToList();
         Crewmates = ready.Except(Impostors).ToList();
 
@@ -440,7 +440,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                     voters = " ← " + string.Join(", ", PlayerVotes
                         .Where(v => v.Value == p.NetworkId)
                         .Select(v => Player.Get(v.Key)?.Nickname ?? v.Key.ToString()));
-                voteLines.Add($"{votedStatus} <color={hex}>{p.Nickname}</color>:{voteCount}{voters}");
+                voteLines.Add($"{votedStatus} <color={hex}>{p.Nickname}</color>: {voteCount}{voters}");
             }
 
             var globalSb = StringBuilderPool.Shared.Rent();
