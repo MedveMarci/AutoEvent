@@ -132,11 +132,7 @@ public static class Extensions
             return null;
         }
 
-#if APAPI
-        return AudioPlayerApiIntegration.PlayAudio(filePath, isLoop, isSpatial, minDistance, maxDistance, speakerPosition);
-#else
-        return SlNaIntegration.PlayAudio(filePath, isLoop, isSpatial, minDistance, maxDistance, speakerPosition);
-#endif
+        return SlNaExtensions.PlayAudio(filePath, isLoop, isSpatial, minDistance, maxDistance, speakerPosition);
     }
 
     /// <summary>
@@ -152,11 +148,7 @@ public static class Extensions
             return null;
         }
 
-#if APAPI
-        return AudioPlayerApiIntegration.PlayPlayerAudio(player, filePath, isLoop);
-#else
-        return SlNaIntegration.PlayPlayerAudio(player, filePath, isLoop);
-#endif
+        return SlNaExtensions.PlayPlayerAudio(player, filePath, isLoop);
     }
 
     extension(Player ply)

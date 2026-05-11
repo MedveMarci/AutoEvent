@@ -53,15 +53,6 @@ public class AutoEvent : Plugin<Config>
                 return;
             }
 
-#if APAPI
-            if (!PluginLoader.Dependencies.Any(p => p.FullName.Contains("AudioPlayerApi", StringComparison.OrdinalIgnoreCase)))
-            {
-                LogManager.Error("AudioPlayerApi is not loaded! Please install AudioPlayerApi to use AutoEvent. The plugin will not load without it.");
-                Singleton = null;
-                return;
-            }
-            LogManager.Info("AutoEvent built with AudioPlayerAPI audio backend.");
-#else
             if (!PluginLoader.Plugins.Any(p =>
                     p.Key != this && p.Key.Name.Contains("SecretLabNAudio", StringComparison.OrdinalIgnoreCase)))
             {
@@ -72,7 +63,6 @@ public class AutoEvent : Plugin<Config>
             }
 
             LogManager.Info("AutoEvent built with SecretLabNAudio audio backend.");
-#endif
 
             if (Singleton.Config.CreditTagSystem)
                 ApiManager.LoadCreditTags();

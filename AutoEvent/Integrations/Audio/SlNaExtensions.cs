@@ -1,4 +1,3 @@
-#if !APAPI
 using AutoEvent.API;
 using LabApi.Features.Wrappers;
 using SecretLabNAudio.Core;
@@ -8,7 +7,7 @@ using UnityEngine;
 
 namespace AutoEvent.Integrations.Audio;
 
-internal static class SlNaIntegration
+internal static class SlNaExtensions
 {
     public static IAudioHandle PlayAudio(string filePath, bool isLoop, bool isSpatial,
         float minDistance, float maxDistance, Vector3 speakerPosition)
@@ -70,4 +69,3 @@ internal static class SlNaIntegration
         }
     }
 }
-#endif
