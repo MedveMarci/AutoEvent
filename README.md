@@ -116,7 +116,7 @@ See the full [Installation Guide](https://github.com/MedveMarci/AutoEvent/blob/m
 
 ## Credits
 
-- Original plugin by **RisottoMan**
+- [Original plugin](https://github.com/RisottoMan/AutoEvent) by **RisottoMan**
 - Maintained by **MedveMarci**
 - Maps by **xleb.ik** and **PresidentFinny**
 - Architecture assistance by **Redforce04**
@@ -126,4 +126,3 @@ See the full [Installation Guide](https://github.com/MedveMarci/AutoEvent/blob/m
 - Support by **Sakred_**
 - Map plugin [ProjectMER](https://github.com/Michal78900/ProjectMER) by **Michal78900**
 - Audio plugins [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio) by **Axwabo**
-  and [AudioPlayerAPI](https://github.com/Killers0992/AudioPlayerApi) by **Killers0992**
