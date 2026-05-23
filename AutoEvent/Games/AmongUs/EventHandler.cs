@@ -321,13 +321,11 @@ public class EventHandler(Plugin plugin)
             {
                 plugin.VentedPlayers.Remove(ev.Player);
                 ev.Player.DisableEffect<Lightweight>();
-                ev.Player.DisableEffect<SilentWalk>();
             }
             else
             {
                 plugin.VentedPlayers.Add(ev.Player);
                 ev.Player.EnableEffect<Lightweight>(100);
-                ev.Player.EnableEffect<SilentWalk>(255);
             }
 
             LogManager.Debug("PlayerPos_" + (vented ? "Exit" : "Enter"));
