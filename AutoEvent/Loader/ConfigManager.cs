@@ -173,10 +173,29 @@ public static class ConfigManager
         }
     }
 
-    internal static Dictionary<string, object> LoadTranslationFromAssembly(string countryCode)
+    public static string ResolveLanguage(string input)
     {
-        // Try to get a translation from an assembly
-        if (!TryGetTranslationFromAssembly(countryCode, TranslationPath, out Dictionary<string, object> translations))
+        if (string.IsNullOrWhiteSpace(input))
+            return null;
+
+        if (LanguageByCountryCodeDictionary.TryGetValue(input.ToUpperInvariant(), out var byCode))
+            return byCode;
+
+        var languages = LanguageByCountryCodeDictionary.Values.Distinct().ToList();
+
+        var exact = languages.FirstOrDefault(l => string.Equals(l, input, StringComparison.OrdinalIgnoreCase));
+        if (exact != null)
+            return exact;
+
+        var matches = languages.Where(l => l.StartsWith(input, StringComparison.OrdinalIgnoreCase)).ToList();
+        return matches.Count == 1 ? matches[0] : null;
+    }
+
+    internal static Dictionary<string, object> LoadTranslationFromAssembly(string input)
+    {
+        var language = ResolveLanguage(input);
+
+        if (language == null || !TryGetTranslationFromAssembly(language, TranslationPath, out Dictionary<string, object> translations))
             translations = GenerateDefaultTranslations();
 
         return translations;
@@ -201,14 +220,8 @@ public static class ConfigManager
         return translations;
     }
 
-    private static bool TryGetTranslationFromAssembly<T>(string countryCode, string path, out T translationFile)
+    private static bool TryGetTranslationFromAssembly<T>(string language, string path, out T translationFile)
     {
-        if (!LanguageByCountryCodeDictionary.TryGetValue(countryCode, out var language))
-        {
-            translationFile = default;
-            return false;
-        }
-
         var resourceName = $"AutoEvent.Translations.{language}.yml";
 
         try

@@ -50,7 +50,7 @@ internal class Run : ICommand, IUsageProvider
                 return false;
 
         var readyPlayers = Player.ReadyList;
-        var ignoredRoles = AutoEvent.Singleton.Config?.IgnoredRoles;
+        var ignoredRoles = AutoEvent.Singleton.Config.IgnoredRoles;
         if (ignoredRoles is { Count: > 0 })
             readyPlayers = readyPlayers.Where(p => !ignoredRoles.Contains(p.Role));
 
