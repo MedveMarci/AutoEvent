@@ -10,7 +10,7 @@
         <Platforms>x64</Platforms>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <Nullable>disable</Nullable>
-        <Configurations>Debug;Release;Debug-APAPI;Release-APAPI</Configurations>
+        <Configurations>Debug;Release</Configurations>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">

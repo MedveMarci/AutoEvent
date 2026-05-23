@@ -28,7 +28,6 @@ using Extensions = AutoEvent.API.Extensions;
 using LightSourceToy = AdminToys.LightSourceToy;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
 using Random = System.Random;
-using TextToy = LabApi.Features.Wrappers.TextToy;
 
 namespace AutoEvent.Games.AmongUs;
 

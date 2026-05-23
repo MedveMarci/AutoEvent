@@ -61,6 +61,7 @@
         <Content Include="..\Docs\*" Link="Docs\%(Filename)%(Extension)"/>
         <Content Include="..\Docs\Translations\*" Link="Docs\Translations\%(Filename)%(Extension)"/>
         <Content Include="..\README.md" Link="README.md"/>
+        <Content Include="..\CHANGELOG.md" Link="CHANGELOG.md"/>
         <Content Include="Translations\*.yml"/>
     </ItemGroup>
 

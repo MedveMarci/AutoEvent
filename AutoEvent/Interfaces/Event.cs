@@ -248,6 +248,7 @@ namespace AutoEvent.Interfaces
             AutoEvent.InternalEventManager.CurrentEvent = this;
             EventTime = TimeSpan.Zero;
             StartTime = DateTime.UtcNow;
+            DeadmanSwitch.IsDeadmanSwitchEnabled  = false;
 
             try
             {

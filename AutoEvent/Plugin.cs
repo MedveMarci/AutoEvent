@@ -5,7 +5,6 @@ using AutoEvent.API;
 using AutoEvent.ApiFeatures;
 using AutoEvent.Integrations.MapEditor;
 using AutoEvent.Loader;
-using AutoEvent.Patches;
 using HarmonyLib;
 using LabApi.Events.CustomHandlers;
 using LabApi.Features;
