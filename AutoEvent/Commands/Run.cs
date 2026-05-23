@@ -25,6 +25,12 @@ internal class Run : ICommand, IUsageProvider
             return false;
         }
 
+        if (AutoEvent.InternalEventManager == null)
+        {
+            response = "The plugin failed to initialize. Check server console for errors.";
+            return false;
+        }
+
         if (AutoEvent.InternalEventManager.CurrentEvent != null)
         {
             response = $"The mini-game {AutoEvent.InternalEventManager.CurrentEvent.Name} is already running!";

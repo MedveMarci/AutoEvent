@@ -35,7 +35,7 @@ internal class List : ICommand
         if (style.Text != null)
             builder.AppendLine(style.Text);
 
-        var eventList = EventManager.Events.OrderBy(x => x.Name)
+        var eventList = (EventManager.Events ?? []).OrderBy(x => x.Name)
             .ToList();
         foreach (IEvent ev in eventList)
             builder.AppendLine(

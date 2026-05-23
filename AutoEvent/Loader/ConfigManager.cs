@@ -141,7 +141,12 @@ public static class ConfigManager
             }
 
             // Move translations to each mini-games
-            foreach (var ev in AutoEvent.InternalEventManager.Events.Where(_ => translations is not null))
+            var events = AutoEvent.InternalEventManager?.Events;
+            
+            if (events == null) 
+                return;
+            
+            foreach (var ev in events.Where(_ => translations is not null))
             {
                 if (!translations.TryGetValue(ev.InternalName, out var rawDeserializedTranslation))
                 {
@@ -206,7 +211,10 @@ public static class ConfigManager
         // Otherwise, create default translations from all mini-games.
         var translations = new Dictionary<string, object>();
 
-        foreach (var ev in AutoEvent.InternalEventManager.Events.OrderBy(r => r.Name))
+        var events = AutoEvent.InternalEventManager?.Events;
+        if (events == null) return translations;
+
+        foreach (var ev in events.OrderBy(r => r.Name))
         {
             ev.InternalTranslation.Name = ev.Name;
             ev.InternalTranslation.Description = ev.Description;
