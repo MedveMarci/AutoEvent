@@ -5,6 +5,7 @@ using AutoEvent.API;
 using AutoEvent.ApiFeatures;
 using AutoEvent.Integrations.MapEditor;
 using AutoEvent.Loader;
+using GameCore;
 using HarmonyLib;
 using LabApi.Events.CustomHandlers;
 using LabApi.Features;
@@ -14,6 +15,7 @@ using LabApi.Loader.Features.Paths;
 using LabApi.Loader.Features.Plugins;
 using LabApi.Loader.Features.Plugins.Enums;
 using EventManager = AutoEvent.Loader.EventManager;
+using Version = System.Version;
 
 namespace AutoEvent;
 
@@ -75,6 +77,7 @@ public class AutoEvent : Plugin<Config>
             }
 
             FriendlyFireSystem.IsFriendlyFireEnabledByDefault = Server.FriendlyFire;
+            SpawnProtectionSystem.IsSpawnProtectionEnabledByDefault = ConfigFile.ServerConfig.GetBool("spawn_protect_enabled");
 
             MapSystemIntegration.Detect();
 
