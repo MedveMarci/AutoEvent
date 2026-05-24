@@ -248,7 +248,8 @@ namespace AutoEvent.Interfaces
             AutoEvent.InternalEventManager.CurrentEvent = this;
             EventTime = TimeSpan.Zero;
             StartTime = DateTime.UtcNow;
-            DeadmanSwitch.IsDeadmanSwitchEnabled  = false;
+            DeadmanSwitch.IsDeadmanSwitchEnabled = false;
+            SpawnProtectionSystem.DisableSpawnProtection();
 
             try
             {
@@ -377,6 +378,15 @@ namespace AutoEvent.Interfaces
             {
                 LogManager.Error(
                     $"Friendly Fire was not able to be restored. Please ensure it is disabled. PLAYERS MAY BE AUTO-BANNED ACCIDENTALLY OR MAY NOT BE BANNED FOR FF.\n{e}");
+            }
+            
+            try
+            {
+                SpawnProtectionSystem.RestoreSpawnProtection();
+            }
+            catch (Exception e)
+            {
+                LogManager.Error("Spawn Protection was not able to be restored.\n" + e);
             }
 
             try
