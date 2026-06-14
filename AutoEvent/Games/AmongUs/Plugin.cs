@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -424,9 +424,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             if (!VotingPhase)
                 return;
 
-            var participants = Crewmates.Concat(Impostors).ToList();
-
-            var alive = participants.Where(p => p.IsAlive).ToList();
+            var alive = GetAliveVotingPlayers();
             var voteLines = new List<string>(alive.Count);
             foreach (var p in alive)
             {
@@ -453,7 +451,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             var globalHint = $"<size=28>{globalSb.ToString().TrimEnd()}</size>";
             StringBuilderPool.Shared.Return(globalSb);
 
-            foreach (var player in participants)
+            foreach (var player in alive)
             {
                 if (!RadioMenuManager.IsMenuOpen(player))
                     player.SendHint(globalHint, 1.25f);
@@ -633,7 +631,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
 
     private void GiveVotingMenus()
     {
-        var alive = Impostors.Concat(Crewmates).Where(p => p.IsAlive).ToList();
+        var alive = GetAliveVotingPlayers();
         foreach (var voter in alive)
         {
             var menu = RadioMenuManager.GiveRadioMenu(voter, Translation.VoteMenuTitle);
@@ -657,6 +655,29 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                 v.SendHint(Translation.Skip, 2f);
             });
         }
+    }
+
+    private List<Player> GetAliveVotingPlayers()
+    {
+        return Impostors
+            .Concat(Crewmates)
+            .Where(p => p.IsAlive)
+            .OrderBy(GetVotingOrderIndex)
+            .ThenBy(p => string.IsNullOrWhiteSpace(p.DisplayName) ? p.Nickname ?? string.Empty : p.DisplayName,
+                StringComparer.OrdinalIgnoreCase)
+            .ThenBy(p => p.NetworkId)
+            .ToList();
+    }
+
+    private int GetVotingOrderIndex(Player player)
+    {
+        if (!PlayerColors.TryGetValue(player.NetworkId, out var hex))
+            return int.MaxValue;
+
+        var normalized = hex.TrimStart('#');
+        var index = Array.FindIndex(Misc.AcceptedColours,
+            color => color.Equals(normalized, StringComparison.OrdinalIgnoreCase));
+        return index >= 0 ? index : int.MaxValue;
     }
 
     private void CreateTasksForPlayers(List<Player> players)
