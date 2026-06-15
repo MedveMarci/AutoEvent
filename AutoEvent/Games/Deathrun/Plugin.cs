@@ -55,8 +55,6 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 case "RunSpawn": RunnerSpawns.Add(block); break;
                 case "DeathSpawn": deathSpawns.Add(block); break;
                 case "Wall": Wall = block; break;
-                case "DestroyPlatformG":
-                case "DestroyPlatformR":
                 case "KillTrigger": block.AddComponent<KillComponent>(); break;
                 case "FanTrigger": block.AddComponent<FanComponent>(); break;
                 case "ColliderTrigger": block.AddComponent<ColliderComponent>(); break;
