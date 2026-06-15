@@ -72,7 +72,7 @@ internal static class LogManager
         ApiManager.SendLogs(StringBuilderPool.Shared.ToStringReturn(stringBuilder));
         return ("Uploading logs to the log server... The log id will be printed to the console when finished.", true);
     }
-    
+
     internal static string BuildLogContent(string triggerError = null)
     {
         var sb = StringBuilderPool.Shared.Rent();

@@ -448,7 +448,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             var globalSb = StringBuilderPool.Shared.Rent();
             for (var i = 0; i < voteLines.Count; i += 2)
                 globalSb.AppendLine(i + 1 < voteLines.Count ? $"{voteLines[i]}   {voteLines[i + 1]}" : voteLines[i]);
-            
+
             var globalHint = $"<size=28>{globalSb.ToString().TrimEnd()}</size>";
             StringBuilderPool.Shared.Return(globalSb);
 
@@ -531,7 +531,8 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                     sb.AppendLine(Translation.ActiveSabotageHint.Replace("{name}", CurrentSabotage.Name));
                 if (KillCooldowns.TryGetValue(player, out var killTime) && killTime > DateTime.UtcNow)
                     sb.AppendLine(Translation.KillCooldown.Replace("{time}",
-                        Math.Ceiling((killTime - DateTime.UtcNow).TotalSeconds).ToString(CultureInfo.InvariantCulture)));
+                        Math.Ceiling((killTime - DateTime.UtcNow).TotalSeconds)
+                            .ToString(CultureInfo.InvariantCulture)));
                 if (sb.Length > 0)
                     player.SendHint(sb.ToString(), 1.25f);
             }

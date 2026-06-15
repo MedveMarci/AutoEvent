@@ -69,7 +69,10 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 case "DeathTeleportOut1":
                 case "DeathTeleportOut2": TeleportOuts.Add(block); break;
                 case "Capybara": CapybaraToy.Create(block.transform); break;
-                case "Grenade": block.AddComponent<Rigidbody>().isKinematic = true; block.AddComponent<BoxCollider>().isTrigger = true; break;
+                case "Grenade":
+                    block.AddComponent<Rigidbody>().isKinematic = true;
+                    block.AddComponent<BoxCollider>().isTrigger = true;
+                    break;
             }
 
         if (RunnerSpawns.Count == 0 || deathSpawns.Count == 0)

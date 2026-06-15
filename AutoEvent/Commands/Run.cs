@@ -115,7 +115,8 @@ internal class Run : ICommand, IUsageProvider
                     .Distinct()
                     .ToList();
 
-                var exactMatch = availableMaps.FirstOrDefault(m => m.MapName.Equals(input, StringComparison.OrdinalIgnoreCase));
+                var exactMatch =
+                    availableMaps.FirstOrDefault(m => m.MapName.Equals(input, StringComparison.OrdinalIgnoreCase));
                 if (exactMatch != null)
                 {
                     mapName = exactMatch.MapName;
@@ -166,7 +167,7 @@ internal class Run : ICommand, IUsageProvider
 
         response = $"The mini-game {ev.Name} has started!";
         return true;
-        }
+    }
 
     public string[] Usage => ["Event Name", "Map Name (Optional)"];
 }

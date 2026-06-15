@@ -19,7 +19,7 @@ public abstract class EventHandler
         // Start the animation when click on the button
         var animator = ev.Interactable.GameObject.GetComponentInParent<Animator>();
         if (animator == null) return;
-        
+
         var animationName = animator.name + "Action";
         if (animator.name == "Trap1")
         {
@@ -27,17 +27,17 @@ public abstract class EventHandler
                 animationName = "Trap1Action1";
             else if (ev.Interactable.GameObject.name == "Trap1Interactable2")
                 animationName = "Trap1Action2";
-            else if (ev.Interactable.GameObject.name == "Trap1Interactable3") 
+            else if (ev.Interactable.GameObject.name == "Trap1Interactable3")
                 animationName = "Trap1Action3";
         }
         else if (animator.name.Contains("Trap15"))
         {
-            if (ev.Interactable.GameObject.name.Contains("Interactable1")) 
+            if (ev.Interactable.GameObject.name.Contains("Interactable1"))
                 animationName = animator.name + "RowPrimedR";
             else if (ev.Interactable.GameObject.name.Contains("Interactable2"))
                 animationName = animator.name + "RowPrimedG";
         }
-        
+
 
         LogManager.Debug($"[Deathrun] Activate animation {animationName}");
         animator.Play(animationName);

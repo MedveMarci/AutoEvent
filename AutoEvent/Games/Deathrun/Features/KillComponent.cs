@@ -1,5 +1,4 @@
 using AutoEvent.API;
-using AutoEvent.ApiFeatures;
 using LabApi.Features.Wrappers;
 using PlayerRoles;
 using UnityEngine;
@@ -24,6 +23,7 @@ public class KillComponent : MonoBehaviour
             ExplosionUtils.ServerSpawnEffect(collider.transform.position, ItemType.GrenadeHE);
             return;
         }
+
         if (Player.Get(collider.gameObject) is not { } player) return;
         if (player.Role == RoleTypeId.Scientist) return;
         if (!player.IsAlive) return;

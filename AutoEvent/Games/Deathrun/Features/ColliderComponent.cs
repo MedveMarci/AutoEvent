@@ -19,6 +19,8 @@ public class ColliderComponent : MonoBehaviour
         {
             animator.Play(animator.name + "Action");
             animator.Play(animator.name + "action");
-        };
+        }
+
+        ;
     }
 }

@@ -214,15 +214,15 @@ namespace AutoEvent.Interfaces
         private void OnInternalStop()
         {
             KillLoop = true;
-            if (RespawnWaves.MiniChaosWave != null) 
+            if (RespawnWaves.MiniChaosWave != null)
                 RespawnWaves.MiniChaosWave.IsForcefullyPaused = false;
-            if (RespawnWaves.MiniMtfWave != null) 
+            if (RespawnWaves.MiniMtfWave != null)
                 RespawnWaves.MiniMtfWave.IsForcefullyPaused = false;
-            if (RespawnWaves.PrimaryChaosWave != null) 
+            if (RespawnWaves.PrimaryChaosWave != null)
                 RespawnWaves.PrimaryChaosWave.IsForcefullyPaused = false;
-            if (RespawnWaves.PrimaryMtfWave != null) 
+            if (RespawnWaves.PrimaryMtfWave != null)
                 RespawnWaves.PrimaryMtfWave.IsForcefullyPaused = false;
-            
+
             Timing.KillCoroutines(BroadcastCoroutine);
             Timing.CallDelayed(FrameDelayInSeconds + .1f, () =>
             {
@@ -252,16 +252,16 @@ namespace AutoEvent.Interfaces
             DeadmanSwitch.IsDeadmanSwitchEnabled = false;
             SpawnProtectionSystem.DisableSpawnProtection();
             Decontamination.Status = DecontaminationController.DecontaminationStatus.Disabled;
-            
-            if (RespawnWaves.MiniChaosWave != null) 
+
+            if (RespawnWaves.MiniChaosWave != null)
                 RespawnWaves.MiniChaosWave.IsForcefullyPaused = true;
-            if (RespawnWaves.MiniMtfWave != null) 
+            if (RespawnWaves.MiniMtfWave != null)
                 RespawnWaves.MiniMtfWave.IsForcefullyPaused = true;
-            if (RespawnWaves.PrimaryChaosWave != null) 
+            if (RespawnWaves.PrimaryChaosWave != null)
                 RespawnWaves.PrimaryChaosWave.IsForcefullyPaused = true;
-            if (RespawnWaves.PrimaryMtfWave != null) 
+            if (RespawnWaves.PrimaryMtfWave != null)
                 RespawnWaves.PrimaryMtfWave.IsForcefullyPaused = true;
-            
+
             try
             {
                 switch (ForceEnableFriendlyFire)

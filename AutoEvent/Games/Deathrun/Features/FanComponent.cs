@@ -27,7 +27,7 @@ public class FanComponent : MonoBehaviour
     private void OnTriggerEnter(Collider collider)
     {
         if (Player.Get(collider.gameObject) is not { } player) return;
-        
+
         _coroutineHandles.Add(Timing.RunCoroutine(PushPlayer(player), player.Nickname + "Fan"));
     }
 
@@ -57,6 +57,4 @@ public class FanComponent : MonoBehaviour
             yield return Timing.WaitForOneFrame;
         }
     }
-    
-    
 }
