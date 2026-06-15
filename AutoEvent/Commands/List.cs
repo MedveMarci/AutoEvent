@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AutoEvent.API.Season;
@@ -35,8 +36,8 @@ internal class List : ICommand
         if (style.Text != null)
             builder.AppendLine(style.Text);
 
-        var eventList = (EventManager.Events ?? []).OrderBy(x => x.Name)
-            .ToList();
+        var events = EventManager.Events;
+        var eventList = events?.OrderBy(x => x?.Name).ToList() ?? [];
         foreach (IEvent ev in eventList)
             builder.AppendLine(
                 !isConsole
@@ -45,7 +46,7 @@ internal class List : ICommand
 
         if (!EventManager.IsMerLoaded)
             builder.AppendLine(
-                "\n<i><color=red>MapEditorReborn is not loaded. There are only those mini-games that don't run maps.</color></i>");
+                "\n<i><color=red>ProjectMER is not loaded. There are only those mini-games that don't run maps.</color></i>");
 
         if (!isConsole)
         {

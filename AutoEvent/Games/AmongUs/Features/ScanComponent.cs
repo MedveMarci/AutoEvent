@@ -34,15 +34,28 @@ public class ScanComponent : MonoBehaviour
     private IEnumerator<float> LockRotation(Player player, Collider collider, Task task)
     {
         var animator = _collider.gameObject.GetComponentInChildren<Animator>();
+        if (animator == null)
+        {
+            player.DisableEffect<Ensnared>();
+            player.DisableEffect<HeavyFooted>();
+            yield break;
+        }
+
         animator.Play("ScanTask");
         while (true)
         {
+            if (!player.IsAlive)
+            {
+                player.DisableEffect<Ensnared>();
+                player.DisableEffect<HeavyFooted>();
+                yield break;
+            }
+
             var stateInfo = animator.GetCurrentAnimatorStateInfo(0);
             if (stateInfo.IsName("ScanTaskIdle"))
             {
                 player.DisableEffect<Ensnared>();
                 player.DisableEffect<HeavyFooted>();
-                Timing.KillCoroutines(player.NetworkId.ToString());
                 task.IsDone = true;
                 break;
             }

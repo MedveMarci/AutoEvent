@@ -15,6 +15,10 @@ public class ColliderComponent : MonoBehaviour
     private void OnTriggerEnter(Collider collider)
     {
         var animator = gameObject.GetComponentInParent<Animator>();
-        if (animator != null) animator.Play(animator.name + "action");
+        if (animator != null)
+        {
+            animator.Play(animator.name + "Action");
+            animator.Play(animator.name + "action");
+        };
     }
 }

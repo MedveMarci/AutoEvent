@@ -9,6 +9,7 @@ using ProjectMER.Features.Objects;
 using ProjectMER.Features.Serializable;
 using ProjectMER.Features.Serializable.Schematics;
 using UnityEngine;
+using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
 
 namespace AutoEvent.Integrations.MapEditor;
 
@@ -48,7 +49,7 @@ internal static class ProjectMerIntegration
 
     public static GameObject CreatePlatformByParent(GameObject parent, Vector3 position)
     {
-        var prim = parent.GetComponent<AdminToys.PrimitiveObjectToy>();
+        var prim = parent.GetComponent<PrimitiveObjectToy>();
         var obj = ObjectSpawner.SpawnPrimitive(new SerializablePrimitive
         {
             PrimitiveType = prim.PrimitiveType,

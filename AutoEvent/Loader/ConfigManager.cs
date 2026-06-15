@@ -142,10 +142,10 @@ public static class ConfigManager
 
             // Move translations to each mini-games
             var events = AutoEvent.InternalEventManager?.Events;
-            
-            if (events == null) 
+
+            if (events == null)
                 return;
-            
+
             foreach (var ev in events.Where(_ => translations is not null))
             {
                 if (!translations.TryGetValue(ev.InternalName, out var rawDeserializedTranslation))
@@ -200,7 +200,8 @@ public static class ConfigManager
     {
         var language = ResolveLanguage(input);
 
-        if (language == null || !TryGetTranslationFromAssembly(language, TranslationPath, out Dictionary<string, object> translations))
+        if (language == null ||
+            !TryGetTranslationFromAssembly(language, TranslationPath, out Dictionary<string, object> translations))
             translations = GenerateDefaultTranslations();
 
         return translations;
@@ -214,13 +215,15 @@ public static class ConfigManager
         var events = AutoEvent.InternalEventManager?.Events;
         if (events == null) return translations;
 
-        foreach (var ev in events.OrderBy(r => r.Name))
+        // Key by InternalName — that is what LoadTranslations looks up, and unlike
+        // Name it never changes when a translation is applied.
+        foreach (var ev in events.OrderBy(r => r.InternalName))
         {
             ev.InternalTranslation.Name = ev.Name;
             ev.InternalTranslation.Description = ev.Description;
             ev.InternalTranslation.CommandName = ev.CommandName;
 
-            translations.Add(ev.Name, ev.InternalTranslation);
+            translations[ev.InternalName] = ev.InternalTranslation;
         }
 
         // Save the translation file
