@@ -454,6 +454,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             {
                 if (!RadioMenuManager.IsMenuOpen(player))
                     player.SendHint(globalHint, 1.25f);
+            }
 
             return;
         }
@@ -705,7 +706,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             .Concat(Crewmates)
             .Where(p => p.IsAlive)
             .OrderBy(GetVotingOrderIndex)
-            .ThenBy(p => string.IsNullOrWhiteSpace(p.DisplayName) ? p.Nickname ?? string.Empty : p.DisplayName,
+            .ThenBy(p => string.IsNullOrWhiteSpace(p.DisplayName) ? p.Nickname : p.DisplayName,
                 StringComparer.OrdinalIgnoreCase)
             .ThenBy(p => p.NetworkId)
             .ToList();
