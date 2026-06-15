@@ -37,9 +37,12 @@ internal class Translations : ICommand, IUsageProvider
             response = "List of translations:\n";
             try
             {
-                foreach (var language in ConfigManager.LanguageByCountryCodeDictionary.Values.Distinct()
-                             .ToList())
-                    response += $"{language}\n";
+                var grouped = ConfigManager.LanguageByCountryCodeDictionary
+                    .GroupBy(kv => kv.Value)
+                    .OrderBy(g => g.Key);
+
+                foreach (var group in grouped)
+                    response += $"{group.Key} ({string.Join(", ", group.Select(kv => kv.Key))})\n";
             }
             catch (Exception e)
             {
@@ -47,7 +50,7 @@ internal class Translations : ICommand, IUsageProvider
                 return false;
             }
 
-            response += "Use ev language load [language] to load a translation.";
+            response += "Use ev language load [language or code] to load a translation.";
             return true;
         }
 
@@ -55,26 +58,26 @@ internal class Translations : ICommand, IUsageProvider
         {
             if (arguments.Count != 2)
             {
-                response = "Usage: ev language load [language]";
+                response = "Usage: ev language load [language or code]";
                 return false;
             }
 
             try
             {
-                var language = arguments.At(1).ToLower();
+                var input = arguments.At(1);
+                var language = ConfigManager.ResolveLanguage(input);
 
-                if (!ConfigManager.LanguageByCountryCodeDictionary.ContainsValue(language))
+                if (language == null)
                 {
-                    response = "Language not found!";
+                    var available = string.Join(", ",
+                        ConfigManager.LanguageByCountryCodeDictionary.Values.Distinct().OrderBy(x => x));
+                    response = $"Language '{input}' not found!\nAvailable: {available}";
                     return false;
                 }
 
-                var countryCode = ConfigManager.LanguageByCountryCodeDictionary
-                    .FirstOrDefault(x => x.Value == language).Key;
-
-                _ = ConfigManager.LoadTranslationFromAssembly(countryCode);
+                _ = ConfigManager.LoadTranslationFromAssembly(language);
                 ConfigManager.LoadTranslations();
-                response = "Translation loaded!";
+                response = $"Translation '{language}' loaded!";
                 return true;
             }
             catch (Exception e)

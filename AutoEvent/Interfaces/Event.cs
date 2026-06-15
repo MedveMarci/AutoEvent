@@ -6,8 +6,9 @@ using AutoEvent.API.Enums;
 using AutoEvent.API.Season;
 using AutoEvent.ApiFeatures;
 using AutoEvent.Interfaces;
+using LabApi.Features.Wrappers;
+using LightContainmentZoneDecontamination;
 using MEC;
-using Random = UnityEngine.Random;
 
 namespace AutoEvent.Interfaces
 {
@@ -171,57 +172,57 @@ namespace AutoEvent.Interfaces
 
         private void SetMap(string mapName = "")
         {
+            if (this is not IEventMap eventMap) return;
             if (InternalConfig?.AvailableMaps is null || InternalConfig.AvailableMaps.Count == 0)
                 return;
 
             var seasonFlags = SeasonMethod.GetSeasonStyle().SeasonFlag;
 
-            if (InternalConfig.AvailableMaps.Count(r => r.Season == SeasonFlags.None) == 0)
+            // If no map is tagged for the current season, fall back to the season-less pool.
+            if (InternalConfig.AvailableMaps.All(r => r.Season != seasonFlags))
                 seasonFlags = SeasonFlags.None;
 
-            List<MapChance> maps = [];
-            maps.AddRange(InternalConfig.AvailableMaps.Where(map =>
-                map.Season == seasonFlags || map.Season == SeasonFlags.None));
+            var maps = InternalConfig.AvailableMaps.Where(map =>
+                map.Season == seasonFlags || map.Season == SeasonFlags.None).ToList();
 
             if (!string.IsNullOrEmpty(mapName))
-                maps =
-                [
-                    InternalConfig.AvailableMaps.FirstOrDefault(x =>
-                        x.MapName.Contains(mapName, StringComparison.OrdinalIgnoreCase))
-                ];
-
-            if (this is not IEventMap eventMap) return;
-            var spawnAutomatically = eventMap.MapInfo.SpawnAutomatically;
-            if (maps.Count == 1)
             {
-                eventMap.MapInfo = maps[0].ToMapInfo();
-                eventMap.MapInfo.SpawnAutomatically = spawnAutomatically;
-                goto Message;
+                var requested = InternalConfig.AvailableMaps.FirstOrDefault(x =>
+                    x.MapName.Contains(mapName, StringComparison.OrdinalIgnoreCase));
+                if (requested is null)
+                    LogManager.Warn($"[{Name}] Map '{mapName}' was not found, choosing a random one instead.");
+                else
+                    maps = [requested];
+            }
+
+            if (maps.Count == 0)
+            {
+                LogManager.Warn($"[{Name}] No maps are available for the current season; using the full map list.");
+                maps = InternalConfig.AvailableMaps.ToList();
             }
 
             foreach (var mapItem in maps.Where(x => x.Weight <= 0))
                 mapItem.Weight = 1;
 
-            var totalWeight = maps.Sum(x => x.Weight);
-
-            for (var i = 0; i < maps.Count - 1; i++)
-                if (Random.Range(0, totalWeight) <= maps[i].Weight)
-                {
-                    eventMap.MapInfo = maps[i].ToMapInfo();
-                    eventMap.MapInfo.SpawnAutomatically = spawnAutomatically;
-                    goto Message;
-                }
-
-            eventMap.MapInfo = maps[maps.Count - 1].ToMapInfo();
+            var spawnAutomatically = eventMap.MapInfo.SpawnAutomatically;
+            eventMap.MapInfo = Extensions.PickWeightedRandom(maps, x => x.Weight).ToMapInfo();
             eventMap.MapInfo.SpawnAutomatically = spawnAutomatically;
 
-            Message:
             LogManager.Debug($"[{Name}] Map {eventMap.MapInfo.MapName} selected.");
         }
 
         private void OnInternalStop()
         {
             KillLoop = true;
+            if (RespawnWaves.MiniChaosWave != null)
+                RespawnWaves.MiniChaosWave.IsForcefullyPaused = false;
+            if (RespawnWaves.MiniMtfWave != null)
+                RespawnWaves.MiniMtfWave.IsForcefullyPaused = false;
+            if (RespawnWaves.PrimaryChaosWave != null)
+                RespawnWaves.PrimaryChaosWave.IsForcefullyPaused = false;
+            if (RespawnWaves.PrimaryMtfWave != null)
+                RespawnWaves.PrimaryMtfWave.IsForcefullyPaused = false;
+
             Timing.KillCoroutines(BroadcastCoroutine);
             Timing.CallDelayed(FrameDelayInSeconds + .1f, () =>
             {
@@ -248,6 +249,18 @@ namespace AutoEvent.Interfaces
             AutoEvent.InternalEventManager.CurrentEvent = this;
             EventTime = TimeSpan.Zero;
             StartTime = DateTime.UtcNow;
+            DeadmanSwitch.IsDeadmanSwitchEnabled = false;
+            SpawnProtectionSystem.DisableSpawnProtection();
+            Decontamination.Status = DecontaminationController.DecontaminationStatus.Disabled;
+
+            if (RespawnWaves.MiniChaosWave != null)
+                RespawnWaves.MiniChaosWave.IsForcefullyPaused = true;
+            if (RespawnWaves.MiniMtfWave != null)
+                RespawnWaves.MiniMtfWave.IsForcefullyPaused = true;
+            if (RespawnWaves.PrimaryChaosWave != null)
+                RespawnWaves.PrimaryChaosWave.IsForcefullyPaused = true;
+            if (RespawnWaves.PrimaryMtfWave != null)
+                RespawnWaves.PrimaryMtfWave.IsForcefullyPaused = true;
 
             try
             {
@@ -295,6 +308,7 @@ namespace AutoEvent.Interfaces
             catch (Exception e)
             {
                 LogManager.Error($"Caught an exception at Event.OnStart().\n{e}");
+                StopEvent();
             }
 
             EventStarted?.Invoke(Name);
@@ -376,6 +390,15 @@ namespace AutoEvent.Interfaces
             {
                 LogManager.Error(
                     $"Friendly Fire was not able to be restored. Please ensure it is disabled. PLAYERS MAY BE AUTO-BANNED ACCIDENTALLY OR MAY NOT BE BANNED FOR FF.\n{e}");
+            }
+
+            try
+            {
+                SpawnProtectionSystem.RestoreSpawnProtection();
+            }
+            catch (Exception e)
+            {
+                LogManager.Error("Spawn Protection was not able to be restored.\n" + e);
             }
 
             try

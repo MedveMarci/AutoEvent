@@ -17,7 +17,7 @@ public class Translation : EventTranslation
 
     public string VotingInfo { get; set; } =
         "{reason}\nEquip your <color=yellow>Radio</color> to open the voting menu!\n{time} seconds remaining.";
-    
+
     public string DiscussionInfo { get; set; } =
         "{reason}\nDiscussion time! You can't chat with other players.\n{time} seconds remaining, soon you will can speak and vote.";
 
@@ -34,6 +34,7 @@ public class Translation : EventTranslation
     public string CleanO2Filter { get; set; } = "Clean O2 Filter";
     public string EmptyChute { get; set; } = "Empty Chute";
     public string StartReactor { get; set; } = "Start Reactor";
+    public string SubmitScan { get; set; } = "Submit Scan";
     public string FixWiring { get; set; } = "Fix Wiring";
     public string AlignEngineOutput { get; set; } = "Align Engine Output";
     public string DivertPowerTo { get; set; } = "Divert Power to {roomName}";

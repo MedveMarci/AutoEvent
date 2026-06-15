@@ -5,7 +5,7 @@ using AutoEvent.API;
 using AutoEvent.ApiFeatures;
 using AutoEvent.Integrations.MapEditor;
 using AutoEvent.Loader;
-using AutoEvent.Patches;
+using GameCore;
 using HarmonyLib;
 using LabApi.Events.CustomHandlers;
 using LabApi.Features;
@@ -15,6 +15,7 @@ using LabApi.Loader.Features.Paths;
 using LabApi.Loader.Features.Plugins;
 using LabApi.Loader.Features.Plugins.Enums;
 using EventManager = AutoEvent.Loader.EventManager;
+using Version = System.Version;
 
 namespace AutoEvent;
 
@@ -33,7 +34,7 @@ public class AutoEvent : Plugin<Config>
     public override string Description =>
         "A plugin that allows you to play mini-games in SCP:SL. It includes a variety of games such as Spleef, Lava, Hide and Seek, Knives, and more. Each game has its own unique mechanics and rules, providing a fun and engaging experience for players.";
 
-    public override Version Version => new(10, 0, 0, 1);
+    public override Version Version => new(10, 1, 0);
     public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
     public override LoadPriority Priority => LoadPriority.High;
 
@@ -53,15 +54,6 @@ public class AutoEvent : Plugin<Config>
                 return;
             }
 
-#if APAPI
-            if (!PluginLoader.Dependencies.Any(p => p.FullName.Contains("AudioPlayerApi", StringComparison.OrdinalIgnoreCase)))
-            {
-                LogManager.Error("AudioPlayerApi is not loaded! Please install AudioPlayerApi to use AutoEvent. The plugin will not load without it.");
-                Singleton = null;
-                return;
-            }
-            LogManager.Info("AutoEvent built with AudioPlayerAPI audio backend.");
-#else
             if (!PluginLoader.Plugins.Any(p =>
                     p.Key != this && p.Key.Name.Contains("SecretLabNAudio", StringComparison.OrdinalIgnoreCase)))
             {
@@ -72,7 +64,6 @@ public class AutoEvent : Plugin<Config>
             }
 
             LogManager.Info("AutoEvent built with SecretLabNAudio audio backend.");
-#endif
 
             if (Singleton.Config.CreditTagSystem)
                 ApiManager.LoadCreditTags();
@@ -86,6 +77,8 @@ public class AutoEvent : Plugin<Config>
             }
 
             FriendlyFireSystem.IsFriendlyFireEnabledByDefault = Server.FriendlyFire;
+            SpawnProtectionSystem.IsSpawnProtectionEnabledByDefault =
+                ConfigFile.ServerConfig.GetBool("spawn_protect_enabled");
 
             MapSystemIntegration.Detect();
 
@@ -142,10 +135,15 @@ public class AutoEvent : Plugin<Config>
 
     public override void Disable()
     {
-        _harmonyPatch.UnpatchAll();
+        // Only remove our own patches; UnpatchAll() without an ID would strip every plugin's patches.
+        _harmonyPatch?.UnpatchAll(_harmonyPatch.Id);
+        _harmonyPatch = null;
         InternalEventManager = null;
         Singleton = null;
-        CustomHandlersManager.UnregisterEventsHandler(_eventHandler);
-        _eventHandler = null;
+        if (_eventHandler != null)
+        {
+            CustomHandlersManager.UnregisterEventsHandler(_eventHandler);
+            _eventHandler = null;
+        }
     }
 }

@@ -20,11 +20,12 @@ public class Config : EventConfig
             AvailableMaps.Add(new MapChance("TempleMap", new Vector3(0f, 30f, 30f)));
             AvailableMaps.Add(new MapChance("TempleMap_Xmas2025", new Vector3(0f, 30f, 30f),
                 season: SeasonFlags.Christmas));
+            AvailableMaps.Add(new MapChance("sl_egypt", new Vector3(100f, 0f, 0f)));
         }
     }
 
     [Description("How long the round should last in minutes.")]
-    public int RoundDurationInSeconds { get; set; } = 300;
+    public int RoundDurationInSeconds { get; set; } = 530;
 
     [Description("How many seconds after the start of the game can be given a second life? Disable -> -1")]
     public int SecondLifeInSeconds { get; set; } = 15;

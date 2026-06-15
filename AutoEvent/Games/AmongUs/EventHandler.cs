@@ -321,13 +321,11 @@ public class EventHandler(Plugin plugin)
             {
                 plugin.VentedPlayers.Remove(ev.Player);
                 ev.Player.DisableEffect<Lightweight>();
-                ev.Player.DisableEffect<SilentWalk>();
             }
             else
             {
                 plugin.VentedPlayers.Add(ev.Player);
                 ev.Player.EnableEffect<Lightweight>(100);
-                ev.Player.EnableEffect<SilentWalk>(255);
             }
 
             LogManager.Debug("PlayerPos_" + (vented ? "Exit" : "Enter"));
@@ -344,6 +342,10 @@ public class EventHandler(Plugin plugin)
         if (ev.Interactable.GameObject.name.StartsWith("Meeting"))
         {
             if (Plugin.Instance.MeetingCalled) return;
+
+            // Only living participants may call a meeting; otherwise a late joiner
+            // could set MeetingCalled without a voting phase ever starting.
+            if (!plugin.Impostors.Contains(ev.Player) && !plugin.Crewmates.Contains(ev.Player)) return;
 
             if (plugin.CurrentSabotage is { EnabledMeetings: false })
             {
@@ -365,49 +367,13 @@ public class EventHandler(Plugin plugin)
                 return;
             }
 
-            if (plugin.Impostors.Contains(ev.Player) || plugin.Crewmates.Contains(ev.Player))
-            {
-                if (!plugin.PlayerMeetings.ContainsKey(ev.Player))
-                    plugin.PlayerMeetings.Add(ev.Player, 0);
-                plugin.PlayerMeetings[ev.Player] += 1;
-            }
+            plugin.PlayerMeetings[ev.Player] = meetings + 1;
 
-            Plugin.Instance.MeetingCalled = true;
-            var ready = Player.ReadyList.ToList();
-            var spawnCount = plugin.SpawnList.Count;
-            for (var i = 0; i < ready.Count; i++)
-            {
-                var player = ready[i];
-                if (Plugin.Instance.MeetingButton == null) continue;
-
-                var spawnPos = plugin.SpawnList[i % spawnCount].transform.position;
-                var meetingPos = Plugin.Instance.MeetingButton.transform.position;
-
-                player.ClearInventory();
-                player.Position = spawnPos;
-                player.EnableEffect<Ensnared>();
-
-                if (!player.IsAlive)
-                    if (plugin.PlayerSkins.TryGetValue(player.NetworkId, out var skin) && skin != null &&
-                        skin.name.Contains("Death"))
-                    {
-                        skin.transform.position = spawnPos;
-                        var skinDirection = meetingPos - skin.transform.position;
-                        skin.transform.rotation =
-                            Quaternion.LookRotation(new Vector3(skinDirection.x, 0, skinDirection.z));
-                        continue;
-                    }
-
-                var direction = meetingPos - player.Position;
-                player.Rotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
-            }
-
-            if (!plugin.PlayerColors.TryGetValue(ev.Player.NetworkId, out var color)) return;
-            Timing.RunCoroutine(
-                plugin.BroadcastVotingCountdown(
-                    plugin.Translation.MeetingCalled.Replace("{player}",
-                        $"<color={color}>{ev.Player.Nickname} {Plugin.GetColorTypeByHex(color)}</color>"), ev.Player),
-                "BroadcastVotingCountdown");
+            if (!plugin.PlayerColors.TryGetValue(ev.Player.NetworkId, out var color))
+                color = "#FFFFFF";
+            plugin.StartMeeting(
+                plugin.Translation.MeetingCalled.Replace("{player}",
+                    $"<color={color}>{ev.Player.Nickname} {Plugin.GetColorTypeByHex(color)}</color>"), ev.Player);
         }
 
         if (ev.Interactable.GameObject.name == "ReportBody")
@@ -426,50 +392,13 @@ public class EventHandler(Plugin plugin)
             if (!plugin.PlayerColors.TryGetValue(ev.Player.NetworkId, out var reportedColor)) return;
             if (Plugin.Instance.MeetingCalled) return;
 
-            Plugin.Instance.MeetingCalled = true;
-
-            var ready = Player.ReadyList.ToList();
-            var spawnCount = plugin.SpawnList.Count;
-            for (var i = 0; i < ready.Count; i++)
-            {
-                var player = ready[i];
-                if (Plugin.Instance.MeetingButton == null) continue;
-
-                var spawnPos = plugin.SpawnList[i % spawnCount].transform.position;
-                var meetingPos = Plugin.Instance.MeetingButton.transform.position;
-
-                if (!player.IsAlive)
-                {
-                    if (plugin.PlayerSkins.TryGetValue(player.NetworkId, out var skin) && skin != null &&
-                        skin.name.Contains("Death"))
-                    {
-                        skin.transform.position = spawnPos;
-                        var skinDirection = meetingPos - skin.transform.position;
-                        skin.transform.rotation =
-                            Quaternion.LookRotation(new Vector3(skinDirection.x, 0, skinDirection.z));
-                    }
-
-                    continue;
-                }
-
-                player.ClearInventory();
-                player.Position = spawnPos;
-                player.EnableEffect<Ensnared>();
-                player.DisableEffect<Lightweight>();
-                player.DisableEffect<SilentWalk>();
-
-                var direction = meetingPos - player.Position;
-                player.Rotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
-            }
-
-            Timing.RunCoroutine(
-                plugin.BroadcastVotingCountdown(
-                    plugin.Translation.DeathBodyReported
-                        .Replace("{deadPlayer}",
-                            $"<color={color}>{deadPlayer.Nickname} {Plugin.GetColorTypeByHex(color)}</color>")
-                        .Replace("{reportedPlayer}",
-                            $"<color={reportedColor}>{ev.Player.Nickname} {Plugin.GetColorTypeByHex(reportedColor)}</color>"),
-                    ev.Player), "BroadcastVotingCountdown");
+            plugin.StartMeeting(
+                plugin.Translation.DeathBodyReported
+                    .Replace("{deadPlayer}",
+                        $"<color={color}>{deadPlayer.Nickname} {Plugin.GetColorTypeByHex(color)}</color>")
+                    .Replace("{reportedPlayer}",
+                        $"<color={reportedColor}>{ev.Player.Nickname} {Plugin.GetColorTypeByHex(reportedColor)}</color>"),
+                ev.Player);
         }
 
         if (ev.Interactable.GameObject.name.StartsWith("Teleport") && plugin.Impostors.Contains(ev.Player))

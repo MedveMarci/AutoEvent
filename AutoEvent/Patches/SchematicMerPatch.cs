@@ -15,11 +15,12 @@ public class SchematicMerPatch
             var declaringType = frame.GetMethod().DeclaringType;
             var assemblyName = declaringType.Assembly.GetName().Name;
 
-            if (!assemblyName.Contains("AutoEvent") || declaringType.Name == "SchematicMerPatch") 
+            if (!assemblyName.Contains("AutoEvent") || declaringType.Name == "SchematicMerPatch")
                 continue;
             __result = Path.Combine(AutoEvent.Singleton.Config.SchematicsDirectoryPath, "ProjectMER");
             return false;
         }
+
         return true;
     }
 }

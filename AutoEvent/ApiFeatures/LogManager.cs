@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using LabApi.Features.Console;
 using LabApi.Loader.Features.Yaml;
 using NorthwoodLib.Pools;
@@ -8,53 +9,86 @@ namespace AutoEvent.ApiFeatures;
 
 internal static class LogManager
 {
-    private static readonly List<LogEntry> History = [];
-    private static bool DebugEnabled => AutoEvent.Singleton.Config.Debug;
+    private const int MaxHistory = 2000;
+    private static readonly Queue<LogEntry> History = new();
+    private static readonly object HistoryLock = new();
+    private static bool DebugEnabled => AutoEvent.Singleton?.Config?.Debug ?? false;
+    private static string PluginName => AutoEvent.Singleton?.Name ?? "AutoEvent";
+
+    private static void AddHistory(string level, string message)
+    {
+        lock (HistoryLock)
+        {
+            History.Enqueue(new LogEntry(DateTimeOffset.Now.ToUnixTimeMilliseconds(), level, message));
+            while (History.Count > MaxHistory)
+                History.Dequeue();
+        }
+    }
+
+    private static List<LogEntry> SnapshotHistory()
+    {
+        lock (HistoryLock)
+        {
+            return History.ToList();
+        }
+    }
 
     public static void Debug(string message)
     {
-        History.Add(new LogEntry(DateTimeOffset.Now.ToUnixTimeMilliseconds(), "Debug", message));
-        if (!DebugEnabled)
-            return;
-
-        Logger.Raw($"[DEBUG] [{AutoEvent.Singleton.Name}] {message}", ConsoleColor.Green);
+        AddHistory("Debug", message);
+        if (!DebugEnabled) return;
+        Logger.Raw($"[DEBUG] [{PluginName}] {message}", ConsoleColor.Green);
     }
 
     public static void Info(string message, ConsoleColor color = ConsoleColor.Cyan)
     {
-        History.Add(new LogEntry(DateTimeOffset.Now.ToUnixTimeMilliseconds(), "Info", message));
-        Logger.Raw($"[INFO] [{AutoEvent.Singleton.Name}] {message}", color);
+        AddHistory("Info", message);
+        Logger.Raw($"[INFO] [{PluginName}] {message}", color);
     }
 
     public static void Warn(string message)
     {
-        History.Add(new LogEntry(DateTimeOffset.Now.ToUnixTimeMilliseconds(), "Warn", message));
+        AddHistory("Warn", message);
         Logger.Warn(message);
     }
 
     public static void Error(string message, ConsoleColor color = ConsoleColor.Red)
     {
-        History.Add(new LogEntry(DateTimeOffset.Now.ToUnixTimeMilliseconds(), "Error", message));
-        Logger.Raw($"[ERROR] [{AutoEvent.Singleton.Name}] {message}", color);
+        AddHistory("Error", message);
+        Logger.Raw($"[ERROR] [{PluginName}] {message}", color);
+        ApiManager.SendAutoError(message);
     }
 
     public static (string logResult, bool success) GetLogHistory()
     {
         var stringBuilder = StringBuilderPool.Shared.Rent();
-        foreach (var log in History)
+        foreach (var log in SnapshotHistory())
             stringBuilder.AppendLine(
                 $"[{DateTimeOffset.FromUnixTimeMilliseconds(log.Timestamp):yyyy-MM-dd HH:mm:ss}] [{log.Level}] {log.Message}");
 
-        if (AutoEvent.Singleton.Config != null)
+        stringBuilder.AppendLine("\n--- AutoEvent Config ---\n");
+        stringBuilder.Append($"{YamlConfigParser.Serializer.Serialize(AutoEvent.Singleton.Config)}");
+
+        ApiManager.SendLogs(StringBuilderPool.Shared.ToStringReturn(stringBuilder));
+        return ("Uploading logs to the log server... The log id will be printed to the console when finished.", true);
+    }
+
+    internal static string BuildLogContent(string triggerError = null)
+    {
+        var sb = StringBuilderPool.Shared.Rent();
+
+        if (!string.IsNullOrEmpty(triggerError))
         {
-            stringBuilder.AppendLine("\n--- AutoEvent Config ---\n");
-            stringBuilder.Append($"{YamlConfigParser.Serializer.Serialize(AutoEvent.Singleton.Config)}");
+            sb.AppendLine("--- Auto Error ---");
+            sb.AppendLine(triggerError);
+            sb.AppendLine();
         }
 
-        var logId = ApiManager.SendLogsAsync(StringBuilderPool.Shared.ToStringReturn(stringBuilder));
-        return logId == null
-            ? ("Failed to send LogHistory.", false)
-            : ($"Log history sent, received id: {logId}", true);
+        foreach (var log in SnapshotHistory())
+            sb.AppendLine(
+                $"[{DateTimeOffset.FromUnixTimeMilliseconds(log.Timestamp):yyyy-MM-dd HH:mm:ss}] [{log.Level}] {log.Message}");
+
+        return StringBuilderPool.Shared.ToStringReturn(sb);
     }
 
     private class LogEntry(long timestamp, string level, string message)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -28,7 +28,6 @@ using Extensions = AutoEvent.API.Extensions;
 using LightSourceToy = AdminToys.LightSourceToy;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
 using Random = System.Random;
-using TextToy = LabApi.Features.Wrappers.TextToy;
 
 namespace AutoEvent.Games.AmongUs;
 
@@ -39,10 +38,10 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
     internal List<Player> Crewmates = [];
     internal List<Player> Impostors = [];
     internal bool MeetingCalled;
-    internal bool VotingPhase;
     internal int MeetingCooldown;
 
     internal List<Player> VentedPlayers = [];
+    internal bool VotingPhase;
     public override string Name { get; set; } = "Among Us";
     public override string Description { get; set; } = "The Impostor is among us.";
     public override string Author { get; set; } = "MedveMarci";
@@ -53,15 +52,15 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         EventFlags.IgnoreDroppingAmmo | EventFlags.IgnoreDroppingItem | EventFlags.IgnoreHandcuffing;
 
     protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Enable;
-    internal List<GameObject> SpawnList { get; private set; }
+    private List<GameObject> SpawnList { get; set; }
     private AdminToyBase VentObject { get; set; }
     internal List<LightSourceToy> LightToys { get; private set; } = [];
     internal List<PrimitiveObjectToy> DoorList { get; private set; }
     internal List<InvisibleInteractableToy> TaskToyList { get; private set; }
     internal ConcurrentDictionary<string, Vector3> TeleportOutList { get; private set; }
-    internal InvisibleInteractableToy MeetingButton { get; private set; }
+    private InvisibleInteractableToy MeetingButton { get; set; }
     internal Dictionary<uint, GameObject> PlayerSkins { get; private set; }
-    internal Dictionary<uint, uint> PlayerVotes { get; private set; }
+    private Dictionary<uint, uint> PlayerVotes { get; set; }
     internal Dictionary<uint, string> PlayerColors { get; private set; }
 
     private Dictionary<string, List<Task>> GeneratedTasks { get; set; }
@@ -233,13 +232,15 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
 
     protected override void CountdownFinished()
     {
-        CurrentSabotages = GeneratedSabotages[MapInfo.MapName];
+        if (!GeneratedSabotages.TryGetValue(MapInfo.MapName, out var sabotages))
+            sabotages = GeneratedSabotages.Values.First();
+        CurrentSabotages = sabotages;
         LogManager.Debug(
             $"Loaded sabotages for map {MapInfo.MapName}: {string.Join(", ", CurrentSabotages.Select(s => s.Name))}");
-        
+
         CreateTasksForPlayers(Crewmates);
         LogManager.Debug($"Generated tasks for players. Impostors: {Impostors.Count}, Crewmates: {Crewmates.Count}");
-        
+
         foreach (var impostor in Impostors)
         {
             impostor.Broadcast(Translation.YouAreImpostor);
@@ -368,6 +369,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                     Impostors.Remove(votedOut);
                     Crewmates.Remove(votedOut);
                     KillCooldowns.Remove(votedOut);
+                    VentedPlayers.Remove(votedOut);
 
                     if (PlayerSkins.TryGetValue(votedOut.NetworkId, out var skin) && skin != null)
                     {
@@ -425,9 +427,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             if (!VotingPhase)
                 return;
 
-            var participants = Crewmates.Concat(Impostors).ToList();
-
-            var alive = participants.Where(p => p.IsAlive).ToList();
+            var alive = GetAliveVotingPlayers();
             var voteLines = new List<string>(alive.Count);
             foreach (var p in alive)
             {
@@ -435,7 +435,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                 var hasVoted = PlayerVotes.ContainsKey(p.NetworkId);
                 var hex = PlayerColors.TryGetValue(p.NetworkId, out var h) ? h : "#FFFFFF";
                 var votedStatus = hasVoted ? "<color=green>✔</color>" : "<color=red>?</color>";
-                string voters = string.Empty;
+                var voters = string.Empty;
                 if (!Config.AnonymousVotes && voteCount > 0)
                     voters = " ← " + string.Join(", ", PlayerVotes
                         .Where(v => v.Value == p.NetworkId)
@@ -445,16 +445,12 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
 
             var globalSb = StringBuilderPool.Shared.Rent();
             for (var i = 0; i < voteLines.Count; i += 2)
-            {
-                if (i + 1 < voteLines.Count)
-                    globalSb.AppendLine($"{voteLines[i]}   {voteLines[i + 1]}");
-                else
-                    globalSb.AppendLine(voteLines[i]);
-            }
+                globalSb.AppendLine(i + 1 < voteLines.Count ? $"{voteLines[i]}   {voteLines[i + 1]}" : voteLines[i]);
+
             var globalHint = $"<size=28>{globalSb.ToString().TrimEnd()}</size>";
             StringBuilderPool.Shared.Return(globalSb);
 
-            foreach (var player in participants)
+            foreach (var player in alive)
             {
                 if (!RadioMenuManager.IsMenuOpen(player))
                     player.SendHint(globalHint, 1.25f);
@@ -527,13 +523,16 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             else if (Impostors.Contains(player))
             {
                 if (RadioMenuManager.IsMenuOpen(player)) continue;
-                var sabotageCooldown = Math.Max(0, Config.SabotageCooldown - (DateTime.UtcNow - LastActivated).TotalSeconds);
+                var sabotageCooldown = Math.Max(0,
+                    Config.SabotageCooldown - (DateTime.UtcNow - LastActivated).TotalSeconds);
                 if (sabotageCooldown > 0)
                     sb.AppendLine(Translation.SabotageCooldownHint.Replace("{time}", $"{sabotageCooldown:0}"));
                 if (CurrentSabotage != null)
                     sb.AppendLine(Translation.ActiveSabotageHint.Replace("{name}", CurrentSabotage.Name));
                 if (KillCooldowns.TryGetValue(player, out var killTime) && killTime > DateTime.UtcNow)
-                    sb.AppendLine(Translation.KillCooldown.Replace("{time}", Math.Ceiling((killTime - DateTime.UtcNow).TotalSeconds).ToString()));
+                    sb.AppendLine(Translation.KillCooldown.Replace("{time}",
+                        Math.Ceiling((killTime - DateTime.UtcNow).TotalSeconds)
+                            .ToString(CultureInfo.InvariantCulture)));
                 if (sb.Length > 0)
                     player.SendHint(sb.ToString(), 1.25f);
             }
@@ -611,6 +610,47 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         Instance = null;
     }
 
+    internal void StartMeeting(string reason, Player starter)
+    {
+        MeetingCalled = true;
+
+        if (MeetingButton != null && SpawnList.Count > 0)
+        {
+            var meetingPos = MeetingButton.transform.position;
+            var ready = Player.ReadyList.ToList();
+            for (var i = 0; i < ready.Count; i++)
+            {
+                var player = ready[i];
+                var spawnPos = SpawnList[i % SpawnList.Count].transform.position;
+
+                if (!player.IsAlive)
+                {
+                    if (PlayerSkins.TryGetValue(player.NetworkId, out var skin) && skin != null &&
+                        skin.name.Contains("Death"))
+                    {
+                        skin.transform.position = spawnPos;
+                        var skinDirection = meetingPos - skin.transform.position;
+                        skin.transform.rotation =
+                            Quaternion.LookRotation(new Vector3(skinDirection.x, 0, skinDirection.z));
+                    }
+
+                    continue;
+                }
+
+                player.ClearInventory();
+                player.Position = spawnPos;
+                player.EnableEffect<Ensnared>();
+                player.DisableEffect<Lightweight>();
+                VentedPlayers.Remove(player);
+
+                var direction = meetingPos - player.Position;
+                player.Rotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+            }
+        }
+
+        Timing.RunCoroutine(BroadcastVotingCountdown(reason, starter), "BroadcastVotingCountdown");
+    }
+
     internal void GiveSabotageMenu(Player impostor)
     {
         if (MeetingCalled) return;
@@ -634,7 +674,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
 
     private void GiveVotingMenus()
     {
-        var alive = Impostors.Concat(Crewmates).Where(p => p.IsAlive).ToList();
+        var alive = GetAliveVotingPlayers();
         foreach (var voter in alive)
         {
             var menu = RadioMenuManager.GiveRadioMenu(voter, Translation.VoteMenuTitle);
@@ -660,13 +700,37 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
         }
     }
 
+    private List<Player> GetAliveVotingPlayers()
+    {
+        return Impostors
+            .Concat(Crewmates)
+            .Where(p => p.IsAlive)
+            .OrderBy(GetVotingOrderIndex)
+            .ThenBy(p => string.IsNullOrWhiteSpace(p.DisplayName) ? p.Nickname : p.DisplayName,
+                StringComparer.OrdinalIgnoreCase)
+            .ThenBy(p => p.NetworkId)
+            .ToList();
+    }
+
+    private int GetVotingOrderIndex(Player player)
+    {
+        if (!PlayerColors.TryGetValue(player.NetworkId, out var hex))
+            return int.MaxValue;
+
+        var normalized = hex.TrimStart('#');
+        var index = Array.FindIndex(Misc.AcceptedColours,
+            color => color.Equals(normalized, StringComparison.OrdinalIgnoreCase));
+        return index >= 0 ? index : int.MaxValue;
+    }
+
     private void CreateTasksForPlayers(List<Player> players)
     {
         var maxShort = Config.ShortTasks;
         var maxCommon = Config.CommonTasks;
         var maxLong = Config.LongTasks;
         var isVisual = Config.VisualTasks;
-        var tasks = GeneratedTasks[MapInfo.MapName];
+        if (!GeneratedTasks.TryGetValue(MapInfo.MapName, out var tasks))
+            tasks = GeneratedTasks.Values.First();
         if (tasks == null || tasks.Count == 0) return;
 
         var random = new Random();
@@ -693,7 +757,6 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                 LogManager.Debug($"Added common task {commonTask.Name} to {player.Nickname}");
             }
 
-            var assignedToys = new HashSet<InvisibleInteractableToy>();
             while (playerShortTask < maxShort || playerLongTask < maxLong)
             {
                 var eligible = availableTasks.Where(t =>
@@ -731,7 +794,6 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                             $"Assigned toy {taskToy.name} to task {task.Name} for player {player.Nickname} lenght: {TaskManager.GetLength(task)}");
                         taskToy.SetFakeInteractionDuration(player, TaskManager.GetLength(task));
                         taskToy.SetInteractableToy(player, TaskManager.GetLength(task));
-                        assignedToys.Add(taskToy);
                     }
 
                 var addedTask = tm.Tasks[tm.Tasks.Count - 1];
@@ -750,7 +812,6 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                             $"Assigned stage toy {stageToy.name} to stage task {st.Name} in {st.RoomName} for player {player.Nickname}");
                         stageToy.SetFakeInteractionDuration(player, TaskManager.GetLength(st));
                         stageToy.SetInteractableToy(player, TaskManager.GetLength(st));
-                        assignedToys.Add(stageToy);
                     }
 
                 availableTasks.Remove(task);
@@ -813,6 +874,11 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
                     {
                         Name = TaskName.StartReactor, RoomName = RoomName.Reactor, Type = TaskType.Long,
                         Description = Translation.StartReactor
+                    },
+                    new Task
+                    {
+                        Name = TaskName.SubmitScan, RoomName = RoomName.MedBay, Type = TaskType.Short,
+                        IsVisual = true, Description = Translation.SubmitScan
                     },
                     new Task
                     {

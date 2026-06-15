@@ -37,6 +37,22 @@ public static class Extensions
 
     private static readonly ConcurrentDictionary<ulong, float> InteractableToys = new();
 
+    internal static T PickWeightedRandom<T>(IReadOnlyList<T> items, Func<T, float> weightOf)
+    {
+        if (items.Count == 1)
+            return items[0];
+
+        var roll = Random.Range(0f, items.Sum(weightOf));
+        foreach (var item in items)
+        {
+            roll -= weightOf(item);
+            if (roll <= 0f)
+                return item;
+        }
+
+        return items[items.Count - 1];
+    }
+
     public static void TeleportEnd()
     {
         foreach (var player in Player.ReadyList)
@@ -132,11 +148,7 @@ public static class Extensions
             return null;
         }
 
-#if APAPI
-        return AudioPlayerApiIntegration.PlayAudio(filePath, isLoop, isSpatial, minDistance, maxDistance, speakerPosition);
-#else
-        return SlNaIntegration.PlayAudio(filePath, isLoop, isSpatial, minDistance, maxDistance, speakerPosition);
-#endif
+        return SlNaExtensions.PlayAudio(filePath, isLoop, isSpatial, minDistance, maxDistance, speakerPosition);
     }
 
     /// <summary>
@@ -152,11 +164,7 @@ public static class Extensions
             return null;
         }
 
-#if APAPI
-        return AudioPlayerApiIntegration.PlayPlayerAudio(player, filePath, isLoop);
-#else
-        return SlNaIntegration.PlayPlayerAudio(player, filePath, isLoop);
-#endif
+        return SlNaExtensions.PlayPlayerAudio(player, filePath, isLoop);
     }
 
     extension(Player ply)
@@ -181,28 +189,10 @@ public static class Extensions
 
         public void GiveLoadout(List<Loadout> loadouts, LoadoutFlags flags = LoadoutFlags.None)
         {
-            Loadout loadout;
-            if (loadouts.Count == 1)
-            {
-                loadout = loadouts[0];
-                goto assignLoadout;
-            }
-
             foreach (var loadout1 in loadouts.Where(x => x.Chance <= 0))
                 loadout1.Chance = 1;
 
-            var totalChance = loadouts.Sum(x => x.Chance);
-
-            for (var i = 0; i < loadouts.Count - 1; i++)
-                if (Random.Range(0, totalChance) <= loadouts[i].Chance)
-                {
-                    loadout = loadouts[i];
-                    goto assignLoadout;
-                }
-
-            loadout = loadouts[loadouts.Count - 1];
-            assignLoadout:
-            ply.GiveLoadout(loadout, flags);
+            ply.GiveLoadout(PickWeightedRandom(loadouts, x => x.Chance), flags);
         }
 
         public void GiveLoadout(Loadout loadout, LoadoutFlags flags = LoadoutFlags.None)
@@ -215,26 +205,8 @@ public static class Extensions
                 if (flags.HasFlag(LoadoutFlags.DontClearDefaultItems))
                     respawnFlags |= RoleSpawnFlags.AssignInventory;
 
-                RoleTypeId role;
-                if (loadout.Roles.Count == 1)
-                {
-                    role = loadout.Roles.First().Key;
-                }
-                else
-                {
-                    var list = loadout.Roles.ToList();
-                    var roleTotalChance = list.Sum(x => x.Value);
-                    for (var i = 0; i < list.Count - 1; i++)
-                        if (Random.Range(0, roleTotalChance) <= list[i].Value)
-                        {
-                            role = list[i].Key;
-                            goto assignRole;
-                        }
+                var role = PickWeightedRandom(loadout.Roles.ToList(), x => x.Value).Key;
 
-                    role = list[list.Count - 1].Key;
-                }
-
-                assignRole:
                 if (AutoEvent.Singleton.Config.IgnoredRoles.Contains(role))
                 {
                     LogManager.Warn(
@@ -256,9 +228,14 @@ public static class Extensions
                     ply.AddItem(item);
                 }
 
-            if ((loadout.InfiniteAmmo != AmmoMode.None && !flags.HasFlag(LoadoutFlags.IgnoreInfiniteAmmo)) ||
-                flags.HasFlag(LoadoutFlags.ForceInfiniteAmmo) ||
-                flags.HasFlag(LoadoutFlags.ForceEndlessClip)) ply.GiveInfiniteAmmo(AmmoMode.InfiniteAmmo);
+            var ammoMode = loadout.InfiniteAmmo;
+            if (flags.HasFlag(LoadoutFlags.ForceEndlessClip))
+                ammoMode = AmmoMode.NoReloadInfiniteAmmo;
+            else if (flags.HasFlag(LoadoutFlags.ForceInfiniteAmmo))
+                ammoMode = AmmoMode.InfiniteAmmo;
+            else if (flags.HasFlag(LoadoutFlags.IgnoreInfiniteAmmo))
+                ammoMode = AmmoMode.None;
+            if (ammoMode != AmmoMode.None) ply.GiveInfiniteAmmo(ammoMode);
             if (loadout.Health != 0 && !flags.HasFlag(LoadoutFlags.IgnoreHealth))
                 ply.Health = loadout.Health;
             if (loadout.Health == -1 && !flags.HasFlag(LoadoutFlags.IgnoreGodMode)) ply.IsGodModeEnabled = true;

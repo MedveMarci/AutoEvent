@@ -14,30 +14,6 @@ namespace AutoEvent;
 
 internal class EventHandler : CustomEventsHandler
 {
-    public override void OnServerWaveRespawning(WaveRespawningEventArgs ev)
-    {
-        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
-        if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.Default))
-            ev.IsAllowed = false;
-        base.OnServerWaveRespawning(ev);
-    }
-
-    public override void OnServerWaveTeamSelecting(WaveTeamSelectingEventArgs ev)
-    {
-        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
-        if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.Default))
-            ev.IsAllowed = false;
-        base.OnServerWaveTeamSelecting(ev);
-    }
-
-    public override void OnServerLczDecontaminationStarting(LczDecontaminationStartingEventArgs ev)
-    {
-        if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
-        if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.Default))
-            ev.IsAllowed = false;
-        base.OnServerLczDecontaminationStarting(ev);
-    }
-
     public override void OnPlayerPlacingBulletHole(PlayerPlacingBulletHoleEventArgs ev)
     {
         if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;

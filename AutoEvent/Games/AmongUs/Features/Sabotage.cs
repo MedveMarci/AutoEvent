@@ -102,5 +102,10 @@ public class Sabotage
                 light.SetColor(light.NetworkLightColor, Color.white);
 
         plugin.CurrentSabotage = null;
+
+        // If the sabotage outlasted its cooldown, the delayed re-give in TryActivate was
+        // blocked by CurrentSabotage being set — hand the menu back now instead.
+        foreach (var impostor in plugin.Impostors.Where(i => i.IsAlive))
+            plugin.GiveSabotageMenu(impostor);
     }
 }

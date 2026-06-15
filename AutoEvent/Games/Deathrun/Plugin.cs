@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoEvent.API;
 using AutoEvent.API.Enums;
+using AutoEvent.ApiFeatures;
 using AutoEvent.Interfaces;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
 using MEC;
+using Mirror;
 using PlayerRoles;
 using UnityEngine;
+using Extensions = AutoEvent.API.Extensions;
 
 namespace AutoEvent.Games.Deathrun;
 
@@ -21,6 +24,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll;
     private GameObject Wall { get; set; }
     private List<GameObject> RunnerSpawns { get; set; }
+    internal static List<GameObject> TeleportOuts { get; set; }
 
     public MapInfo MapInfo { get; set; } = new()
     {
@@ -43,18 +47,39 @@ public class Plugin : Event<Config, Translation>, IEventMap
     protected override void OnStart()
     {
         RunnerSpawns = [];
+        TeleportOuts = [];
         List<GameObject> deathSpawns = [];
         foreach (var block in MapInfo.Map.AttachedBlocks)
             switch (block.name)
             {
-                case "Spawnpoint": RunnerSpawns.Add(block); break;
-                case "Spawnpoint1": deathSpawns.Add(block); break;
+                case "RunSpawn": RunnerSpawns.Add(block); break;
+                case "DeathSpawn": deathSpawns.Add(block); break;
                 case "Wall": Wall = block; break;
                 case "KillTrigger": block.AddComponent<KillComponent>(); break;
+                case "FanTrigger": block.AddComponent<FanComponent>(); break;
                 case "ColliderTrigger": block.AddComponent<ColliderComponent>(); break;
                 case "WeaponTrigger": block.AddComponent<WeaponComponent>().StartComponent(this); break;
                 case "PoisonTrigger": block.AddComponent<PoisonComponent>(); break;
+                case "RunTeleportIn":
+                case "DeathTeleportIn1":
+                case "DeathTeleportIn2": block.AddComponent<TeleportComponent>(); break;
+                case "RunTeleportOut":
+                case "DeathTeleportOut1":
+                case "DeathTeleportOut2": TeleportOuts.Add(block); break;
+                case "Capybara": CapybaraToy.Create(block.transform); break;
+                case "Grenade":
+                    block.AddComponent<Rigidbody>().isKinematic = true;
+                    block.AddComponent<BoxCollider>().isTrigger = true;
+                    break;
             }
+
+        if (RunnerSpawns.Count == 0 || deathSpawns.Count == 0)
+        {
+            LogManager.Error(
+                $"[Deathrun] Map {MapInfo.MapName} has no RunSpawn/DeathSpawn points, the event cannot start.");
+            StopEvent();
+            return;
+        }
 
         var deathCount = Math.Max(1, Player.ReadyList.Count() / 20);
         var availablePlayers = Player.ReadyList.ToList();
@@ -88,7 +113,8 @@ public class Plugin : Event<Config, Translation>, IEventMap
     // Destroy the wall so that players can start passing the map
     protected override void CountdownFinished()
     {
-        Wall.transform.position += new Vector3(0, 10, 0);
+        if (Wall != null)
+            NetworkServer.Destroy(Wall);
     }
 
     // While all the players are alive and time has not over

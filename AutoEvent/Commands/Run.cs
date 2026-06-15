@@ -25,6 +25,12 @@ internal class Run : ICommand, IUsageProvider
             return false;
         }
 
+        if (AutoEvent.InternalEventManager == null)
+        {
+            response = "The plugin failed to initialize. Check server console for errors.";
+            return false;
+        }
+
         if (AutoEvent.InternalEventManager.CurrentEvent != null)
         {
             response = $"The mini-game {AutoEvent.InternalEventManager.CurrentEvent.Name} is already running!";
@@ -40,19 +46,30 @@ internal class Run : ICommand, IUsageProvider
         var ev = AutoEvent.InternalEventManager.GetEvent(arguments.At(0));
         if (ev == null)
         {
-            response = $"The mini-game '{arguments.At(0)}' was not found.";
+            var query = arguments.At(0);
+            var suggestions = AutoEvent.InternalEventManager.Events
+                .Where(x => x.CommandName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                            x.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .Select(x => x.CommandName)
+                .OrderBy(x => x)
+                .ToList();
+
+            response = suggestions.Count > 0
+                ? $"The mini-game '{query}' was not found. Did you mean: {string.Join(", ", suggestions)}?"
+                : $"The mini-game '{query}' was not found. Use 'ev list' to see all available mini-games.";
             return false;
         }
 
-        if (ev is IEventMap map && !string.IsNullOrEmpty(map.MapInfo.MapName) &&
+        if (ev is IEventMap map && map.MapInfo != null &&
+            !string.IsNullOrEmpty(map.MapInfo.MapName) &&
             !string.Equals(map.MapInfo.MapName, "none", StringComparison.OrdinalIgnoreCase))
             if (!Extensions.IsExistsMap(map.MapInfo.MapName, out response))
                 return false;
 
         var readyPlayers = Player.ReadyList;
-        var ignoredRoles = AutoEvent.Singleton.Config?.IgnoredRoles;
+        var ignoredRoles = AutoEvent.Singleton?.Config.IgnoredRoles;
         if (ignoredRoles is { Count: > 0 })
-            readyPlayers = readyPlayers.Where(p => !ignoredRoles.Contains(p.Role));
+            readyPlayers = readyPlayers.Where(p => p != null && !ignoredRoles.Contains(p.Role));
 
         var players = readyPlayers.ToList();
         if (!players.Any())
@@ -98,28 +115,33 @@ internal class Run : ICommand, IUsageProvider
                     .Distinct()
                     .ToList();
 
-                switch (matches.Count)
+                var exactMatch =
+                    availableMaps.FirstOrDefault(m => m.MapName.Equals(input, StringComparison.OrdinalIgnoreCase));
+                if (exactMatch != null)
                 {
-                    case 0:
+                    mapName = exactMatch.MapName;
+                }
+                else
+                {
+                    switch (matches.Count)
                     {
-                        var allNames = string.Join(", ", availableMaps.Select(m => m.MapName).Distinct());
-                        response = $"No map matching '{input}' was found.\nAvailable maps: {allNames}";
-                        return false;
+                        case 0:
+                        {
+                            var allNames = string.Join(", ", availableMaps.Select(m => m.MapName).Distinct());
+                            response = $"No map matching '{input}' was found.\nAvailable maps: {allNames}";
+                            return false;
+                        }
+                        case > 1:
+                            response =
+                                $"Multiple maps match '{input}': {string.Join(", ", matches)}\nPlease be more specific.";
+                            return false;
                     }
-                    case > 1:
-                        response =
-                            $"Multiple maps match '{input}': {string.Join(", ", matches)}\nPlease be more specific.";
+
+                    mapName = matches[0];
+
+                    if (!Extensions.IsExistsMap(mapName, out response))
                         return false;
                 }
-
-                mapName = matches[0];
-
-                if (!Extensions.IsExistsMap(mapName, out response))
-                    return false;
-            }
-            else
-            {
-                mapName = input;
             }
         }
 
@@ -130,7 +152,11 @@ internal class Run : ICommand, IUsageProvider
             Timing.CallDelayed(1f, () =>
             {
                 foreach (var player in Player.ReadyList)
+                {
                     player.ClearInventory();
+                    player.SetRole(AutoEvent.Singleton.Config.LobbyRole);
+                }
+
                 ev.StartEvent(mapName);
             });
         }
