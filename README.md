@@ -74,13 +74,7 @@ includes **26 unique mini-games**.
 | [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | LabAPI utility extensions (*required for Among Us) |
 | [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | Map/schematic loading                              |
 | [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | Radio menu system (*required for Among Us)         |
-
-**Audio backend — pick one DLL variant:**
-
-| DLL variant           | Audio plugin                                                    | Notes       |
-|-----------------------|-----------------------------------------------------------------|-------------|
-| `AutoEvent.dll`       | [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)    | Recommended |
-| `AutoEvent.APAPI.dll` | [AudioPlayerAPI](https://github.com/Killers0992/AudioPlayerApi) | Alternative |
+| [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)           | Yes      | Audio backend plugin                               |
 
 > - A working version of ProjectMER can be found on the [Discord server](https://discord.gg/KmpA8cfaSA).
 > - **Only install one AutoEvent DLL at a time.** If both variants are present, the second one will refuse to load.
@@ -91,7 +85,7 @@ includes **26 unique mini-games**.
 ## Quick Start
 
 1. Download the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest):
-    - `AutoEvent.dll` *(SecretLabNAudio)* **or** `AutoEvent.APAPI.dll` *(AudioPlayerAPI)* — pick one
+    - `AutoEvent.dll`
     - `0Harmony.dll` (skip if Harmony is already installed)
     - `Music.zip`
 2. Place `AutoEvent.dll` in `LabApi/plugins/global/`
@@ -125,4 +119,4 @@ See the full [Installation Guide](https://github.com/MedveMarci/AutoEvent/blob/m
 - Command code by **art15**
 - Support by **Sakred_**
 - Map plugin [ProjectMER](https://github.com/Michal78900/ProjectMER) by **Michal78900**
-- Audio plugins [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio) by **Axwabo**
+- Audio plugin [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio) by **Axwabo**
