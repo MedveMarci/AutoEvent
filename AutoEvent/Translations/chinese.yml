@@ -61,7 +61,7 @@ Among Us:
   death_body_reported: '<color=red>{deadPlayer}</color> 的尸体被 <color=yellow>{reportedPlayer}</color> 发现了！'
   emergency_meetings_reached: '你无法再发起紧急会议了！'
   meeting_cooldown: '你还需要等待 {time} 秒才能再次发起会议！'
-  cannot_call_meeting_during_sabotage: '你不能在破坏期间召开紧急会议！'  
+  cannot_call_meeting_during_sabotage: '你不能在破坏期间召开紧急会议！'
   calibrate_distributor: '校准分配器'
   chart_course: '规划航线'
   clean_o2_filter: '清理 O2 过滤器'

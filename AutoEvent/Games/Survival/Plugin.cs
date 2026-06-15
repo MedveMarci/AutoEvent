@@ -17,6 +17,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     private TimeSpan _remainingTime;
     private GameObject _teleport;
     private GameObject _teleport1;
+    private IAudioHandle _zombieAudio;
     internal Player FirstZombie;
     internal List<GameObject> SpawnList;
     public override string Name { get; set; } = "Zombie Survival";
@@ -83,7 +84,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void CountdownFinished()
     {
-        Extensions.PlayAudio("Zombie2.ogg", true);
+        _zombieAudio = Extensions.PlayAudio("Zombie2.ogg", true);
 
         var players = Config.Zombies.GetPlayers();
         foreach (var player in players)
@@ -144,7 +145,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             musicName = "ZombieWin.ogg";
         }
         else if (Player.ReadyList.Count(r => r.IsSCP) == 0)
-
         {
             text = Translation.SurvivalHumanWin;
         }
@@ -154,6 +154,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
 
         StopAudio();
+        _zombieAudio?.StopAudio();
         Extensions.PlayAudio(musicName);
         Extensions.ServerBroadcast(text, 10);
     }

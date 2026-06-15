@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using AutoEvent.ApiFeatures;
-using CedMod;
 using GameCore;
 using LabApi.Features.Wrappers;
 using PlayerStatsSystem;
@@ -10,65 +10,75 @@ namespace AutoEvent.API;
 
 public abstract class FriendlyFireSystem
 {
+    // CedMod is a soft dependency: its FriendlyFireAutoban is toggled via reflection,
+    // so AutoEvent works whether or not CedMod is installed.
+    private static MemberInfo _cedModAdminDisabledMember;
+    private static bool _cedModResolved;
+
     static FriendlyFireSystem()
     {
-        CedModIsPresent = false;
-        InitializeFfSettings();
         FriendlyFireAutoBanDefaultEnabled = IsFriendlyFireEnabledByDefault;
     }
 
-    private static bool CedModIsPresent { get; set; }
     public static bool IsFriendlyFireEnabledByDefault { get; set; }
     public static bool FriendlyFireAutoBanDefaultEnabled { get; set; }
 
-    public static bool FriendlyFireDetectorIsDisabled
+    private static MemberInfo ResolveCedModAutobanMember()
     {
-        get
+        // Resolved lazily so CedMod is found even if it loads after AutoEvent.
+        if (_cedModResolved)
+            return _cedModAdminDisabledMember;
+
+        _cedModResolved = true;
+        try
         {
-            try
+            var cedModAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x =>
+                x.GetName().Name.IndexOf("cedmod", StringComparison.OrdinalIgnoreCase) >= 0);
+            if (cedModAssembly == null)
             {
-                // if cedmod detector is not paused - false
-                if (CedModIsPresent)
-                    if (!_cedmodFFAutobanIsDisabled())
-                        return false;
-
-                // if basegame detector is not paused - false
-                return FriendlyFireConfig.PauseDetector;
-                // Both MUST be off to be considered "paused".
+                LogManager.Debug("CedMod has not been detected.");
+                return null;
             }
-            catch
+
+            var autobanType = cedModAssembly.GetType("CedMod.FriendlyFireAutoban");
+            _cedModAdminDisabledMember =
+                (MemberInfo)autobanType?.GetProperty("AdminDisabled", BindingFlags.Public | BindingFlags.Static)
+                ?? autobanType?.GetField("AdminDisabled", BindingFlags.Public | BindingFlags.Static);
+
+            LogManager.Debug(_cedModAdminDisabledMember != null
+                ? "CedMod has been detected. FF autoban will also be toggled through CedMod."
+                : "CedMod was detected, but its FriendlyFireAutoban API was not found.");
+        }
+        catch (Exception e)
+        {
+            LogManager.Debug($"CedMod detection failed: {e.Message}");
+            _cedModAdminDisabledMember = null;
+        }
+
+        return _cedModAdminDisabledMember;
+    }
+
+    private static void SetCedModAutobanDisabled(bool disabled)
+    {
+        var member = ResolveCedModAutobanMember();
+        if (member == null) return;
+
+        try
+        {
+            switch (member)
             {
-                return false;
+                case PropertyInfo property:
+                    property.SetValue(null, disabled);
+                    break;
+                case FieldInfo field:
+                    field.SetValue(null, disabled);
+                    break;
             }
         }
-    }
-
-    private static void InitializeFfSettings()
-    {
-        if (AppDomain.CurrentDomain.GetAssemblies().Any(x => x.FullName.ToLower().Contains("cedmod")))
+        catch (Exception e)
         {
-            LogManager.Debug("CedMod has been detected.");
-            CedModIsPresent = true;
+            LogManager.Error($"Failed to toggle CedMod FF autoban: {e.Message}");
         }
-        else
-        {
-            LogManager.Debug("CedMod has not been detected.");
-        }
-    }
-
-    private static bool _cedmodFFAutobanIsDisabled()
-    {
-        return FriendlyFireAutoban.AdminDisabled;
-    }
-
-    private static void _cedmodFFDisable()
-    {
-        FriendlyFireAutoban.AdminDisabled = true;
-    }
-
-    private static void _cedmodFFEnable()
-    {
-        FriendlyFireAutoban.AdminDisabled = false;
     }
 
     public static void UnPauseFriendlyFireDetector()
@@ -78,8 +88,7 @@ public abstract class FriendlyFireSystem
         {
             FriendlyFireConfig.PauseDetector = false;
             AttackerDamageHandler._ffMultiplier = ConfigFile.ServerConfig.GetFloat("friendly_fire_multiplier", 0.4f);
-
-            if (CedModIsPresent) _cedmodFFEnable();
+            SetCedModAutobanDisabled(false);
         }
         catch (Exception e)
         {
@@ -94,9 +103,7 @@ public abstract class FriendlyFireSystem
         {
             LogManager.Debug("Disabling Friendly Fire Detector.");
             FriendlyFireConfig.PauseDetector = true;
-
-            if (CedModIsPresent)
-                _cedmodFFDisable();
+            SetCedModAutobanDisabled(true);
         }
         catch (Exception e)
         {
@@ -124,5 +131,6 @@ public abstract class FriendlyFireSystem
         LogManager.Debug("Restoring Friendly Fire and Detector.");
         Server.FriendlyFire = IsFriendlyFireEnabledByDefault;
         AttackerDamageHandler.RefreshConfigs();
+        SetCedModAutobanDisabled(false);
     }
 }

@@ -2,123 +2,94 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using LabApi.Features;
+using NorthwoodLib.Pools;
 
 namespace AutoEvent.ApiFeatures;
 
-public static class ApiManager
+internal static class ApiManager
 {
     private const string ApiBase = "https://bearmanapi.hu";
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(8);
+
+    private static readonly Dictionary<string, DateTime> AutoErrorLastSent = new();
+    private static readonly TimeSpan DedupWindow = TimeSpan.FromSeconds(5);
+
     private static readonly Dictionary<string, CreditTag> SavedCreditTags = new();
 
     internal static void CheckForUpdates()
     {
-        try
+        Task.Run(async () =>
         {
             var name = AutoEvent.Singleton.Name;
-            var currentVersion = AutoEvent.Singleton.Version;
+            var current = AutoEvent.Singleton.Version;
 
-            string resp;
             try
             {
-                resp = HttpQuery.Get($"{ApiBase}/api/v1/plugin/{Uri.EscapeDataString(name)}/latest");
-            }
-            catch (Exception)
-            {
-                LogManager.Warn("Could not reach BearmanAPI. Skipping update check.");
-                return;
-            }
+                var resp = await WithTimeout(
+                    HttpQuery.GetAsync($"{ApiBase}/api/v1/plugin/{Uri.EscapeDataString(name)}/latest"));
 
-            var (statusCode, message) = ParseApiResponse(resp);
-
-            if (statusCode != HttpStatusCode.OK)
-            {
-                LogManager.Debug($"Version check failed: {statusCode} - {message ?? "(no message)"}");
-                return;
-            }
-
-            var root = JsonDocument.Parse(resp).RootElement;
-
-            if (!root.TryGetProperty("version", out var versionProp) || versionProp.ValueKind != JsonValueKind.String)
-            {
-                LogManager.Debug("Version check failed: 'version' field missing or invalid.");
-                return;
-            }
-
-            var version = versionProp.GetString();
-
-            if (version == null || !Version.TryParse(version, out var latestRemoteVersion))
-            {
-                LogManager.Debug("Version check failed: Invalid version format.");
-                return;
-            }
-
-            var outdated = latestRemoteVersion > currentVersion;
-            var currentIsNewerThanRemote = currentVersion > latestRemoteVersion;
-
-            string currentVersionResp;
-            try
-            {
-                currentVersionResp = HttpQuery.Get(
-                    $"{ApiBase}/api/v1/plugin/{Uri.EscapeDataString(name)}/version/{Uri.EscapeDataString(currentVersion.ToString())}");
-            }
-            catch (Exception)
-            {
-                LogManager.Debug("Could not reach BearmanAPI for recall check. Skipping.");
-                currentVersionResp = null;
-            }
-
-            if (currentVersionResp != null)
-            {
-                var (currentStatusCode, currentMessage) = ParseApiResponse(currentVersionResp);
-                if (currentStatusCode != HttpStatusCode.OK)
+                var (code, _) = ParseResponse(resp);
+                if (code != HttpStatusCode.OK)
                 {
-                    LogManager.Debug($"Recall check failed: {currentStatusCode} - {currentMessage}");
+                    LogManager.Error($"Version check failed: {code}");
+                    return;
                 }
+
+                var root = JsonDocument.Parse(resp).RootElement;
+                if (!root.TryGetProperty("version", out var vProp) || vProp.ValueKind != JsonValueKind.String ||
+                    !Version.TryParse(vProp.GetString() ?? "", out var latest))
+                {
+                    LogManager.Error("Version check: invalid response format.");
+                    return;
+                }
+
+                var verResp = await WithTimeout(
+                    HttpQuery.GetAsync(
+                        $"{ApiBase}/api/v1/plugin/{Uri.EscapeDataString(name)}/version/{Uri.EscapeDataString(current.ToString())}"));
+
+                var recallDoc = JsonDocument.Parse(verResp).RootElement;
+                if (recallDoc.TryGetProperty("is_recalled", out var recalled) &&
+                    recalled.ValueKind == JsonValueKind.True)
+                {
+                    var reason = recallDoc.TryGetProperty("recall_reason", out var r) &&
+                                 r.ValueKind == JsonValueKind.String
+                        ? r.GetString()
+                        : "No reason provided.";
+                    LogManager.Error(
+                        $"This version of {name} has been recalled! Update to {latest} ASAP.\nReason: {reason}",
+                        ConsoleColor.DarkRed);
+                    return;
+                }
+
+                if (latest > current)
+                    LogManager.Info(
+                        $"New version of {name} available: {latest} (you have {current}). {GetDownloadUrl(root)}",
+                        ConsoleColor.DarkRed);
                 else
-                {
-                    var recallRoot = JsonDocument.Parse(currentVersionResp).RootElement;
-                    if (recallRoot.TryGetProperty("is_recalled", out var isRecalledProp) &&
-                        isRecalledProp.ValueKind == JsonValueKind.True)
-                    {
-                        var recallReason = recallRoot.TryGetProperty("recall_reason", out var reasonProp) &&
-                                           reasonProp.ValueKind == JsonValueKind.String
-                            ? reasonProp.GetString()
-                            : "No reason provided.";
-                        LogManager.Error(
-                            $"This version of {name} has been recalled.\nPlease update to {latestRemoteVersion} version as soon as possible.\nReason: {recallReason}",
-                            ConsoleColor.DarkRed);
-                        return;
-                    }
-                }
-            }
+                    LogManager.Info($"Thank you for using {name} v{current}. Support: https://discord.gg/KmpA8cfaSA",
+                        ConsoleColor.Blue);
 
-            if (outdated)
+                if (current > latest)
+                    LogManager.Info(
+                        $"You are running a newer version of {AutoEvent.Singleton.Name} ({AutoEvent.Singleton.Version}) than {latest}. This is a development/pre-release build and it can contain errors or bugs.",
+                        ConsoleColor.DarkMagenta);
+                CheckSchematicUpdates();
+            }
+            catch (TimeoutException)
             {
-                var updateMsg =
-                    $"A new version of {name} is available: {version} (current {currentVersion}). {GetDownloadUrl(root)}";
-                LogManager.Info(updateMsg, ConsoleColor.DarkRed);
+                LogManager.Error("Version check timed out.");
             }
-            else
+            catch (Exception ex)
             {
-                LogManager.Info(
-                    $"Thanks for using {name} v{currentVersion}. To get support and latest news, join to my Discord Server: https://discord.gg/KmpA8cfaSA",
-                    ConsoleColor.Blue);
+                LogManager.Error("Version check failed.");
+                LogManager.Debug($"Version check exception:\n{ex}");
             }
-
-            CheckSchematicUpdates();
-
-            if (!currentIsNewerThanRemote) return;
-            LogManager.Info(
-                $"You are running a newer version of {name} ({currentVersion}) than {latestRemoteVersion}. This is a development/pre-release build and it can contain errors or bugs.",
-                ConsoleColor.DarkMagenta);
-        }
-        catch (Exception e)
-        {
-            LogManager.Error("An error occurred while checking for updates. Turn on debug for details.");
-            LogManager.Debug($"CheckForUpdates failed: {e.Message}");
-        }
+        });
     }
 
     private static void CheckSchematicUpdates()
@@ -146,50 +117,142 @@ public static class ApiManager
         }
     }
 
-    private static string GetDownloadUrl(JsonElement root)
+    internal static void SendLogs(string content)
     {
-        if (root.ValueKind != JsonValueKind.Object) return "";
-        if (root.TryGetProperty("download_url", out var d) && d.ValueKind == JsonValueKind.String)
-            return string.IsNullOrEmpty(d.GetString()) ? "" : $"Download: {d.GetString()}";
+        Task.Run(async () =>
+        {
+            try
+            {
+                var url = $"{ApiBase}/api/v1/plugin/{Uri.EscapeDataString(AutoEvent.Singleton.Name)}/log";
+                var payload = JsonSerializer.Serialize(new
+                {
+                    content,
+                    plugin_version = AutoEvent.Singleton.Version.ToString(),
+                    labapi_version = LabApiProperties.CurrentVersion
+                });
 
-        return "";
+                var resp = await WithTimeout(HttpQuery.PostAsync(url, payload, "application/json"));
+
+                var (code, _) = ParseResponse(resp);
+                if (code != HttpStatusCode.Created)
+                {
+                    LogManager.Error($"Failed to send logs: {code}");
+                    return;
+                }
+
+                var doc = JsonDocument.Parse(resp).RootElement;
+                var logId = doc.TryGetProperty("log_id", out var id) && id.ValueKind == JsonValueKind.String
+                    ? id.GetString()
+                    : null;
+
+                if (logId == null)
+                    LogManager.Error("Log upload failed: response did not contain a log id.");
+                else
+                    LogManager.Info($"Log history sent, received id: {logId}", ConsoleColor.Green);
+            }
+            catch (TimeoutException)
+            {
+                LogManager.Error("Log upload timed out.");
+            }
+            catch (Exception ex)
+            {
+                LogManager.Error("Log upload failed.");
+                LogManager.Debug($"Log upload exception:\n{ex}");
+            }
+        });
     }
 
-    internal static string SendLogsAsync(string content)
+    internal static void SendAutoError(string errorMessage)
+    {
+        Task.Run(() =>
+        {
+            try
+            {
+                if (AutoEvent.Singleton?.Config == null) return;
+
+                var hash = ComputeShortHash(errorMessage);
+
+                lock (AutoErrorLastSent)
+                {
+                    if (AutoErrorLastSent.TryGetValue(hash, out var lastSent) &&
+                        DateTime.UtcNow - lastSent < DedupWindow)
+                        return;
+
+                    AutoErrorLastSent[hash] = DateTime.UtcNow;
+
+                    var cutoff = DateTime.UtcNow - TimeSpan.FromMinutes(5);
+                    var toRemove = new List<string>();
+                    foreach (var kv in AutoErrorLastSent)
+                        if (kv.Value < cutoff)
+                            toRemove.Add(kv.Key);
+                    foreach (var k in toRemove)
+                        AutoErrorLastSent.Remove(k);
+                }
+
+                var content = LogManager.BuildLogContent(errorMessage);
+                var url = $"{ApiBase}/api/v1/plugin/{Uri.EscapeDataString(AutoEvent.Singleton.Name)}/log";
+                var payload = new
+                {
+                    content,
+                    plugin_version = AutoEvent.Singleton.Version.ToString(),
+                    labapi_version = LabApiProperties.CurrentVersion,
+                    trigger = "auto_error"
+                };
+                var json = JsonSerializer.Serialize(payload);
+                HttpQuery.Post(url, json, "application/json");
+            }
+            catch (Exception e)
+            {
+                LogManager.Debug($"SendAutoError failed: {e.Message}");
+            }
+        });
+    }
+
+    private static string ComputeShortHash(string input)
+    {
+        using var md5 = MD5.Create();
+        var bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
+
+        var sb = StringBuilderPool.Shared.Rent(bytes.Length * 2);
+        foreach (var b in bytes)
+            sb.Append(b.ToString("X2"));
+
+        return StringBuilderPool.Shared.ToStringReturn(sb).Substring(0, 8);
+    }
+
+    private static async Task<string> WithTimeout(Task<string> task)
+    {
+        var completed = await Task.WhenAny(task, Task.Delay(RequestTimeout));
+        if (completed != task)
+            throw new TimeoutException();
+        return await task;
+    }
+
+    private static (HttpStatusCode code, string message) ParseResponse(string json)
     {
         try
         {
-            var url = $"{ApiBase}/api/v1/plugin/{Uri.EscapeDataString(AutoEvent.Singleton.Name)}/log";
-
-            LogManager.Info("Sending logs to BearmanAPI...", ConsoleColor.Green);
-
-            var payload = new
-            {
-                content,
-                plugin_version = AutoEvent.Singleton.Version.ToString(),
-                labapi_version = LabApiProperties.CurrentVersion
-            };
-            var json = JsonSerializer.Serialize(payload);
-            var resp = HttpQuery.Post(url, json, "application/json");
-            var data = ParseApiResponse(resp);
-            if (data.StatusCode != HttpStatusCode.Created)
-            {
-                LogManager.Error($"Failed to send logs: {data.StatusCode} - {data.Message ?? "(no message)"}");
-                return null;
-            }
-
-            if (JsonDocument.Parse(resp).RootElement.TryGetProperty("log_id", out var logIdProp) &&
-                logIdProp.ValueKind == JsonValueKind.String)
-                return logIdProp.GetString();
-
-            LogManager.Warn("Logs sent but no log_id returned.");
-            return null;
+            var root = JsonDocument.Parse(json).RootElement;
+            var code = root.TryGetProperty("status", out var s) && s.ValueKind == JsonValueKind.Number
+                ? (HttpStatusCode)s.GetInt32()
+                : HttpStatusCode.InternalServerError;
+            var msg = root.TryGetProperty("message", out var m) && m.ValueKind == JsonValueKind.String
+                ? m.GetString()
+                : null;
+            return (code, msg);
         }
-        catch (Exception e)
+        catch
         {
-            LogManager.Error($"Sending logs failed.\n{e}");
-            return null;
+            return (HttpStatusCode.InternalServerError, null);
         }
+    }
+
+    private static string GetDownloadUrl(JsonElement root)
+    {
+        return root.TryGetProperty("download_url", out var d) && d.ValueKind == JsonValueKind.String &&
+               !string.IsNullOrEmpty(d.GetString())
+            ? $"Download: {d.GetString()}"
+            : string.Empty;
     }
 
     internal static bool TryGetCreditTag(string steam64, out string tag, out string color)
@@ -216,7 +279,7 @@ public static class ApiManager
             string resp;
             try
             {
-                resp = HttpQuery.Get($"{ApiBase}/api/v1/credittags/");
+                resp = HttpQuery.Get($"{ApiBase}/api/v1/credittags");
             }
             catch (Exception ex)
             {
@@ -227,16 +290,13 @@ public static class ApiManager
             var (statusCode, message) = ParseApiResponse(resp);
 
             if (statusCode != HttpStatusCode.OK)
-                switch (statusCode)
-                {
-                    case HttpStatusCode.InternalServerError:
-                        LogManager.Error("[CreditTag] Server error (500) while getting CreditTags.");
-                        return;
-                    default:
-                        LogManager.Debug(
-                            $"[CreditTag] Unexpected status code: {statusCode} - {message ?? "(no message)"}");
-                        return;
-                }
+            {
+                if (statusCode == HttpStatusCode.InternalServerError)
+                    LogManager.Error("[CreditTag] Server error (500) while getting CreditTags.");
+                else
+                    LogManager.Debug($"[CreditTag] Unexpected status code: {statusCode} - {message ?? "(no message)"}");
+                return;
+            }
 
             using var doc = JsonDocument.Parse(resp);
             var root = doc.RootElement;
@@ -247,33 +307,32 @@ public static class ApiManager
                 return;
             }
 
+            SavedCreditTags.Clear();
+
             foreach (var item in tagsProp.EnumerateArray())
             {
-                if (!item.TryGetProperty("steam_id", out var hashProp) ||
-                    hashProp.ValueKind != JsonValueKind.String ||
+                if (!item.TryGetProperty("steam_id", out var steamProp) ||
+                    steamProp.ValueKind != JsonValueKind.String ||
                     !item.TryGetProperty("badge_name", out var badgeProp) ||
                     badgeProp.ValueKind != JsonValueKind.String ||
-                    !item.TryGetProperty("color", out var colorProp) || colorProp.ValueKind != JsonValueKind.String)
+                    !item.TryGetProperty("color", out var colorProp) ||
+                    colorProp.ValueKind != JsonValueKind.String)
                     continue;
-                var steamIdHash = hashProp.GetString();
+
+                var steamId = steamProp.GetString();
                 var badgeName = badgeProp.GetString();
                 var color = colorProp.GetString();
 
-                if (string.IsNullOrEmpty(steamIdHash) || string.IsNullOrEmpty(badgeName) || string.IsNullOrEmpty(color))
+                if (string.IsNullOrEmpty(steamId) || string.IsNullOrEmpty(badgeName) || string.IsNullOrEmpty(color))
                     continue;
 
-                SavedCreditTags[steamIdHash] = new CreditTag
-                {
-                    BadgeName = badgeName,
-                    Color = color
-                };
-
+                SavedCreditTags[steamId] = new CreditTag { BadgeName = badgeName, Color = color };
                 LogManager.Debug($"[CreditTag] Loaded tag for Tag: {badgeName}, Color: {color}");
             }
         }
         catch (Exception e)
         {
-            LogManager.Error($"[CreditTag] Failed to load credit tag.\n{e}");
+            LogManager.Error($"[CreditTag] Failed to load credit tags.\n{e}");
         }
     }
 
@@ -303,7 +362,7 @@ public static class ApiManager
         }
     }
 
-    private class CreditTag
+    private sealed class CreditTag
     {
         public string BadgeName { get; init; }
         public string Color { get; init; }

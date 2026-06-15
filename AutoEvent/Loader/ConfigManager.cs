@@ -141,7 +141,12 @@ public static class ConfigManager
             }
 
             // Move translations to each mini-games
-            foreach (var ev in AutoEvent.InternalEventManager.Events.Where(_ => translations is not null))
+            var events = AutoEvent.InternalEventManager?.Events;
+
+            if (events == null)
+                return;
+
+            foreach (var ev in events.Where(_ => translations is not null))
             {
                 if (!translations.TryGetValue(ev.InternalName, out var rawDeserializedTranslation))
                 {
@@ -173,10 +178,30 @@ public static class ConfigManager
         }
     }
 
-    internal static Dictionary<string, object> LoadTranslationFromAssembly(string countryCode)
+    public static string ResolveLanguage(string input)
     {
-        // Try to get a translation from an assembly
-        if (!TryGetTranslationFromAssembly(countryCode, TranslationPath, out Dictionary<string, object> translations))
+        if (string.IsNullOrWhiteSpace(input))
+            return null;
+
+        if (LanguageByCountryCodeDictionary.TryGetValue(input.ToUpperInvariant(), out var byCode))
+            return byCode;
+
+        var languages = LanguageByCountryCodeDictionary.Values.Distinct().ToList();
+
+        var exact = languages.FirstOrDefault(l => string.Equals(l, input, StringComparison.OrdinalIgnoreCase));
+        if (exact != null)
+            return exact;
+
+        var matches = languages.Where(l => l.StartsWith(input, StringComparison.OrdinalIgnoreCase)).ToList();
+        return matches.Count == 1 ? matches[0] : null;
+    }
+
+    internal static Dictionary<string, object> LoadTranslationFromAssembly(string input)
+    {
+        var language = ResolveLanguage(input);
+
+        if (language == null ||
+            !TryGetTranslationFromAssembly(language, TranslationPath, out Dictionary<string, object> translations))
             translations = GenerateDefaultTranslations();
 
         return translations;
@@ -187,13 +212,18 @@ public static class ConfigManager
         // Otherwise, create default translations from all mini-games.
         var translations = new Dictionary<string, object>();
 
-        foreach (var ev in AutoEvent.InternalEventManager.Events.OrderBy(r => r.Name))
+        var events = AutoEvent.InternalEventManager?.Events;
+        if (events == null) return translations;
+
+        // Key by InternalName — that is what LoadTranslations looks up, and unlike
+        // Name it never changes when a translation is applied.
+        foreach (var ev in events.OrderBy(r => r.InternalName))
         {
             ev.InternalTranslation.Name = ev.Name;
             ev.InternalTranslation.Description = ev.Description;
             ev.InternalTranslation.CommandName = ev.CommandName;
 
-            translations.Add(ev.Name, ev.InternalTranslation);
+            translations[ev.InternalName] = ev.InternalTranslation;
         }
 
         // Save the translation file
@@ -201,14 +231,8 @@ public static class ConfigManager
         return translations;
     }
 
-    private static bool TryGetTranslationFromAssembly<T>(string countryCode, string path, out T translationFile)
+    private static bool TryGetTranslationFromAssembly<T>(string language, string path, out T translationFile)
     {
-        if (!LanguageByCountryCodeDictionary.TryGetValue(countryCode, out var language))
-        {
-            translationFile = default;
-            return false;
-        }
-
         var resourceName = $"AutoEvent.Translations.{language}.yml";
 
         try

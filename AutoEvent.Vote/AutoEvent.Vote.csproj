@@ -29,10 +29,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
-        <PackageReference Include="Northwood.LabAPI" Version="1.1.6.1"/>
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all"/>
+        <PackageReference Include="Northwood.LabAPI" Version="1.1.7"/>
         <PackageReference Include="System.Net.Http" Version="4.3.4"/>
-        <PackageReference Include="System.Text.Json" Version="10.0.7" />
+        <PackageReference Include="System.Text.Json" Version="10.0.9"/>
     </ItemGroup>
 
     <ItemGroup>
