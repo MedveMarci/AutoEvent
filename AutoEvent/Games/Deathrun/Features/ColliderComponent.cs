@@ -19,7 +19,7 @@ public class ColliderComponent : MonoBehaviour
         var animator = gameObject.GetComponentInParent<Animator>();
         if (animator != null)
         {
-            if (EventManager.CurrentEvent is IEventMap eventMap && eventMap.MapInfo.MapName.Contains("temple"))
+            if (EventManager.CurrentEvent is IEventMap eventMap && eventMap.MapInfo.MapName.Contains("Temple"))
                 animator.Play(animator.name + "action");
             else
                 animator.Play(animator.name + "Action");
