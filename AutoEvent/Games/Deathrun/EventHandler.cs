@@ -1,4 +1,6 @@
+using AutoEvent.API;
 using AutoEvent.ApiFeatures;
+using AutoEvent.Interfaces;
 using LabApi.Events.Arguments.PlayerEvents;
 using PlayerStatsSystem;
 using UnityEngine;
@@ -37,7 +39,9 @@ public abstract class EventHandler
             else if (ev.Interactable.GameObject.name.Contains("Interactable2"))
                 animationName = animator.name + "RowPrimedG";
         }
-
+        
+        if (EventManager.CurrentEvent is IEventMap eventMap && eventMap.MapInfo.MapName.Contains("temple"))
+            animationName = animator.name + "action";
 
         LogManager.Debug($"[Deathrun] Activate animation {animationName}");
         animator.Play(animationName);

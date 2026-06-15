@@ -1,3 +1,5 @@
+using AutoEvent.API;
+using AutoEvent.Interfaces;
 using UnityEngine;
 
 namespace AutoEvent.Games.Deathrun;
@@ -17,10 +19,10 @@ public class ColliderComponent : MonoBehaviour
         var animator = gameObject.GetComponentInParent<Animator>();
         if (animator != null)
         {
-            animator.Play(animator.name + "Action");
-            animator.Play(animator.name + "action");
+            if (EventManager.CurrentEvent is IEventMap eventMap && eventMap.MapInfo.MapName.Contains("temple"))
+                animator.Play(animator.name + "action");
+            else
+                animator.Play(animator.name + "Action");
         }
-
-        ;
     }
 }
