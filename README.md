@@ -117,4 +117,4 @@ See the full [Installation Guide](https://github.com/MedveMarci/AutoEvent/blob/m
 - Command code by **art15**
 - Support by **Sakred_**
 - Map plugin [ProjectMER](https://github.com/Michal78900/ProjectMER) by **Michal78900**
-- Audio plugins [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio) by **Axwabo**
+- Audio plugin [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio) by **Axwabo**
