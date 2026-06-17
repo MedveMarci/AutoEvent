@@ -44,6 +44,7 @@ internal class Update : ICommand
         catch (Exception ex)
         {
             response = $"Update failed: {ex.Message}";
+            LogManager.Error($"An error occurred while updating schematics: {ex}");
             return false;
         }
     }

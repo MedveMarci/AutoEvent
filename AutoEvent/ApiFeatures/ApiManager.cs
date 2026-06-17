@@ -61,8 +61,8 @@ internal static class ApiManager
                         ? r.GetString()
                         : "No reason provided.";
                     LogManager.Error(
-                        $"This version of {name} has been recalled! Update to {latest} ASAP.\nReason: {reason}",
-                        ConsoleColor.DarkRed);
+                        $"This version of {name} has been recalled! Update to {latest} ASAP.\nReason: {reason}", 
+                        false, ConsoleColor.DarkRed);
                     return;
                 }
 

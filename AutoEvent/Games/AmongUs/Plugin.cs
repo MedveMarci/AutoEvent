@@ -735,7 +735,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
 
         var random = new Random();
 
-        var allCommon = tasks.Where(t => t.Type == TaskType.Common).OrderBy(_ => random.Next()).ToList();
+        var allCommon = tasks.Where(t => t.Type == TaskType.Common && (isVisual || !t.IsVisual)).OrderBy(_ => random.Next()).ToList();
         var sharedCommonTasks = allCommon.Take(maxCommon).ToList();
 
         foreach (var player in players)
