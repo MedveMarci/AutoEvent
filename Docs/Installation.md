@@ -3,36 +3,23 @@
 ## Requirements
 
 - Harmony — required for the plugin (included as `0Harmony.dll`)
-- LabAPI **1.1.6+**
-- [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) — **optional, required only for Among Us event
-  **
-- **Audio Backend** — AutoEvent comes in two DLL variants, pick one:
-    - `AutoEvent.dll` — built with [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio) *(recommended)*
-    - `AutoEvent.APAPI.dll` — built with [AudioPlayerAPI](https://github.com/Killers0992/AudioPlayerApi)
-- **Map Plugin**:
-    - [ProjectMER](https://github.com/Michal78900/ProjectMER) — required for map/schematic support
-- [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI) — **optional, required only for Among Us event and
-  AutoEvent.Vote plugin**
+- LabAPI **1.1.7**
+- [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) — included in the release (required for Among Us)
+- [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI) — included in the release (required for Among Us and AutoEvent.Vote)
+- [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio) — included in the release as `SecretLabNAudio.zip`
+- **Map Plugin**: [ProjectMER](https://github.com/Michal78900/ProjectMER) — required for map/schematic support
 
 > - A verified working build of ProjectMER is available on
     the [AutoEvent Discord server](https://discord.gg/KmpA8cfaSA).
-> - **Only install one AutoEvent DLL at a time.** If both are present the second one will refuse to load and log an
-    error.
 > - Every Dependency installation guide can be found in their GitHub ReadMes.
 
 | Dependency                                                             | Required | Description                                        |
 |------------------------------------------------------------------------|----------|----------------------------------------------------|
-| Harmony                                                                | Yes      | Required for the plugin                            |
-| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | LabAPI utility extensions (*required for Among Us) |
+| Harmony                                                                | Yes      | Included in release as `0Harmony.dll`              |
+| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | Included in release (*required for Among Us)       |
 | [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | Map/schematic loading                              |
-| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | Radio menu system (*required for Among Us)         |
-
-**Audio backend — pick one DLL variant:**
-
-| DLL variant           | Audio plugin                                                    | Notes       |
-|-----------------------|-----------------------------------------------------------------|-------------|
-| `AutoEvent.dll`       | [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)    | Recommended |
-| `AutoEvent.APAPI.dll` | [AudioPlayerAPI](https://github.com/Killers0992/AudioPlayerApi) | Alternative |
+| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | Included in release (*required for Among Us)       |
+| [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)           | Yes      | Included in release as `SecretLabNAudio.zip`       |
 
 ---
 
@@ -40,8 +27,12 @@
 
 Download the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest). You need:
 
-- `AutoEvent.dll` *(SecretLabNAudio variant)* **or** `AutoEvent.APAPI.dll` *(AudioPlayerAPI variant)* — pick one
-- `0Harmony.dll` (if you don't already have Harmony installed)
+- `AutoEvent.dll`
+- `0Harmony.dll` (skip if you already have Harmony installed)
+- `RadioMenuAPI.dll`
+- `LabApiExtensions.dll`
+- `ProjectMER.dll`
+- `SecretLabNAudio.zip`
 - `Music.zip`
 
 ---
@@ -51,12 +42,17 @@ Download the [latest release](https://github.com/MedveMarci/AutoEvent/releases/l
 **Plugin DLLs** — place in `LabApi/plugins/global/`:
 
 ```
-AutoEvent.dll    ← use either the SecretLabNAudio or APAPI variant (not both!)
+AutoEvent.dll
+RadioMenuAPI.dll
+LabApiExtensions.dll
 ProjectMER.dll
 ```
 
-> If you downloaded the APAPI variant (`AutoEvent.APAPI.dll`), rename it to `AutoEvent.dll` before placing it in the
-> folder.
+**SecretLabNAudio** — extract `SecretLabNAudio.zip` and place `SecretLabNAudio.dll` in:
+
+```
+LabApi/plugins/global/
+```
 
 **Harmony** — place `0Harmony.dll` in:
 

@@ -68,47 +68,39 @@ includes **26 unique mini-games**.
 
 ## Dependencies
 
-| Dependency                                                             | Required | Description                                        |
-|------------------------------------------------------------------------|----------|----------------------------------------------------|
-| Harmony                                                                | Yes      | Required for the plugin                            |
-| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | LabAPI utility extensions (*required for Among Us) |
-| [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | Map/schematic loading                              |
-| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | Radio menu system (*required for Among Us)         |
-
-**Audio backend — pick one DLL variant:**
-
-| DLL variant           | Audio plugin                                                    | Notes       |
-|-----------------------|-----------------------------------------------------------------|-------------|
-| `AutoEvent.dll`       | [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)    | Recommended |
-| `AutoEvent.APAPI.dll` | [AudioPlayerAPI](https://github.com/Killers0992/AudioPlayerApi) | Alternative |
-
-> - A working version of ProjectMER can be found on the [Discord server](https://discord.gg/KmpA8cfaSA).
-> - **Only install one AutoEvent DLL at a time.** If both variants are present, the second one will refuse to load.
-> - Every Dependency installation guide can be found in their GitHub ReadMes.
+| Dependency                                                             | Required | Description                                      |
+|------------------------------------------------------------------------|----------|--------------------------------------------------|
+| Harmony                                                                | Yes      | Included in the release as `0Harmony.dll`        |
+| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | Included in the release (*required for Among Us) |
+| [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | Included in the release as `ProjectMER.dll`      |
+| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | Included in the release (*required for Among Us) |
+| [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)           | Yes      | Included in the release as `SecretLabNAudio.zip` |
 
 ---
 
 ## Quick Start
 
 1. Download the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest):
-    - `AutoEvent.dll` *(SecretLabNAudio)* **or** `AutoEvent.APAPI.dll` *(AudioPlayerAPI)* — pick one
+    - `AutoEvent.dll`
     - `0Harmony.dll` (skip if Harmony is already installed)
+    - `RadioMenuAPI.dll`
+    - `LabApiExtensions.dll`
+    - `ProjectMER.dll`
+    - `SecretLabNAudio.zip`
     - `Music.zip`
-2. Place `AutoEvent.dll` in `LabApi/plugins/global/`
+2. Place `AutoEvent.dll`, `RadioMenuAPI.dll`, `LabApiExtensions.dll`, `ProjectMER.dll` in `LabApi/plugins/global/`
 3. Place `0Harmony.dll` in `LabApi/dependencies/global/`
-4. Install the required dependencies listed above
+4. Extract `SecretLabNAudio.zip` and place `SecretLabNAudio.dll` in `LabApi/plugins/global/`
 5. Extract `Music.zip` to `LabApi/configs/AutoEvent/Music/`
-6. Install [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)
-   and [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) if you want to play Among Us.
-7. Grant permissions in `LabApi/configs/permissions.yml`:
+6. Grant permissions in `LabApi/configs/permissions.yml`:
    ```yaml
    owner:
      permissions:
        - ev.*
    ```
-8. Start the server.
-9. Run `ev update` in the admin console to download the schematics.
-10. Run `ev list` to verify all mini-games are loaded.
+7. Start the server.
+8. Run `ev update` in the admin console to download the schematics.
+9. Run `ev list` to verify all mini-games are loaded.
 
 See the full [Installation Guide](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/Installation.md) for details.
 
