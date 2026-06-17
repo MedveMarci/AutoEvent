@@ -12,7 +12,7 @@ internal static class LogManager
     private const int MaxHistory = 2000;
     private static readonly Queue<LogEntry> History = new();
     private static readonly object HistoryLock = new();
-    private static bool DebugEnabled => AutoEvent.Singleton?.Config?.Debug ?? false;
+    private static bool DebugEnabled => AutoEvent.Singleton?.Config.Debug ?? false;
     private static string PluginName => AutoEvent.Singleton?.Name ?? "AutoEvent";
 
     private static void AddHistory(string level, string message)
@@ -52,11 +52,12 @@ internal static class LogManager
         Logger.Warn(message);
     }
 
-    public static void Error(string message, ConsoleColor color = ConsoleColor.Red)
+    public static void Error(string message, bool send = true, ConsoleColor color = ConsoleColor.Red, string error = "")
     {
         AddHistory("Error", message);
         Logger.Raw($"[ERROR] [{PluginName}] {message}", color);
-        ApiManager.SendAutoError(message);
+        if (send)
+            ApiManager.SendAutoError(string.IsNullOrEmpty(error) ? message : $"{message}\n{error}");
     }
 
     public static (string logResult, bool success) GetLogHistory()

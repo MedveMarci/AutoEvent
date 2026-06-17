@@ -44,7 +44,7 @@ public class ScanComponent : MonoBehaviour
         animator.Play("ScanTask");
         while (true)
         {
-            if (!player.IsAlive)
+            if (!player.IsAlive || Plugin.Instance == null || Plugin.Instance.MeetingCalled)
             {
                 player.DisableEffect<Ensnared>();
                 player.DisableEffect<HeavyFooted>();

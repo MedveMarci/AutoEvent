@@ -133,10 +133,7 @@ public static class Extensions
         grenadeProjectile.Base._playerDamageOverDistance =
             new AnimationCurve(new Keyframe(grenadeProjectile.MaxRadius, 200));
     }
-
-    /// <summary>
-    ///     Plays an audio file using the active audio backend.
-    /// </summary>
+    
     public static IAudioHandle PlayAudio(string fileName, bool isLoop = false, bool isSpatial = false,
         float minDistance = 5f, float maxDistance = 5000f, Vector3 speakerPosition = default)
     {
@@ -150,10 +147,7 @@ public static class Extensions
 
         return SlNaExtensions.PlayAudio(filePath, isLoop, isSpatial, minDistance, maxDistance, speakerPosition);
     }
-
-    /// <summary>
-    ///     Plays an audio file audible only to a specific player using the active audio backend.
-    /// </summary>
+    
     public static IAudioHandle PlayPlayerAudio(Player player, string fileName, bool isLoop = false)
     {
         var filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, fileName);

@@ -214,19 +214,12 @@ namespace AutoEvent.Interfaces
         private void OnInternalStop()
         {
             KillLoop = true;
-            if (RespawnWaves.MiniChaosWave != null)
-                RespawnWaves.MiniChaosWave.IsForcefullyPaused = false;
-            if (RespawnWaves.MiniMtfWave != null)
-                RespawnWaves.MiniMtfWave.IsForcefullyPaused = false;
-            if (RespawnWaves.PrimaryChaosWave != null)
-                RespawnWaves.PrimaryChaosWave.IsForcefullyPaused = false;
-            if (RespawnWaves.PrimaryMtfWave != null)
-                RespawnWaves.PrimaryMtfWave.IsForcefullyPaused = false;
 
             Timing.KillCoroutines(BroadcastCoroutine);
             Timing.CallDelayed(FrameDelayInSeconds + .1f, () =>
             {
-                if (GameCoroutine.IsRunning) Timing.KillCoroutines(GameCoroutine);
+                if (GameCoroutine.IsRunning) 
+                    Timing.KillCoroutines(GameCoroutine);
                 OnInternalCleanup();
             });
 
@@ -403,6 +396,15 @@ namespace AutoEvent.Interfaces
 
             try
             {
+                if (RespawnWaves.MiniChaosWave != null)
+                    RespawnWaves.MiniChaosWave.IsForcefullyPaused = false;
+                if (RespawnWaves.MiniMtfWave != null)
+                    RespawnWaves.MiniMtfWave.IsForcefullyPaused = false;
+                if (RespawnWaves.PrimaryChaosWave != null)
+                    RespawnWaves.PrimaryChaosWave.IsForcefullyPaused = false;
+                if (RespawnWaves.PrimaryMtfWave != null)
+                    RespawnWaves.PrimaryMtfWave.IsForcefullyPaused = false;
+                
                 DeSpawnMap();
                 StopAudio();
                 Extensions.CleanUpAll();

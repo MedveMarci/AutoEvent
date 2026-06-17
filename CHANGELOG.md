@@ -1,5 +1,14 @@
 # Changelog
 
+## [10.1.1]
+
+### Fixes
+- Among Us:
+  - Fixed VisualTasks config option.
+  - Fixed a permanent stuck bug.
+- Fixed waves are not unpausing when the event ends.
+
+
 ## [10.1.0]
 
 ### Added
