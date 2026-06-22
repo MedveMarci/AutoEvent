@@ -29,7 +29,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     public override string Description { get; set; } = "Defeat the enemy with balls.";
     public override string Author { get; set; } = "RisottoMan & Моге-ко";
     public override string CommandName { get; set; } = "dodge";
-    protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Default;
+    protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Disable;
     internal bool IsChristmasUpdate { get; set; }
     protected override float FrameDelayInSeconds { get; set; } = 0.1f;
 
