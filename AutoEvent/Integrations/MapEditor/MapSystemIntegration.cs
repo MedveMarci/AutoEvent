@@ -1,5 +1,4 @@
 using System.Linq;
-using AutoEvent.ApiFeatures;
 using LabApi.Loader;
 
 namespace AutoEvent.Integrations.MapEditor;
@@ -14,11 +13,5 @@ internal static class MapSystemIntegration
     public static void Detect()
     {
         IsProjectMerLoaded = PluginLoader.Plugins.Any(x => x.Key.Name.ToLower().Contains("projectmer"));
-
-        if (IsProjectMerLoaded)
-            LogManager.Info("ProjectMER detected.");
-        else
-            LogManager.Warn(
-                "ProjectMER was not detected. Map-based mini-games will not be available.");
     }
 }

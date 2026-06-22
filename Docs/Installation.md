@@ -7,19 +7,19 @@
 - [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) — included in the release (required for Among Us)
 - [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI) — included in the release (required for Among Us and AutoEvent.Vote)
 - [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio) — included in the release as `SecretLabNAudio.zip`
-- **Map Plugin**: [ProjectMER](https://github.com/Michal78900/ProjectMER) — required for map/schematic support
+- **Map Plugin**: [ProjectMER](https://github.com/Michal78900/ProjectMER) — required for map/schematic support included in the release
 
 > - A verified working build of ProjectMER is available on
     the [AutoEvent Discord server](https://discord.gg/KmpA8cfaSA).
 > - Every Dependency installation guide can be found in their GitHub ReadMes.
 
-| Dependency                                                             | Required | Description                                        |
-|------------------------------------------------------------------------|----------|----------------------------------------------------|
-| Harmony                                                                | Yes      | Included in release as `0Harmony.dll`              |
-| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | Included in release (*required for Among Us)       |
-| [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | Map/schematic loading                              |
-| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | Included in release (*required for Among Us)       |
-| [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)           | Yes      | Included in release as `SecretLabNAudio.zip`       |
+| Dependency                                                             | Required | Description                                   |
+|------------------------------------------------------------------------|----------|-----------------------------------------------|
+| Harmony                                                                | Yes      | Included in release as `0Harmony.dll`         |
+| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | Included in release (*required for Among Us)  |
+| [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | Map/schematic loading included in the release |
+| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | Included in release (*required for Among Us)  |
+| [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)           | Yes      | Included in release as `SecretLabNAudio.zip`  |
 
 ---
 

@@ -26,13 +26,7 @@ public class EventManager
 
     public void RegisterInternalEvents()
     {
-        // MapSystemIntegration.Detect() is called earlier in Plugin.Enable().
         IsMerLoaded = MapSystemIntegration.AnyLoaded;
-
-        if (!IsMerLoaded)
-            LogManager.Error(
-                "ProjectMER was not detected. " +
-                "Map-based mini-games will not be available until you install ProjectMER.");
 
         var types = Assembly.GetCallingAssembly().GetTypes();
 

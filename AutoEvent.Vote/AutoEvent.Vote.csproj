@@ -42,8 +42,8 @@
         <Reference Include="CommandSystem.Core" HintPath="$(SL_REFERENCES)\CommandSystem.Core.dll"/>
         <Reference Include="UnityEngine.CoreModule" HintPath="$(SL_REFERENCES)\UnityEngine.CoreModule.dll"/>
         <Reference Include="NorthwoodLib" HintPath="$(SL_REFERENCES)\NorthwoodLib.dll"/>
-        <Reference Include="AutoEvent" HintPath="$(LABAPI_PLUGINS)\AutoEvent.dll"/>
         <Reference Include="RadioMenuAPI" HintPath="$(LABAPI_PLUGINS)\RadioMenuAPI.dll"/>
+        <ProjectReference Include="..\AutoEvent\AutoEvent.csproj"/>
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">

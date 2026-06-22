@@ -17,6 +17,12 @@ internal class Volume : ICommand, IUsageProvider
     {
         try
         {
+            if (AutoEvent.Singleton is null)
+            {
+                response = "AutoEvent is not loaded. Check console for errors.";
+                return false;
+            }
+            
             if (!sender.HasPermissions("ev.volume"))
             {
                 response = "<color=red>You do not have permission to use this command!</color>";

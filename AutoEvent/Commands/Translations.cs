@@ -16,6 +16,12 @@ internal class Translations : ICommand, IUsageProvider
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
     {
+        if (AutoEvent.Singleton is null)
+        {
+            response = "AutoEvent is not loaded. Check console for errors.";
+            return false;
+        }
+        
         if (!sender.HasPermissions("ev.language"))
         {
             response = "<color=red>You do not have permission to use this command!</color>";
