@@ -39,6 +39,16 @@ namespace AutoEvent.Interfaces
         protected virtual FriendlyFireSettings ForceEnableFriendlyFireAutoban { get; set; } =
             FriendlyFireSettings.Default;
 
+        private FriendlyFireSettings ResolvedFriendlyFire =>
+            ForceEnableFriendlyFire != FriendlyFireSettings.Default
+                ? ForceEnableFriendlyFire
+                : InternalConfig?.EnableFriendlyFire ?? FriendlyFireSettings.Default;
+
+        private FriendlyFireSettings ResolvedFriendlyFireAutoban =>
+            ForceEnableFriendlyFireAutoban != FriendlyFireSettings.Default
+                ? ForceEnableFriendlyFireAutoban
+                : InternalConfig?.EnableFriendlyFireAutoban ?? FriendlyFireSettings.Default;
+
         public virtual EventFlags EventHandlerSettings { get; set; } = EventFlags.Default;
 
         #endregion
@@ -47,6 +57,7 @@ namespace AutoEvent.Interfaces
 
         protected virtual CoroutineHandle GameCoroutine { get; set; }
         protected virtual CoroutineHandle BroadcastCoroutine { get; set; }
+        private CoroutineHandle _timingCoroutine;
         public virtual DateTime StartTime { get; protected set; }
         public virtual TimeSpan EventTime { get; protected set; }
 
@@ -213,15 +224,11 @@ namespace AutoEvent.Interfaces
 
         private void OnInternalStop()
         {
+            if (_stopped) return;
+            _stopped = true;
             KillLoop = true;
 
-            Timing.KillCoroutines(BroadcastCoroutine);
-            Timing.CallDelayed(FrameDelayInSeconds + .1f, () =>
-            {
-                if (GameCoroutine.IsRunning) 
-                    Timing.KillCoroutines(GameCoroutine);
-                OnInternalCleanup();
-            });
+            Timing.KillCoroutines(_timingCoroutine, BroadcastCoroutine, GameCoroutine);
 
             try
             {
@@ -233,12 +240,18 @@ namespace AutoEvent.Interfaces
             }
 
             EventStopped?.Invoke(Name);
+
+            Timing.CallDelayed(FrameDelayInSeconds + .1f, () =>
+            {
+                if (!_cleanupRun) OnInternalCleanup();
+            });
         }
 
         private void OnInternalStart(string mapName = "")
         {
             KillLoop = false;
             _cleanupRun = false;
+            _stopped = false;
             AutoEvent.InternalEventManager.CurrentEvent = this;
             EventTime = TimeSpan.Zero;
             StartTime = DateTime.UtcNow;
@@ -257,7 +270,8 @@ namespace AutoEvent.Interfaces
 
             try
             {
-                switch (ForceEnableFriendlyFire)
+                var friendlyFire = ResolvedFriendlyFire;
+                switch (friendlyFire)
                 {
                     case FriendlyFireSettings.Enable:
                         FriendlyFireSystem.EnableFriendlyFire();
@@ -267,15 +281,10 @@ namespace AutoEvent.Interfaces
                         break;
                 }
 
-                switch (ForceEnableFriendlyFireAutoban)
-                {
-                    case FriendlyFireSettings.Enable:
-                        FriendlyFireSystem.UnPauseFriendlyFireDetector();
-                        break;
-                    case FriendlyFireSettings.Disable:
-                        FriendlyFireSystem.PauseFriendlyFireDetector();
-                        break;
-                }
+                if (ResolvedFriendlyFireAutoban == FriendlyFireSettings.Enable)
+                    FriendlyFireSystem.UnPauseFriendlyFireDetector();
+                else
+                    FriendlyFireSystem.PauseFriendlyFireDetector();
             }
             catch (Exception e)
             {
@@ -306,7 +315,7 @@ namespace AutoEvent.Interfaces
 
             EventStarted?.Invoke(Name);
             StartAudio(true);
-            Timing.RunCoroutine(RunTimingCoroutine(), "TimingCoroutine");
+            _timingCoroutine = Timing.RunCoroutine(RunTimingCoroutine(), "TimingCoroutine");
         }
 
         private IEnumerator<float> RunTimingCoroutine()
@@ -362,9 +371,11 @@ namespace AutoEvent.Interfaces
         }
 
         private bool _cleanupRun;
+        private bool _stopped;
 
         private void OnInternalCleanup()
         {
+            if (_cleanupRun) return;
             _cleanupRun = true;
             try
             {

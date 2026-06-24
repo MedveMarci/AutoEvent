@@ -15,10 +15,16 @@ public class EventConfig
     [Description("A list of sounds that can be used for this event.")]
     public List<SoundChance> AvailableSounds { get; set; } = [];
 
-    [Description("Some plugins may override this out of necessity.")]
+    [Description(
+        "Controls the friendly-fire autoban (vanilla detector + CedMod) during this event. " +
+        "Enable = keep it active, Disable/Default = pause it so players are not banned for minigame combat. " +
+        "Some games force a specific value out of necessity, which overrides this setting.")]
     public FriendlyFireSettings EnableFriendlyFireAutoban { get; set; } = FriendlyFireSettings.Default;
 
-    [Description("Some plugins may override this out of necessity.")]
+    [Description(
+        "Controls friendly fire (teammate damage) during this event. " +
+        "Default = keep the server's setting. " +
+        "Some games force a specific value out of necessity, which overrides this setting.")]
     public FriendlyFireSettings EnableFriendlyFire { get; set; } = FriendlyFireSettings.Default;
 }
 

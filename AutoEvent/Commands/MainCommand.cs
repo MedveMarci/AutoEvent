@@ -13,6 +13,12 @@ public class MainCommand : ParentCommand
 
     protected override bool ExecuteParent(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
+        if (AutoEvent.Singleton is null)
+        {
+            response = "AutoEvent is not loaded. Check console for errors.";
+            return false;
+        }
+        
         response = "Please enter a valid subcommand: \n";
         foreach (var x in Commands)
         {

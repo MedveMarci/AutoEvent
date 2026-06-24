@@ -18,6 +18,12 @@ internal class List : ICommand
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
+        if (AutoEvent.Singleton is null)
+        {
+            response = "AutoEvent is not loaded. Check console for errors.";
+            return false;
+        }
+        
         if (!sender.HasPermissions("ev.list"))
         {
             response = "<color=red>You do not have permission to use this command!</color>";

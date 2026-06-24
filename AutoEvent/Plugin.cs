@@ -34,7 +34,7 @@ public class AutoEvent : Plugin<Config>
     public override string Description =>
         "A plugin that allows you to play mini-games in SCP:SL. It includes a variety of games such as Spleef, Lava, Hide and Seek, Knives, and more. Each game has its own unique mechanics and rules, providing a fun and engaging experience for players.";
 
-    public override Version Version => new(10, 1, 1);
+    public override Version Version => new(10, 1, 2);
     public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
     public override LoadPriority Priority => LoadPriority.High;
 
@@ -47,27 +47,15 @@ public class AutoEvent : Plugin<Config>
 
         try
         {
-            if (PluginLoader.Plugins.Any(p => p.Key != this && p.Key.Name == "AutoEvent"))
+            if (!DependencyManager.ValidateCore())
             {
-                LogManager.Error("AutoEvent is already loaded! Remove the duplicate AutoEvent DLL from plugins.");
+                LogManager.Error("AutoEvent cannot load because a required dependency is missing (see above).", false);
                 Singleton = null;
                 return;
             }
-
-            if (!PluginLoader.Plugins.Any(p =>
-                    p.Key != this && p.Key.Name.Contains("SecretLabNAudio", StringComparison.OrdinalIgnoreCase)))
-            {
-                LogManager.Error(
-                    "SecretLabNAudio is not loaded! Please install SecretLabNAudio to use AutoEvent. The plugin will not load without it.");
-                Singleton = null;
-                return;
-            }
-
-            LogManager.Info("AutoEvent built with SecretLabNAudio audio backend.");
 
             if (Singleton.Config.CreditTagSystem)
                 ApiManager.LoadCreditTags();
-
 
             if (Config.IgnoredRoles.Contains(Config.LobbyRole))
             {
@@ -77,8 +65,8 @@ public class AutoEvent : Plugin<Config>
             }
 
             FriendlyFireSystem.IsFriendlyFireEnabledByDefault = Server.FriendlyFire;
-            SpawnProtectionSystem.IsSpawnProtectionEnabledByDefault =
-                ConfigFile.ServerConfig.GetBool("spawn_protect_enabled");
+            FriendlyFireSystem.IsFriendlyFireDetectorPausedByDefault = FriendlyFireConfig.PauseDetector;
+            SpawnProtectionSystem.IsSpawnProtectionEnabledByDefault = ConfigFile.ServerConfig.GetBool("spawn_protect_enabled");
 
             MapSystemIntegration.Detect();
 
@@ -109,6 +97,7 @@ public class AutoEvent : Plugin<Config>
 
             InternalEventManager = new EventManager();
             InternalEventManager.RegisterInternalEvents();
+            DependencyManager.ReportEventDependencies(InternalEventManager.Events);
             _eventHandler = new EventHandler();
             CustomHandlersManager.RegisterEventsHandler(_eventHandler);
             ConfigManager.LoadConfigsAndTranslations();
@@ -135,15 +124,12 @@ public class AutoEvent : Plugin<Config>
 
     public override void Disable()
     {
-        // Only remove our own patches; UnpatchAll() without an ID would strip every plugin's patches.
         _harmonyPatch?.UnpatchAll(_harmonyPatch.Id);
         _harmonyPatch = null;
         InternalEventManager = null;
         Singleton = null;
-        if (_eventHandler != null)
-        {
-            CustomHandlersManager.UnregisterEventsHandler(_eventHandler);
-            _eventHandler = null;
-        }
+        if (_eventHandler == null) return;
+        CustomHandlersManager.UnregisterEventsHandler(_eventHandler);
+        _eventHandler = null;
     }
 }

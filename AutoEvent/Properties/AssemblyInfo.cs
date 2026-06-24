@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("AutoEvent")]
-[assembly: AssemblyVersion("10.1.0")]
-[assembly: AssemblyFileVersion("10.1.0")]
+[assembly: AssemblyVersion("10.1.2")]
+[assembly: AssemblyFileVersion("10.1.2")]
 [assembly: ComVisible(false)]
 [assembly: Guid("3c3fc008-22e1-4b28-ba50-a241b30cc216")]

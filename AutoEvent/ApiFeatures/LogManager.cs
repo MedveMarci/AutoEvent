@@ -11,26 +11,20 @@ internal static class LogManager
 {
     private const int MaxHistory = 2000;
     private static readonly Queue<LogEntry> History = new();
-    private static readonly object HistoryLock = new();
     private static bool DebugEnabled => AutoEvent.Singleton?.Config.Debug ?? false;
     private static string PluginName => AutoEvent.Singleton?.Name ?? "AutoEvent";
 
     private static void AddHistory(string level, string message)
     {
-        lock (HistoryLock)
-        {
-            History.Enqueue(new LogEntry(DateTimeOffset.Now.ToUnixTimeMilliseconds(), level, message));
-            while (History.Count > MaxHistory)
-                History.Dequeue();
-        }
+        History.Enqueue(new LogEntry(DateTimeOffset.Now.ToUnixTimeMilliseconds(), level, message));
+        while (History.Count > MaxHistory)
+            History.Dequeue();
+        
     }
 
     private static List<LogEntry> SnapshotHistory()
     {
-        lock (HistoryLock)
-        {
-            return History.ToList();
-        }
+        return History.ToList();
     }
 
     public static void Debug(string message)
