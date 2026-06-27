@@ -17,7 +17,6 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     public override string Description { get; set; } = "Team Death-Match between MTF and Chaos Insurgency";
     public override string Author { get; set; } = "RisottoMan/code & xleb.ik/map";
     public override string CommandName { get; set; } = "tdm";
-    protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Disable;
 
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll |
                                                                     EventFlags.IgnoreHandcuffing |

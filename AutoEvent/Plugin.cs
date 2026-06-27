@@ -34,7 +34,7 @@ public class AutoEvent : Plugin<Config>
     public override string Description =>
         "A plugin that allows you to play mini-games in SCP:SL. It includes a variety of games such as Spleef, Lava, Hide and Seek, Knives, and more. Each game has its own unique mechanics and rules, providing a fun and engaging experience for players.";
 
-    public override Version Version => new(10, 1, 2);
+    public override Version Version => new(10, 1, 3);
     public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
     public override LoadPriority Priority => LoadPriority.High;
 
@@ -49,13 +49,13 @@ public class AutoEvent : Plugin<Config>
         {
             if (!DependencyManager.ValidateCore())
             {
-                LogManager.Error("AutoEvent cannot load because a required dependency is missing (see above).", false);
+                LogManager.Error("AutoEvent cannot load because a required dependency is missing (see above).");
                 Singleton = null;
                 return;
             }
 
             if (Singleton.Config.CreditTagSystem)
-                ApiManager.LoadCreditTags();
+                CreditTagManager.LoadCreditTags();
 
             if (Config.IgnoredRoles.Contains(Config.LobbyRole))
             {

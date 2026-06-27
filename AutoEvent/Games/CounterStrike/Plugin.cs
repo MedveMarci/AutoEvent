@@ -28,7 +28,6 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     public override string Description { get; set; } = "Fight between terrorists and counter-terrorists";
     public override string Author { get; set; } = "RisottoMan";
     public override string CommandName { get; set; } = "cs";
-    protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Disable;
 
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll |
                                                                     EventFlags.IgnoreHandcuffing |

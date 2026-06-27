@@ -2,6 +2,7 @@ using System;
 using AutoEvent.ApiFeatures;
 using CommandSystem;
 using LabApi.Features.Permissions;
+using ProjectMER.Events.Handlers;
 
 namespace AutoEvent.Commands;
 
@@ -34,7 +35,7 @@ internal class Update : ICommand
 
         try
         {
-            var (updated, failed, total) = SchematicUpdater.Update();
+            var (updated, failed, total) = SchematicManager.Update();
 
             if (total == 0)
             {

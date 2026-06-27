@@ -43,7 +43,7 @@ internal static class DependencyManager
             allRequiredPresent = false;
             LogManager.Error(
                     $"  [MISSING] {dep} was not found. " +
-                    "AutoEvent will not load until it is installed.", false);
+                    "AutoEvent will not load until it is installed.");
             
         }
 

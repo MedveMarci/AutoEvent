@@ -58,6 +58,7 @@ namespace AutoEvent.Interfaces
         protected virtual CoroutineHandle GameCoroutine { get; set; }
         protected virtual CoroutineHandle BroadcastCoroutine { get; set; }
         private CoroutineHandle _timingCoroutine;
+        private CoroutineHandle _cleanupHandle;
         public virtual DateTime StartTime { get; protected set; }
         public virtual TimeSpan EventTime { get; protected set; }
 
@@ -228,7 +229,7 @@ namespace AutoEvent.Interfaces
             _stopped = true;
             KillLoop = true;
 
-            Timing.KillCoroutines(_timingCoroutine, BroadcastCoroutine, GameCoroutine);
+            Timing.KillCoroutines(_timingCoroutine, BroadcastCoroutine, GameCoroutine, _cleanupHandle);
 
             try
             {
@@ -241,7 +242,7 @@ namespace AutoEvent.Interfaces
 
             EventStopped?.Invoke(Name);
 
-            Timing.CallDelayed(FrameDelayInSeconds + .1f, () =>
+            _cleanupHandle = Timing.CallDelayed(FrameDelayInSeconds + .1f, () =>
             {
                 if (!_cleanupRun) OnInternalCleanup();
             });
@@ -249,6 +250,8 @@ namespace AutoEvent.Interfaces
 
         private void OnInternalStart(string mapName = "")
         {
+            Timing.KillCoroutines(_cleanupHandle);
+
             KillLoop = false;
             _cleanupRun = false;
             _stopped = false;
@@ -344,11 +347,11 @@ namespace AutoEvent.Interfaces
                 LogManager.Error($"Caught an exception at Event.OnFinished().\n{e}");
             }
 
-            var handle = Timing.CallDelayed(PostRoundDelay, () =>
+            _cleanupHandle = Timing.CallDelayed(PostRoundDelay, () =>
             {
                 if (!_cleanupRun) OnInternalCleanup();
             });
-            yield return Timing.WaitUntilDone(handle);
+            yield return Timing.WaitUntilDone(_cleanupHandle);
         }
 
         protected virtual IEnumerator<float> RunGameCoroutine()
@@ -376,6 +379,17 @@ namespace AutoEvent.Interfaces
         private void OnInternalCleanup()
         {
             if (_cleanupRun) return;
+
+            // If a different event has already taken over, this is a stale cleanup (e.g. a delayed
+            // post-round callback firing after the operator stopped and started another event).
+            // Mark it done but do nothing destructive - the active event owns the players now.
+            if (AutoEvent.InternalEventManager.CurrentEvent != null &&
+                AutoEvent.InternalEventManager.CurrentEvent != this)
+            {
+                _cleanupRun = true;
+                return;
+            }
+
             _cleanupRun = true;
             try
             {
