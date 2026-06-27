@@ -20,7 +20,6 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
     public override string Description { get; set; } = "MTF fight against CI in an arena";
     public override string Author { get; set; } = "RisottoMan";
     public override string CommandName { get; set; } = "battle";
-    protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Disable;
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreDroppingItem;
     protected override float FrameDelayInSeconds { get; set; } = 1f;
 

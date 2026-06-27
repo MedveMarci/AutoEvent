@@ -141,7 +141,7 @@ internal class EventHandler : CustomEventsHandler
     {
         try
         {
-            ApiManager.CheckForUpdates();
+            VersionManager.CheckForUpdates();
         }
         catch (Exception ex)
         {
@@ -158,12 +158,19 @@ internal class EventHandler : CustomEventsHandler
         base.OnServerRoundRestarted();
     }
 
+    public override void OnServerWaveRespawning(WaveRespawningEventArgs ev)
+    {
+        if (AutoEvent.InternalEventManager.CurrentEvent is not null)
+            ev.IsAllowed = false;
+        base.OnServerWaveRespawning(ev);
+    }
+
     public override void OnPlayerJoined(PlayerJoinedEventArgs ev)
     {
         try
         {
             if (AutoEvent.Singleton.Config != null && AutoEvent.Singleton.Config.CreditTagSystem)
-                if (ApiManager.TryGetCreditTag(ev.Player.UserId, out var tag, out var color))
+                if (CreditTagManager.TryGetCreditTag(ev.Player.UserId, out var tag, out var color))
                 {
                     if (string.IsNullOrEmpty(tag))
                         return;

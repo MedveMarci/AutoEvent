@@ -104,7 +104,7 @@ public static class ConfigManager
         }
         catch (Exception ex)
         {
-            LogManager.Error($"[ConfigManager] Cannot read from the config. You need to fix this issue in your config file if it's a YamlError!\n{ex}", false);
+            LogManager.Error($"[ConfigManager] Cannot read from the config. You need to fix this issue in your config file if it's a YamlError!\n{ex}");
         }
     }
 
@@ -174,7 +174,7 @@ public static class ConfigManager
         }
         catch (Exception ex)
         {
-            LogManager.Error($"[ConfigManager] Cannot read from the translation. You need to fix this issue in your config file if it's a YamlError!\n{ex}", false);
+            LogManager.Error($"[ConfigManager] Cannot read from the translation. You need to fix this issue in your config file if it's a YamlError!\n{ex}");
         }
     }
 

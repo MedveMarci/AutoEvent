@@ -285,20 +285,23 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             player.Mute();
         }
 
-        while (time > 0)
+        var votingStarted = false;
+        while (true)
         {
             if (discussionTime > 0)
             {
                 foreach (var player in Player.ReadyList.Where(p => Impostors.Contains(p) || Crewmates.Contains(p)))
                     player.Broadcast(
                         Translation.DiscussionInfo.Replace("{reason}", reason).Replace("{time}",
-                            discussionTime.ToString(CultureInfo.InvariantCulture)));
+                            discussionTime.ToString("0", CultureInfo.InvariantCulture)));
                 yield return Timing.WaitForSeconds(1f);
                 discussionTime--;
                 continue;
             }
 
-            if (discussionTime == 0)
+            // Transition into the voting phase exactly once. Using a flag (instead of a
+            // floating-point "== 0" check) keeps this correct for non-integer config values.
+            if (!votingStarted)
             {
                 LogManager.Debug("Unmuting players");
                 foreach (var player in Muted)
@@ -309,13 +312,19 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
 
                 Muted.Clear();
                 VotingPhase = true;
+                votingStarted = true;
                 GiveVotingMenus();
-                discussionTime--;
             }
 
-            var playersCount = Impostors.Count(p => p.IsAlive) + Crewmates.Count(p => p.IsAlive);
+            if (time <= 0)
+                break;
 
-            if (!shortened && playersCount > 0 && PlayerVotes.Count >= playersCount && time > 5)
+            var aliveVoters = Impostors.Count(p => p.IsAlive) + Crewmates.Count(p => p.IsAlive);
+            var castVotes = PlayerVotes.Keys.Count(k =>
+                Player.Get(k) is { IsAlive: true } voter &&
+                (Impostors.Contains(voter) || Crewmates.Contains(voter)));
+
+            if (!shortened && aliveVoters > 0 && castVotes >= aliveVoters && time > 5)
             {
                 time = 5;
                 shortened = true;
@@ -324,7 +333,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
             foreach (var player in Player.ReadyList.Where(p => Impostors.Contains(p) || Crewmates.Contains(p)))
                 player.Broadcast(
                     Translation.VotingInfo.Replace("{reason}", reason).Replace("{time}",
-                        time.ToString(CultureInfo.InvariantCulture)));
+                        time.ToString("0", CultureInfo.InvariantCulture)));
 
             yield return Timing.WaitForSeconds(1f);
             time--;
@@ -613,6 +622,11 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IPlayerCoun
     internal void StartMeeting(string reason, Player starter)
     {
         MeetingCalled = true;
+
+        // Start from a clean slate so a previous (possibly interrupted) meeting cannot
+        // leak stale votes or open radio menus into this one.
+        PlayerVotes.Clear();
+        RadioMenuManager.ClearAll();
 
         if (MeetingButton != null && SpawnList.Count > 0)
         {

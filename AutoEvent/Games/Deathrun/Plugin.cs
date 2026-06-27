@@ -24,6 +24,10 @@ public class Plugin : Event<Config, Translation>, IEventMap
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll;
     private GameObject Wall { get; set; }
     private List<GameObject> RunnerSpawns { get; set; }
+
+    // The players chosen as "death-guys". Tracked explicitly so the win/round logic does not
+    // rely on raw RoleTypeIds (which can collide with the configurable LobbyRole, e.g. ClassD).
+    private List<Player> Deaths { get; set; }
     internal static List<GameObject> TeleportOuts { get; set; }
 
     public MapInfo MapInfo { get; set; } = new()
@@ -48,6 +52,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
     {
         RunnerSpawns = [];
         TeleportOuts = [];
+        Deaths = [];
         List<GameObject> deathSpawns = [];
         foreach (var block in MapInfo.Map.AttachedBlocks)
             switch (block.name)
@@ -59,7 +64,9 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 case "FanTrigger": block.AddComponent<FanComponent>(); break;
                 case "ColliderTrigger": block.AddComponent<ColliderComponent>(); break;
                 case "WeaponTrigger": block.AddComponent<WeaponComponent>().StartComponent(this); break;
-                case "PoisonTrigger": block.AddComponent<PoisonComponent>(); break;
+                case "PoisonTrigger": 
+                case "PoisonComponent": 
+                    block.AddComponent<PoisonComponent>(); break;
                 case "RunTeleportIn":
                 case "DeathTeleportIn1":
                 case "DeathTeleportIn2": block.AddComponent<TeleportComponent>(); break;
@@ -82,17 +89,18 @@ public class Plugin : Event<Config, Translation>, IEventMap
         }
 
         var deathCount = Math.Max(1, Player.ReadyList.Count() / 20);
-        var availablePlayers = Player.ReadyList.ToList();
-        for (var i = 0; i < deathCount && availablePlayers.Count > 0; i++)
+        var runners = Player.ReadyList.ToList();
+        for (var i = 0; i < deathCount && runners.Count > 0; i++)
         {
-            var death = availablePlayers.RandomItem();
-            availablePlayers.Remove(death);
+            var death = runners.RandomItem();
+            runners.Remove(death);
+            Deaths.Add(death);
             death.GiveLoadout(Config.DeathLoadouts);
             death.Position = deathSpawns.RandomItem().transform.position;
         }
 
         // Teleport runners to spawnpoint
-        foreach (var runner in Player.ReadyList.Where(r => r.Role == RoleTypeId.ClassD))
+        foreach (var runner in runners)
         {
             runner.GiveLoadout(Config.PlayerLoadouts);
             runner.Position = RunnerSpawns.RandomItem().transform.position;
@@ -117,11 +125,15 @@ public class Plugin : Event<Config, Translation>, IEventMap
             NetworkServer.Destroy(Wall);
     }
 
-    // While all the players are alive and time has not over
+    // A runner is any participant that is alive and was not chosen as a death-guy.
+    // Dead/finished states are handled by IsAlive, so this stays correct regardless of LobbyRole.
+    private int AliveRunners => Player.ReadyList.Count(r => r.IsAlive && !Deaths.Contains(r));
+    private int AliveDeaths => Deaths.Count(d => d != null && d.IsAlive);
+
+    // While both sides are alive and time has not run out
     protected override bool IsRoundDone()
     {
-        return !(Player.ReadyList.Count(r => r.Role == RoleTypeId.Scientist) > 0 &&
-                 Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD) > 0 &&
+        return !(AliveDeaths > 0 && AliveRunners > 0 &&
                  EventTime.TotalSeconds < Config.RoundDurationInSeconds);
     }
 
@@ -134,15 +146,16 @@ public class Plugin : Event<Config, Translation>, IEventMap
         if (timeleft.TotalSeconds < 0)
         {
             timetext = Translation.OverTimeBroadcast;
-            foreach (var player in Player.ReadyList.Where(r => r.Role is RoleTypeId.ClassD))
+            foreach (var player in Player.ReadyList.Where(r => r.IsAlive && !Deaths.Contains(r)))
                 if (!player.Items.Any())
                     player.Kill(Translation.Died);
         }
-        // A second life for dead players
+        // A second life for dead players - they come back as runners.
         else if (Config.SecondLifeInSeconds == EventTime.TotalSeconds)
         {
             foreach (var player in Player.ReadyList.Where(r => r.Role is RoleTypeId.Spectator))
             {
+                Deaths.Remove(player);
                 player.SetRole(RoleTypeId.ClassD, flags: RoleSpawnFlags.None);
                 player.Position = RunnerSpawns.RandomItem().transform.position;
                 player.SendHint(Translation.SecondLifeHint, 5);
@@ -151,8 +164,8 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
         var text = Translation.CycleBroadcast;
         text = text.Replace("{name}", Name);
-        text = text.Replace("{runnerCount}", $"{Player.ReadyList.Count(r => r.Role is RoleTypeId.ClassD)}");
-        text = text.Replace("{deathCount}", $"{Player.ReadyList.Count(r => r.Role is RoleTypeId.Scientist)}");
+        text = text.Replace("{runnerCount}", $"{AliveRunners}");
+        text = text.Replace("{deathCount}", $"{AliveDeaths}");
         text = text.Replace("{time}", timetext);
 
 
@@ -161,7 +174,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
     protected override void OnFinished()
     {
-        var text = Player.ReadyList.Count(r => r.Role is RoleTypeId.ClassD) == 0
+        var text = AliveRunners == 0
             ? Translation.DeathWinBroadcast.Replace("{name}", Name)
             : Translation.RunnerWinBroadcast.Replace("{name}", Name);
 

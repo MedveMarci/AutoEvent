@@ -21,7 +21,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     public override string Description { get; set; } = "We need to catch up with all the players on the map";
     public override string Author { get; set; } = "RisottoMan";
     public override string CommandName { get; set; } = "tag";
-    protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Enable;
 
     public override EventFlags EventHandlerSettings { get; set; } =
         EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing;

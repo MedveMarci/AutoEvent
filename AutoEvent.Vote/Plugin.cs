@@ -25,7 +25,7 @@ public class AutoEventVote : Plugin<Config>
 
     private static void OnWaitingForPlayers()
     {
-        ApiManager.CheckForUpdates();
+        VersionManager.CheckForUpdates();
     }
 
     public override void Enable()

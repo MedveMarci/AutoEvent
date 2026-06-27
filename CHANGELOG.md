@@ -1,5 +1,19 @@
 # Changelog
 
+## [10.1.3]
+
+## Fixed
+- Fixed server crash when the BearmanAPI is down.
+- Fixed several issues with `sl_egypt` map.
+- Fixed Among Us MedBay Scan task.
+- Fixed Among Us voting.
+- Fixed CleanUp when stopping an event while it's finished.
+- Spectators are no longer pulled back into a running mini-game by the respawn waves.
+- Friendly Fire is now only force-enabled in mini-games that mechanically require it (All Deathmatch,
+  Gun Game, Among Us, Lava, Jail, Airstrike). Team/duel games (Team Death-Match, Counter-Strike, Versus,
+  Knives, Battle and Tag) no longer force a value, so the per-event `EnableFriendlyFire` config now
+  controls them.
+
 ## [10.1.2]
 
 ### Added

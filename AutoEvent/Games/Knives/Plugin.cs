@@ -17,7 +17,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     public override string Description { get; set; } = "Knife players against each other on a 35hp map from cs 1.6";
     public override string Author { get; set; } = "RisottoMan/code & xleb.ik/map";
     public override string CommandName { get; set; } = "knives";
-    protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Disable;
 
     public override EventFlags EventHandlerSettings { get; set; } =
         EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing;
