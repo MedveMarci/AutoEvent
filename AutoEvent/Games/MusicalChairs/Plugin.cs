@@ -24,10 +24,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     internal List<GameObject> Platforms;
     internal Dictionary<Player, PlayerClass> PlayerDict;
+
     public override string Name { get; set; } = "Musical Chairs";
+
     public override string Description { get; set; } = "Competition with other players for free chairs to funny music";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "chair";
+
     protected override float FrameDelayInSeconds { get; set; } = 0.1f;
 
     public MapInfo MapInfo { get; set; } = new()
@@ -63,19 +68,19 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _eventState = 0;
         _countdown = new TimeSpan(0, 0, 5);
-        var spawnpoints = new List<GameObject>();
+        List<GameObject> spawnpoints = [];
 
-        foreach (var gameObject in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject gameObject in MapInfo.Map.AttachedBlocks)
             switch (gameObject.name)
             {
                 case "Spawnpoint": spawnpoints.Add(gameObject); break;
                 case "Cylinder-Parent": _parentPlatform = gameObject; break;
             }
 
-        var count = Player.ReadyList.Count() > 40 ? 40 : Player.ReadyList.Count() - 1;
+        int count = Player.ReadyList.Count() > 40 ? 40 : Player.ReadyList.Count() - 1;
         Platforms = Functions.GeneratePlatforms(count, _parentPlatform, MapInfo.Position);
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             player.GiveLoadout(Config.PlayerLoadout);
             player.Position = spawnpoints.RandomItem().transform.position;
@@ -84,7 +89,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
 
         PlayerDict = new Dictionary<Player, PlayerClass>();
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
             PlayerDict.Add(player, new PlayerClass
             {
                 IsStandUpPlatform = false
@@ -93,9 +98,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
-            var text = Translation.Start.Replace("{time}", time.ToString());
+            string text = Translation.Start.Replace("{time}", time.ToString());
             Extensions.ServerBroadcast(text, 1);
             yield return Timing.WaitForSeconds(1f);
         }
@@ -103,15 +108,13 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override bool IsRoundDone()
     {
-        _countdown = _countdown.TotalSeconds > 0
-            ? _countdown.Subtract(TimeSpan.FromSeconds(FrameDelayInSeconds))
-            : TimeSpan.Zero;
+        _countdown = _countdown.TotalSeconds > 0 ? _countdown.Subtract(TimeSpan.FromSeconds(FrameDelayInSeconds)) : TimeSpan.Zero;
         return !(Player.ReadyList.Count(r => r.IsAlive) > 1);
     }
 
     protected override void ProcessFrame()
     {
-        var text = string.Empty;
+        string text = string.Empty;
         LogManager.Debug($"State: {_eventState}, Countdown: {_countdown.TotalSeconds}");
         switch (_eventState)
         {
@@ -121,9 +124,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             case EventState.Ending: UpdateEndingState(ref text); break;
         }
 
-        Extensions.ServerBroadcast(
-            Translation.Cycle.Replace("{name}", Name).Replace("{state}", text)
-                .Replace("{count}", $"{Player.ReadyList.Count(r => r.IsAlive)}"), 1);
+        Extensions.ServerBroadcast(Translation.Cycle.Replace("{name}", Name).Replace("{state}", text).Replace("{count}", $"{Player.ReadyList.Count(r => r.IsAlive)}"), 1);
     }
 
     protected void UpdateWaitingState(ref string text)
@@ -134,7 +135,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             return;
 
         // Reset the parameters in the dictionary
-        foreach (var value in PlayerDict.Values)
+        foreach (PlayerClass value in PlayerDict.Values)
         {
             value.IsStandUpPlatform = false;
             value.StationaryTime = 0f;
@@ -149,9 +150,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         text = Translation.RunDontTouch;
 
         // Check only alive players
-        foreach (var player in Player.ReadyList.Where(r => r.IsAlive))
+        foreach (Player player in Player.ReadyList.Where(r => r.IsAlive))
         {
-            if (!PlayerDict.TryGetValue(player, out var pc)) continue;
+            if (!PlayerDict.TryGetValue(player, out PlayerClass pc)) continue;
 
             // Accumulate stationary time; kill only after 0.5 s of being barely still
             if (player.Velocity.sqrMagnitude < 0.09f) // ~0.3 m/s threshold
@@ -170,7 +171,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             }
 
             // If the player touches the platform, it will explode || Layer mask is 0 for primitives
-            if (!Physics.Raycast(player.Position, Vector3.down, out var hit, 3, 1 << 0)) continue;
+            if (!Physics.Raycast(player.Position, Vector3.down, out RaycastHit hit, 3, 1 << 0)) continue;
             if (!Platforms.Contains(hit.collider.gameObject))
                 continue;
 
@@ -181,7 +182,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         if (_countdown.TotalSeconds > 0)
             return;
 
-        foreach (var platform in Platforms)
+        foreach (GameObject platform in Platforms)
             platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = Color.black;
 
         SoundInfo.AudioPlayer.PauseAudio();
@@ -194,10 +195,10 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         text = Translation.StandFree;
 
         // Check only alive players
-        foreach (var player in Player.ReadyList.Where(r => r.IsAlive))
+        foreach (Player player in Player.ReadyList.Where(r => r.IsAlive))
         {
             // Player is not contains in _playerDict
-            if (!PlayerDict.TryGetValue(player, out var playerClass))
+            if (!PlayerDict.TryGetValue(player, out PlayerClass playerClass))
                 continue;
 
             // The player has already stood on the platform
@@ -205,7 +206,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 continue;
 
             // Layer mask is 0 for primitives
-            if (!Physics.Raycast(player.Position, Vector3.down, out var hit, 3, 1 << 0)) continue;
+            if (!Physics.Raycast(player.Position, Vector3.down, out RaycastHit hit, 3, 1 << 0)) continue;
             if (!Platforms.Contains(hit.collider.gameObject))
                 continue;
 
@@ -220,8 +221,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             return;
 
         // Kill alive players who didn't get up to platform
-        foreach (var player in Player.ReadyList.Where(r => r.IsAlive))
-            if (!PlayerDict.TryGetValue(player, out var pc) || !pc.IsStandUpPlatform)
+        foreach (Player player in Player.ReadyList.Where(r => r.IsAlive))
+            if (!PlayerDict.TryGetValue(player, out PlayerClass pc) || !pc.IsStandUpPlatform)
             {
                 Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f, 0);
                 player.Kill(Translation.NoTime);
@@ -237,8 +238,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
         if (_countdown.TotalSeconds > 0)
             return;
-        foreach (var player in Player.ReadyList.Where(p => p.IsAlive)) player.DisableEffect<Ensnared>();
-        foreach (var platform in Platforms)
+        foreach (Player player in Player.ReadyList.Where(p => p.IsAlive)) player.DisableEffect<Ensnared>();
+        foreach (GameObject platform in Platforms)
             platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = Color.yellow;
 
         SoundInfo.AudioPlayer.ResumeAudio();
@@ -249,7 +250,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void OnFinished()
     {
         string text;
-        var count = Player.ReadyList.Count(r => r.IsAlive);
+        int count = Player.ReadyList.Count(r => r.IsAlive);
 
         if (count > 1)
         {
@@ -257,7 +258,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
         else if (count == 1)
         {
-            var winner = Player.ReadyList.First(r => r.IsAlive);
+            Player winner = Player.ReadyList.First(r => r.IsAlive);
             text = Translation.Winner.Replace("{name}", Name).Replace("{winner}", winner.Nickname);
         }
         else
@@ -270,6 +271,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void OnCleanup()
     {
-        foreach (var platform in Platforms) Object.Destroy(platform);
+        foreach (GameObject platform in Platforms) Object.Destroy(platform);
     }
 }

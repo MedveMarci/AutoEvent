@@ -20,14 +20,14 @@ public class EventHandler(Plugin plugin)
     {
         if (!plugin.Config.IsEnablePush)
             return;
-        var transform = ev.Player.Camera.transform;
+        Transform transform = ev.Player.Camera.transform;
 
-        var ray = new Ray(transform.position + transform.forward * 0.1f, transform.forward);
+        Ray ray = new(transform.position + transform.forward * 0.1f, transform.forward);
 
-        if (!Physics.Raycast(ray, out var hit, 1.7f))
+        if (!Physics.Raycast(ray, out RaycastHit hit, 1.7f))
             return;
 
-        var target = Player.Get(hit.collider.transform.root.gameObject);
+        Player target = Player.Get(hit.collider.transform.root.gameObject);
         if (target == null || ev.Player == target)
             return;
 
@@ -43,18 +43,18 @@ public class EventHandler(Plugin plugin)
 
     private static IEnumerator<float> PushPlayer(Player player, Player target)
     {
-        var pushed = player.Camera.transform.forward * 1.7f;
+        Vector3 pushed = player.Camera.transform.forward * 1.7f;
 
-        var endPos = target.Position + new Vector3(pushed.x, 0, pushed.z);
-        var layerAsLayerMask = 0;
+        Vector3 endPos = target.Position + new Vector3(pushed.x, 0, pushed.z);
+        int layerAsLayerMask = 0;
 
-        for (var x = 1; x < 8; x++)
+        for (int x = 1; x < 8; x++)
             layerAsLayerMask |= 1 << x;
 
-        for (var i = 1; i < 15; i++)
+        for (int i = 1; i < 15; i++)
         {
             const float movementAmount = 1.7f / 15;
-            var newPos = Vector3.MoveTowards(target.Position, endPos, movementAmount);
+            Vector3 newPos = Vector3.MoveTowards(target.Position, endPos, movementAmount);
 
             if (Physics.Linecast(target.Position, newPos, layerAsLayerMask))
                 yield break;

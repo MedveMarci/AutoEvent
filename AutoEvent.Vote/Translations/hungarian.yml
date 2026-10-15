@@ -1,0 +1,12 @@
+menu_title: 'Szavazz a következő minijátékra!'
+broadcast_text: |-
+  <b>Szavazz a rádióval a következő minijátékra!</b>
+  <size=25>Bal egérgombbal válthatsz. Még {duration} másodperc.</size>
+ended_with_no_vote: '<b>A szavazás véget ért, de senki sem szavazott.</b>'
+ended_with_tie: |-
+  <b>A szavazás döntetlennel zárult:</b>
+  {events}
+ended_with_winner: |-
+  <b>A szavazás véget ért!</b>
+  A győztes: <color=yellow>{event}</color> ({votes} szavazat)
+ended_by_staff: '<b>A szavazást egy adminisztrátor lezárta.</b>'

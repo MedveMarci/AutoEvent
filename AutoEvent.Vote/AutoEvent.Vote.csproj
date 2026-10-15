@@ -32,7 +32,7 @@
         <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all"/>
         <PackageReference Include="Northwood.LabAPI" Version="1.1.7"/>
         <PackageReference Include="System.Net.Http" Version="4.3.4"/>
-        <PackageReference Include="System.Text.Json" Version="10.0.9"/>
+        <PackageReference Include="System.Text.Json" Version="9.0.4"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -46,7 +46,11 @@
         <ProjectReference Include="..\AutoEvent\AutoEvent.csproj"/>
     </ItemGroup>
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+        <EmbeddedResource Include="Translations\*.yml"/>
+    </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(OS)' == 'Windows_NT' and '$(CI)' != 'true'">
         <Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;%appdata%\SCP Secret Laboratory\LabAPI\plugins\global&quot; /y"/>
     </Target>
 

@@ -16,10 +16,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     private int _redPoints;
     private TimeSpan _remainingTime;
     private List<GameObject> _triggers;
+
     public override string Name { get; set; } = "Football";
+
     public override string Description { get; set; } = "Score 3 goals to win";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "football";
+
     protected override float FrameDelayInSeconds { get; set; } = 0.3f;
 
     public MapInfo MapInfo { get; set; } = new()
@@ -36,10 +41,10 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void OnStart()
     {
         _remainingTime = new TimeSpan(0, 0, Config.MatchDurationInSeconds);
-        var count = 0;
+        int count = 0;
 
-        var spawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint").ToList();
-        foreach (var player in Player.ReadyList)
+        List<GameObject> spawnList = [.. MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint")];
+        foreach (Player player in Player.ReadyList)
         {
             if (count % 2 == 0)
             {
@@ -60,7 +65,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _ball = new GameObject();
         _triggers = [];
 
-        foreach (var gameObject in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject gameObject in MapInfo.Map.AttachedBlocks)
             switch (gameObject.name)
             {
                 case "Trigger":
@@ -82,18 +87,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         // Both teams have less than 3 points &&
         // The elapsed time is under 3 minutes &&
         // Both Teams have at least 1 player 
-        return !(_bluePoints < Config.PointsToWin && _redPoints < Config.PointsToWin &&
-                 EventTime.TotalSeconds < Config.MatchDurationInSeconds &&
-                 Player.ReadyList.Count(r => r.IsNTF) > 0 &&
-                 Player.ReadyList.Count(r => r.RoleBase.Team == Team.ClassD) > 0);
+        return !(_bluePoints < Config.PointsToWin && _redPoints < Config.PointsToWin && EventTime.TotalSeconds < Config.MatchDurationInSeconds && Player.ReadyList.Count(r => r.IsNTF) > 0 && Player.ReadyList.Count(r => r.RoleBase.Team == Team.ClassD) > 0);
     }
 
     protected override void ProcessFrame()
     {
-        var time = $"{_remainingTime.Minutes:00}:{_remainingTime.Seconds:00}";
-        foreach (var player in Player.ReadyList)
+        string time = $"{_remainingTime.Minutes:00}:{_remainingTime.Seconds:00}";
+        foreach (Player player in Player.ReadyList)
         {
-            var text = string.Empty;
+            string text = string.Empty;
             if (Vector3.Distance(_ball.transform.position, player.Position) < 2)
             {
                 _ball.gameObject.TryGetComponent(out Rigidbody rig);
@@ -105,10 +107,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             else
                 text += Translation.RedTeam;
 
-            player.ClearBroadcasts();
-            player.SendBroadcast(
-                text + Translation.TimeLeft.Replace("{BluePnt}", $"{_bluePoints}").Replace("{RedPnt}", $"{_redPoints}")
-                    .Replace("{time}", time), 1);
+            player.Broadcast(text + Translation.TimeLeft.Replace("{BluePnt}", $"{_bluePoints}").Replace("{RedPnt}", $"{_redPoints}").Replace("{time}", time), 1);
         }
 
         if (Vector3.Distance(_ball.transform.position, _triggers.ElementAt(0).transform.position) < 3)
@@ -141,7 +140,6 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         else if (_redPoints > _bluePoints)
             Extensions.ServerBroadcast($"{Translation.RedWins}", 10);
         else
-            Extensions.ServerBroadcast(
-                $"{Translation.Draw.Replace("{BluePnt}", $"{_bluePoints}").Replace("{RedPnt}", $"{_redPoints}")}", 3);
+            Extensions.ServerBroadcast($"{Translation.Draw.Replace("{BluePnt}", $"{_bluePoints}").Replace("{RedPnt}", $"{_redPoints}")}", 3);
     }
 }

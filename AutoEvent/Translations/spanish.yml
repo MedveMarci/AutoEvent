@@ -73,6 +73,7 @@ Among Us:
   accept_divert_power: 'Accept Divert Power'
   download_data: 'Download Data'
   upload_data: 'Upload Data'
+  submit_scan: 'Enviar escaneo'
   skip: 'Skip'
   vote: 'vote'
   no_one_voted_out: 'No one was voted out.'
@@ -146,7 +147,11 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>  
     <color=yellow>GANADORES: <color=red>CIENTÍFICOS</color></color> 
-  max_round_reached: 'You reached the max number of rounds!'
+  max_round_reached: |-
+    <color=yellow>¡Has jugado el máximo de {max} rondas seguidas!</color>
+    Podrás volver a la arena después de la próxima ronda.
+  rounds_remaining: 'Puedes jugar <color=yellow>{rounds}</color> ronda(s) más seguidas.'
+  resting: '<color=red>Debes descansar una ronda antes de volver a la arena.</color>'
   name: 'Peleas de jailbird'
   description: 'Duelo de jugadores en el mapa de 35hp de cs 1.6'
   command_name: 'versus'
@@ -504,7 +509,6 @@ The floor is LAVA:
     Jugador - {winner}</b></color>  
   all_dead: '<color=red><b>Nadie sobrevivió hasta el final.</b></color>'
   died: '<color=red>Caíste en lava</color>'
-  reload: 'Reload your weapon!'
   name: 'El suelo es LAVA'
   description: 'Supervivencia, en la que necesitas evitar la lava y disparar a otros'
   command_name: 'lava'

@@ -13,16 +13,16 @@ public class EventHandler(Plugin plugin)
         if (!plugin.Config.IsEnablePush)
             return;
 
-        if (plugin.PushCooldown.TryGetValue(ev.Player, out var remaining) && remaining > 0)
+        if (plugin.PushCooldown.TryGetValue(ev.Player, out float remaining) && remaining > 0)
             return;
 
-        var transform = ev.Player.Camera.transform;
-        var ray = new Ray(transform.position + transform.forward * 0.1f, transform.forward);
+        Transform transform = ev.Player.Camera.transform;
+        Ray ray = new(transform.position + transform.forward * 0.1f, transform.forward);
 
-        if (!Physics.Raycast(ray, out var hit, 1.7f))
+        if (!Physics.Raycast(ray, out RaycastHit hit, 1.7f))
             return;
 
-        var target = Player.Get(hit.collider.transform.root.gameObject);
+        Player target = Player.Get(hit.collider.transform.root.gameObject);
         if (target == null || ev.Player == target)
             return;
 
@@ -40,26 +40,26 @@ public class EventHandler(Plugin plugin)
         const float playerHeight = 1.8f;
         const int steps = 15;
 
-        var dir = player.Camera.transform.forward;
+        Vector3 dir = player.Camera.transform.forward;
         dir.y = 0f;
         if (dir.sqrMagnitude > 0f) dir.Normalize();
 
-        var endPos = target.Position + dir * pushDistance;
+        Vector3 endPos = target.Position + dir * pushDistance;
 
-        var layerMask = 0;
-        for (var x = 0; x < 8; x++)
+        int layerMask = 0;
+        for (int x = 0; x < 8; x++)
             layerMask |= 1 << x;
 
-        for (var i = 0; i < steps; i++)
+        for (int i = 0; i < steps; i++)
         {
             const float movementAmount = pushDistance / steps;
-            var newPos = Vector3.MoveTowards(target.Position, endPos, movementAmount);
-            var moveDir = newPos - target.Position;
-            var dist = moveDir.magnitude;
+            Vector3 newPos = Vector3.MoveTowards(target.Position, endPos, movementAmount);
+            Vector3 moveDir = newPos - target.Position;
+            float dist = moveDir.magnitude;
             if (dist < 0.001f) yield break;
 
-            var p1 = target.Position + Vector3.up * playerRadius;
-            var p2 = target.Position + Vector3.up * (playerHeight - playerRadius);
+            Vector3 p1 = target.Position + Vector3.up * playerRadius;
+            Vector3 p2 = target.Position + Vector3.up * (playerHeight - playerRadius);
             if (Physics.CapsuleCast(p1, p2, playerRadius, moveDir / dist, dist, layerMask))
                 yield break;
 

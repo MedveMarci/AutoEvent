@@ -1,11 +1,22 @@
 # Configuration
 
-AutoEvent configuration files are located at:
+The mini-game configuration files are located at:
 
 ```
-LabApi/configs/global/AutoEvent/
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\configs\AutoEvent\
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/configs/AutoEvent/
   configs.yml      — Event-specific settings
   translation.yml  — Display names and descriptions
+  Music/           — Music files
+  Schematics/      — Map schematics
+```
+
+The plugin's own settings (volume, paths, lobby role, ...) are in `config.yml` (`<port>` is the server port, e.g.
+`7777`):
+
+```
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\configs\<port>\AutoEvent\config.yml
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/configs/<port>/AutoEvent/config.yml
 ```
 
 Use `ev reload` in the Remote Admin console to reload configs without restarting the server. Reload cannot be run while
@@ -72,7 +83,8 @@ Specifies one or more audio files the event can play. If multiple are listed, on
 value.
 
 > If you add a sound to the config, the event's default music will not play. To replace the default music, use the same
-> filename.
+> filename: put your own file with that name in `AutoEvent/Music/`. AutoEvent only saves its built-in music there when
+> the file is missing, so your file is kept.
 
 ```yaml
 available_sounds:
@@ -102,7 +114,9 @@ AutoEvent requires audio in `.ogg` format with the following settings:
     - Frequency: `48000 Hz`
     - Volume: No change
 3. Convert and download the file
-4. Place it in `LabApi/configs/AutoEvent/Music/`
+4. Place it in:
+    - Windows: `%AppData%\SCP Secret Laboratory\LabAPI\configs\AutoEvent\Music\`
+    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/configs/AutoEvent/Music/`
 
 ---
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AutoEvent.API.Season;
@@ -13,7 +14,9 @@ namespace AutoEvent.Commands;
 internal class List : ICommand
 {
     public string Command => nameof(List);
+
     public string Description => "Shows a list of all the events that can be started";
+
     public string[] Aliases => [];
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
@@ -23,35 +26,31 @@ internal class List : ICommand
             response = "AutoEvent is not loaded. Check console for errors.";
             return false;
         }
-        
+
         if (!sender.HasPermissions("ev.list"))
         {
             response = "<color=red>You do not have permission to use this command!</color>";
             return false;
         }
 
-        var builder = new StringBuilder();
+        StringBuilder builder = new();
 
-        var isConsole = sender is ServerConsoleSender;
+        bool isConsole = sender is ServerConsoleSender;
         builder.AppendLine(!isConsole ? "<color=yellow><b>List of events</b></color>:" : "List of events:");
 
-        var style = SeasonMethod.GetSeasonStyle();
-        var color = style.PrimaryColor;
+        SeasonStyle style = SeasonMethod.GetSeasonStyle();
+        string color = style.PrimaryColor;
 
         if (style.Text != null)
             builder.AppendLine(style.Text);
 
-        var events = EventManager.Events;
-        var eventList = events?.OrderBy(x => x?.Name).ToList() ?? [];
+        List<Event> events = EventManager.Events;
+        List<Event> eventList = events?.OrderBy(x => x?.Name).ToList() ?? [];
         foreach (IEvent ev in eventList)
-            builder.AppendLine(
-                !isConsole
-                    ? $"<color={color}>{ev.Name}</color> [<color=yellow>{ev.CommandName}</color>]: <color=white>{ev.Description}</color>"
-                    : $"{ev.Name} [{ev.CommandName}]: {ev.Description}");
+            builder.AppendLine(!isConsole ? $"<color={color}>{ev.Name}</color> [<color=yellow>{ev.CommandName}</color>]: <color=white>{ev.Description}</color>" : $"{ev.Name} [{ev.CommandName}]: {ev.Description}");
 
         if (!EventManager.IsMerLoaded)
-            builder.AppendLine(
-                "\n<i><color=red>ProjectMER is not loaded. There are only those mini-games that don't run maps.</color></i>");
+            builder.AppendLine("\n<i><color=red>ProjectMER is not loaded. There are only those mini-games that don't run maps.</color></i>");
 
         if (!isConsole)
         {

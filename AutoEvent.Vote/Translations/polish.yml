@@ -1,0 +1,12 @@
+menu_title: 'Zagłosuj na minigrę!'
+broadcast_text: |-
+  <b>Zagłosuj radiem na następną minigrę!</b>
+  <size=25>Zmieniasz wybór lewym przyciskiem myszy. Pozostało {duration} sekund.</size>
+ended_with_no_vote: '<b>Głosowanie zakończyło się bez głosów.</b>'
+ended_with_tie: |-
+  <b>Głosowanie zakończyło się remisem między:</b>
+  {events}
+ended_with_winner: |-
+  <b>Głosowanie zakończone!</b>
+  Wygrywa <color=yellow>{event}</color> z liczbą głosów: {votes}.
+ended_by_staff: '<b>Głosowanie zostało zakończone przez administratora.</b>'

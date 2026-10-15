@@ -8,8 +8,8 @@
 
 ![Logo](https://github.com/MedveMarci/AutoEvent/blob/main/Photos/MGMER.png)
 
-AutoEvent is a mini-games plugin for SCP: Secret Laboratory, built on the **LabAPI** framework. It
-includes **26 unique mini-games**.
+AutoEvent is a mini-games plugin for SCP: Secret Laboratory, built on the **LabAPI** framework. It includes **26 unique
+mini-games**.
 
 ---
 
@@ -25,6 +25,8 @@ includes **26 unique mini-games**.
 
 **Optional Modules:**
 
+- [AutoEvent.AutoRun](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/AutoRun.md) — automatically runs mini-games
+  one after another
 - [AutoEvent.Vote](https://github.com/MedveMarci/AutoEvent/blob/main/Docs/Vote.md) — voting system for choosing
   mini-games
 
@@ -68,31 +70,39 @@ includes **26 unique mini-games**.
 
 ## Dependencies
 
-| Dependency                                                             | Required | Description                                      |
-|------------------------------------------------------------------------|----------|--------------------------------------------------|
-| Harmony                                                                | Yes      | Included in the release as `0Harmony.dll`        |
-| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | Included in the release (*required for Among Us) |
-| [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | Included in the release as `ProjectMER.dll`      |
-| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | Included in the release (*required for Among Us) |
-| [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)           | Yes      | Included in the release as `SecretLabNAudio.zip` |
+The release only contains the AutoEvent DLLs. Download the dependencies from their own releases:
+
+| Dependency                                                             | Required | Description                                                    |
+|------------------------------------------------------------------------|----------|----------------------------------------------------------------|
+| [Harmony](https://github.com/pardeike/Harmony)                         | Yes      | `0Harmony.dll` (.NET Framework 4.8 build)                      |
+| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | `LabApiExtensions.dll` (*required for Among Us)                |
+| [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | `ProjectMER.dll`, map/schematic loading                        |
+| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | `RadioMenuAPI.dll` (*required for Among Us and AutoEvent.Vote) |
+| [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)           | Yes      | `SecretLabNAudio.zip`, music playback                          |
 
 ---
 
 ## Quick Start
 
-1. Download the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest):
-    - `AutoEvent.dll`
-    - `0Harmony.dll`
-    - `RadioMenuAPI.dll`
-    - `LabApiExtensions.dll`
-    - `ProjectMER.dll`
-    - `SecretLabNAudio.zip`
-    - `Music.zip`
-2. Place `AutoEvent.dll`, `RadioMenuAPI.dll`, `LabApiExtensions.dll`, `ProjectMER.dll` in `LabApi/plugins/global/`
-3. Place `0Harmony.dll` in `LabApi/dependencies/global/`
-4. Extract `SecretLabNAudio.zip` and place `SecretLabNAudio.dll` in `LabApi/plugins/global/`
-5. Extract `Music.zip` to `LabApi/configs/AutoEvent/Music/`
-6. Grant permissions in `LabApi/configs/permissions.yml`:
+1. Download `AutoEvent.dll` from the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest), and
+   the [dependencies](#dependencies) from their own releases
+2. Place `AutoEvent.dll`, `RadioMenuAPI.dll`, `LabApiExtensions.dll`, `ProjectMER.dll` in:
+    - Windows: `%AppData%\SCP Secret Laboratory\LabAPI\plugins\global\`
+    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/plugins/global/`
+3. Place `0Harmony.dll` in:
+    - Windows: `%AppData%\SCP Secret Laboratory\LabAPI\dependencies\global\`
+    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/dependencies/global/`
+4. Extract `SecretLabNAudio.zip` and place `SecretLabNAudio.dll` in:
+    - Windows: `%AppData%\SCP Secret Laboratory\LabAPI\plugins\global\`
+    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/plugins/global/`
+5. The music is built into `AutoEvent.dll`: on start it is saved to the folder below (existing files are not
+   overwritten, so you can replace them with your own):
+    - Windows: `%AppData%\SCP Secret Laboratory\LabAPI\configs\AutoEvent\Music\`
+    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/configs/AutoEvent/Music/`
+6. Grant permissions in `permissions.yml`:
+    - Windows: `%AppData%\SCP Secret Laboratory\LabAPI\configs\permissions.yml`
+    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/configs/permissions.yml`
+
    ```yaml
    owner:
      permissions:

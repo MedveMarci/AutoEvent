@@ -8,18 +8,13 @@ namespace AutoEvent;
 
 public class Config
 {
-    public Config()
-    {
-        var basePath = Path.Combine(PathManager.Configs.FullName, "AutoEvent");
-        SchematicsDirectoryPath = Path.Combine(basePath, "Schematics");
-        MusicDirectoryPath = Path.Combine(basePath, "Music");
-    }
-
     [Description("Enable/Disable Debug.")] public bool Debug { get; set; } = false;
 
-    [Description(
-        "Enable/Disable the CreditTag system. We're working free on the plugins so please don't turn this off, we deserve this! :)")]
+    [Description("Enable/Disable the CreditTag system. We're working free on the plugins so please don't turn this off, we deserve this! :)")]
     public bool CreditTagSystem { get; set; } = true;
+
+    [Description("The language of AutoEvent and its add-ons (e.g. english, hungarian). Change it with 'ev language load <language>', which also rewrites the translation files.")]
+    public string Language { get; set; } = string.Empty;
 
     [Description("The global volume of plugins (0 - 200, 100 is normal)")]
     public float Volume { get; set; } = 100;
@@ -40,4 +35,11 @@ public class Config
 
     [Description("Where the music directory is located. By default it is located in the AutoEvent folder.")]
     public string MusicDirectoryPath { get; set; }
+
+    public Config()
+    {
+        string basePath = Path.Combine(PathManager.Configs.FullName, "AutoEvent");
+        SchematicsDirectoryPath = Path.Combine(basePath, "Schematics");
+        MusicDirectoryPath = Path.Combine(basePath, "Music");
+    }
 }

@@ -7,7 +7,9 @@ namespace AutoEvent.Integrations.MapEditor;
 internal static class MapSystemIntegration
 {
     public static bool IsProjectMerLoaded { get; private set; }
+
     public static bool UseProjectMer => IsProjectMerLoaded;
+
     public static bool AnyLoaded => IsProjectMerLoaded;
 
     public static void Detect()

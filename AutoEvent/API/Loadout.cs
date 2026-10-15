@@ -12,10 +12,10 @@ public class Loadout
     public int Chance { get; set; } = 1;
 
     [Description("A list of roles, and the chance of getting the role.")]
-    public Dictionary<RoleTypeId, int> Roles { get; set; } = default;
+    public Dictionary<RoleTypeId, int> Roles { get; set; }
 
     [Description("The health that this class has. 0 is default role health. -1 is godmode.")]
-    public int Health { get; set; } = 0;
+    public int Health { get; set; }
 
     [Description("How much artificial health the class has. 0 is default artificial health.")]
     public ArtificialHealth ArtificialHealth { get; set; } = new()
@@ -57,6 +57,8 @@ public enum AmmoMode
 public class EffectData
 {
     public string Type { get; set; }
+
     public float Duration { get; set; }
+
     public byte Intensity { get; set; }
 }

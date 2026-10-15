@@ -11,12 +11,10 @@ public class ArtificialHealth
     [Description("The max amount the player will be able to get.")]
     public float MaxAmount { get; set; } = 100f;
 
-    [Description(
-        "The amount of artificial hp the player will get each cycle. 1 is slow, 5 is fast, and 10+ is really fast")]
+    [Description("The amount of artificial hp the player will get each cycle. 1 is slow, 5 is fast, and 10+ is really fast")]
     public float RegenerationAmount { get; set; } = 1f;
 
-    [Description(
-        "The percent of damage that the artificial health will take before effecting the player. (70% = when the player takes 10 damage, 7 of it will be absorbed by ahp, 3 will hurt them directly.)")]
+    [Description("The percent of damage that the artificial health will take before effecting the player. (70% = when the player takes 10 damage, 7 of it will be absorbed by ahp, 3 will hurt them directly.)")]
     public float AbsorptionPercent { get; set; } = 100f;
 
     [Description("If set to false, the player will lose this after they take enough damage, or it wears out.")]
@@ -29,7 +27,6 @@ public class ArtificialHealth
     {
         if (MaxAmount <= 0)
             return;
-        player.CreateAhpProcess(InitialAmount, MaxAmount, -1 * RegenerationAmount, AbsorptionPercent / 100f, Duration,
-            Permanent);
+        player.CreateAhpProcess(InitialAmount, MaxAmount, -1 * RegenerationAmount, AbsorptionPercent / 100f, Duration, Permanent);
     }
 }

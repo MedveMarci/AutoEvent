@@ -6,6 +6,7 @@ using AutoEvent.API.Enums;
 using AutoEvent.Events;
 using AutoEvent.Interfaces;
 using InventorySystem;
+using InventorySystem.Items;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
 using MEC;
@@ -20,17 +21,25 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     private List<GameObject> _ballItems;
     private ItemType _ballItemType;
     private List<GameObject> _dPoint;
+    private int _lastBroadcastSecond;
     private EventHandler _eventHandler;
     private GameObject _redLine;
     private TimeSpan _roundTime;
     private List<GameObject> _sciPoint;
     private List<GameObject> _walls;
+
     public override string Name { get; set; } = "Dodgeball";
+
     public override string Description { get; set; } = "Defeat the enemy with balls.";
+
     public override string Author { get; set; } = "RisottoMan & Моге-ко";
+
     public override string CommandName { get; set; } = "dodge";
+
     protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Disable;
+
     internal bool IsChristmasUpdate { get; set; }
+
     protected override float FrameDelayInSeconds { get; set; } = 0.1f;
 
     public MapInfo MapInfo { get; set; } = new()
@@ -68,12 +77,13 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         _dPoint = [];
         _sciPoint = [];
         _roundTime = new TimeSpan(0, 0, Config.TotalTimeInSeconds);
+        _lastBroadcastSecond = -1;
         _ballItemType = ItemType.SCP018;
 
         // Christmas update -> check that the snowball item exists and not null
         if (Enum.TryParse("Snowball", out ItemType snowItemType))
         {
-            InventoryItemLoader.AvailableItems.TryGetValue(snowItemType, out var itemBase);
+            InventoryItemLoader.AvailableItems.TryGetValue(snowItemType, out ItemBase itemBase);
             if (itemBase != null)
             {
                 IsChristmasUpdate = true;
@@ -81,7 +91,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
             }
         }
 
-        foreach (var gameObject in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject gameObject in MapInfo.Map.AttachedBlocks)
             switch (gameObject.name)
             {
                 case "Spawnpoint_ClassD": _dPoint.Add(gameObject); break;
@@ -91,8 +101,8 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
                 case "RedLine": _redLine = gameObject; break;
             }
 
-        var count = 0;
-        foreach (var player in Player.ReadyList)
+        int count = 0;
+        foreach (Player player in Player.ReadyList)
         {
             if (count % 2 == 0)
             {
@@ -111,9 +121,9 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
-            var text = Translation.Start.Replace("{time}", time.ToString());
+            string text = Translation.Start.Replace("{time}", time.ToString());
             Extensions.ServerBroadcast(text, 1);
             yield return Timing.WaitForSeconds(1f);
         }
@@ -121,51 +131,48 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override void CountdownFinished()
     {
-        foreach (var wall in _walls) Object.Destroy(wall);
+        foreach (GameObject wall in _walls) Object.Destroy(wall);
     }
 
     protected override bool IsRoundDone()
     {
         _roundTime -= TimeSpan.FromSeconds(0.1f);
-        return !(_roundTime.TotalSeconds > 0 &&
-                 Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD) > 0 &&
-                 Player.ReadyList.Count(r => r.Role == RoleTypeId.Scientist) > 0);
+        return !(_roundTime.TotalSeconds > 0 && Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD) > 0 && Player.ReadyList.Count(r => r.Role == RoleTypeId.Scientist) > 0);
     }
 
     protected override void ProcessFrame()
     {
-        var time = $"{_roundTime.Minutes:00}:{_roundTime.Seconds:00}";
-        var text = Translation.Cycle.Replace("{name}", Name).Replace("{time}", time);
+        int second = (int)_roundTime.TotalSeconds;
+        bool sendBroadcast = second != _lastBroadcastSecond;
+        _lastBroadcastSecond = second;
+        string text = sendBroadcast ? Translation.Cycle.Replace("{name}", Name).Replace("{time}", $"{_roundTime.Minutes:00}:{_roundTime.Seconds:00}") : null;
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             // If a player tries to go to the other half of the field, he takes damage and teleports him back
             if (Mathf.Approximately((int)_redLine.transform.position.z, (int)player.Position.z))
             {
-                player.Position = player.Role == RoleTypeId.ClassD
-                    ? _dPoint.RandomItem().transform.position
-                    : _sciPoint.RandomItem().transform.position;
+                player.Position = player.Role == RoleTypeId.ClassD ? _dPoint.RandomItem().transform.position : _sciPoint.RandomItem().transform.position;
                 player.Damage(40, Translation.Redline);
             }
 
-            // If a player approaches the balls, then the ball is given into his hand
-            foreach (var ball in _ballItems)
+            foreach (GameObject ball in _ballItems)
                 if (Vector3.Distance(ball.transform.position, player.Position) < 1.5f)
                     player.CurrentItem ??= player.AddItem(_ballItemType);
 
-            player.ClearBroadcasts();
-            player.SendBroadcast(text, 1);
+            if (sendBroadcast)
+                player.SendBroadcast(text, 1, Broadcast.BroadcastFlags.Normal, true);
         }
     }
 
     protected override void OnFinished()
     {
-        var totalTime = TimeSpan.FromSeconds(Config.TotalTimeInSeconds) - _roundTime;
-        var time = $"{totalTime.Minutes:00}:{totalTime.Seconds:00}";
+        TimeSpan totalTime = TimeSpan.FromSeconds(Config.TotalTimeInSeconds) - _roundTime;
+        string time = $"{totalTime.Minutes:00}:{totalTime.Seconds:00}";
 
-        var classDCount = Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD);
-        var sciCount = Player.ReadyList.Count(r => r.Role == RoleTypeId.Scientist);
-        var text = string.Empty;
+        int classDCount = Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD);
+        int sciCount = Player.ReadyList.Count(r => r.Role == RoleTypeId.Scientist);
+        string text = string.Empty;
 
         if (classDCount < 1 && sciCount < 1)
             text = Translation.AllDied.Replace("{name}", Name).Replace("{time}", time);

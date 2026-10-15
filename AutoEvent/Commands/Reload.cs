@@ -9,7 +9,9 @@ namespace AutoEvent.Commands;
 internal class Reload : ICommand
 {
     public string Command => nameof(Reload);
+
     public string Description => "Reloads the configs and the languages";
+
     public string[] Aliases => [];
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
@@ -19,7 +21,7 @@ internal class Reload : ICommand
             response = "AutoEvent is not loaded. Check console for errors.";
             return false;
         }
-        
+
         if (!sender.HasPermissions("ev.reload"))
         {
             response = "<color=red>You do not have permission to use this command!</color>";
@@ -33,6 +35,7 @@ internal class Reload : ICommand
         }
 
         AutoEvent.Singleton.LoadConfigs();
+        AutoEvent.MusicVolume = AutoEvent.Singleton.Config.Volume;
         ConfigManager.LoadConfigsAndTranslations();
         response = "Reloaded the configs and the languages.";
         return true;

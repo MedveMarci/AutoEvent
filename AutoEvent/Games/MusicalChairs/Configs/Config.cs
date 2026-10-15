@@ -11,18 +11,6 @@ namespace AutoEvent.Games.MusicalChairs;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        if (AvailableMaps is null) AvailableMaps = [];
-
-        if (AvailableMaps.Count < 1)
-        {
-            AvailableMaps.Add(new MapChance("MusicalChairs", new Vector3(0f, 40f, 0f)));
-            AvailableMaps.Add(new MapChance("MusicalChairs_Xmas2024", new Vector3(0f, 40f, 0f),
-                season: SeasonFlags.Christmas));
-        }
-    }
-
     [Description("A loadout for players")]
     public List<Loadout> PlayerLoadout { get; set; } =
     [
@@ -44,4 +32,15 @@ public class Config : EventConfig
             Stamina = 0
         }
     ];
+
+    public Config()
+    {
+        if (AvailableMaps is null) AvailableMaps = [];
+
+        if (AvailableMaps.Count < 1)
+        {
+            AvailableMaps.Add(new MapChance("MusicalChairs", new Vector3(0f, 40f, 0f)));
+            AvailableMaps.Add(new MapChance("MusicalChairs_Xmas2024", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
+        }
+    }
 }

@@ -11,23 +11,10 @@ namespace AutoEvent.Games.Tag;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("HideAndSeek", new Vector3(0, 30, 30)));
-        AvailableMaps.Add(new MapChance("HideAndSeek_Xmas2024", new Vector3(0, 30, 30), season: SeasonFlags.Christmas));
-        AvailableMaps.Add(new MapChance("HideAndSeek_Halloween2024", new Vector3(0, 30, 30),
-            season: SeasonFlags.Halloween));
-    }
-
-    [Description(
-        "The item that the tagged player should get. Do not do Scp018 or Grenades for now. - They will break the event. (working on it - redforce)")]
+    [Description("The item that the tagged player should get. Do not do Scp018 or Grenades for now. - They will break the event. (working on it - redforce)")]
     public ItemType TaggerWeapon { get; set; } = ItemType.Jailbird;
 
-    [Description(
-        "Players who are not the tagger will have the breach scanner effect applied to them, when there are less than or equal to this many non-taggers alive.")]
+    [Description("Players who are not the tagger will have the breach scanner effect applied to them, when there are less than or equal to this many non-taggers alive.")]
     public int PlayersRequiredForBreachScannerEffect { get; set; } = 2;
 
     [Description("How long should the tagger get immunity.")]
@@ -75,4 +62,14 @@ public class Config : EventConfig
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("HideAndSeek", new Vector3(0, 30, 30)));
+        AvailableMaps.Add(new MapChance("HideAndSeek_Xmas2024", new Vector3(0, 30, 30), season: SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance("HideAndSeek_Halloween2024", new Vector3(0, 30, 30), season: SeasonFlags.Halloween));
+    }
 }

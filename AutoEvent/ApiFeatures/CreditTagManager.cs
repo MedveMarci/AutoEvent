@@ -4,6 +4,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using NorthwoodLib.Pools;
 
 namespace AutoEvent.ApiFeatures;
@@ -11,8 +12,9 @@ namespace AutoEvent.ApiFeatures;
 public class CreditTagManager
 {
     private const string ApiBase = "https://bearmanapi.hu";
-    private static readonly Dictionary<string, CreditTag> SavedCreditTags = new();
-    
+
+    private static volatile Dictionary<string, CreditTag> _savedCreditTags = new();
+
     internal static bool TryGetCreditTag(string userId, out string tag, out string color)
     {
         tag = null;
@@ -21,10 +23,10 @@ public class CreditTagManager
         if (string.IsNullOrWhiteSpace(userId))
             return false;
 
-        var hash = HashUserId(userId);
+        string hash = HashUserId(userId);
         LogManager.Debug($"[CreditTag] Looking up tag for hashed id: {hash}");
 
-        if (!SavedCreditTags.TryGetValue(hash, out var saved))
+        if (!_savedCreditTags.TryGetValue(hash, out CreditTag saved))
             return false;
 
         tag = saved.BadgeName;
@@ -34,6 +36,11 @@ public class CreditTagManager
     }
 
     internal static void LoadCreditTags()
+    {
+        Task.Run(LoadCreditTagsInternal);
+    }
+
+    private static void LoadCreditTagsInternal()
     {
         try
         {
@@ -48,7 +55,7 @@ public class CreditTagManager
                 return;
             }
 
-            var (statusCode, message) = ParseApiResponse(resp);
+            (HttpStatusCode statusCode, string message) = ParseApiResponse(resp);
             if (statusCode != HttpStatusCode.OK)
             {
                 if (statusCode == HttpStatusCode.InternalServerError)
@@ -58,52 +65,50 @@ public class CreditTagManager
                 return;
             }
 
-            using var doc = JsonDocument.Parse(resp);
-            var root = doc.RootElement;
+            using JsonDocument doc = JsonDocument.Parse(resp);
+            JsonElement root = doc.RootElement;
 
-            if (!root.TryGetProperty("tags", out var tagsProp) || tagsProp.ValueKind != JsonValueKind.Array)
+            if (!root.TryGetProperty("tags", out JsonElement tagsProp) || tagsProp.ValueKind != JsonValueKind.Array)
             {
                 LogManager.Debug("[CreditTag] No tags array in response.");
                 return;
             }
 
-            SavedCreditTags.Clear();
+            Dictionary<string, CreditTag> loaded = new();
 
-            foreach (var item in tagsProp.EnumerateArray())
+            foreach (JsonElement item in tagsProp.EnumerateArray())
             {
-                if (!item.TryGetProperty("id", out var idProp) || idProp.ValueKind != JsonValueKind.String ||
-                    !item.TryGetProperty("badge_name", out var badgeProp) || badgeProp.ValueKind != JsonValueKind.String ||
-                    !item.TryGetProperty("color", out var colorProp) || colorProp.ValueKind != JsonValueKind.String)
+                if (!item.TryGetProperty("id", out JsonElement idProp) || idProp.ValueKind != JsonValueKind.String || !item.TryGetProperty("badge_name", out JsonElement badgeProp) || badgeProp.ValueKind != JsonValueKind.String || !item.TryGetProperty("color", out JsonElement colorProp) || colorProp.ValueKind != JsonValueKind.String)
                     continue;
 
-                var id = idProp.GetString();
-                var badgeName = badgeProp.GetString();
-                var color = colorProp.GetString();
+                string id = idProp.GetString();
+                string badgeName = badgeProp.GetString();
+                string color = colorProp.GetString();
 
                 if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(badgeName) || string.IsNullOrEmpty(color))
                     continue;
 
-                // The API already returns the SHA-256 hash of the user id as `id`.
-                SavedCreditTags[id.Trim().ToLowerInvariant()] = new CreditTag { BadgeName = badgeName, Color = color };
+                loaded[id.Trim().ToLowerInvariant()] = new CreditTag { BadgeName = badgeName, Color = color };
                 LogManager.Debug($"[CreditTag] Loaded tag: {badgeName}, Color: {color}");
             }
 
-            LogManager.Debug($"[CreditTag] Loaded {SavedCreditTags.Count} credit tag(s).");
+            _savedCreditTags = loaded;
+            LogManager.Debug($"[CreditTag] Loaded {loaded.Count} credit tag(s).");
         }
         catch (Exception e)
         {
             LogManager.Error($"[CreditTag] Failed to load credit tags.\n{e}");
         }
     }
-    
+
     private static string HashUserId(string userId)
     {
-        var normalized = userId.Trim().ToLowerInvariant();
-        using var sha = SHA256.Create();
-        var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(normalized));
+        string normalized = userId.Trim().ToLowerInvariant();
+        using SHA256 sha = SHA256.Create();
+        byte[] bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(normalized));
 
-        var sb = StringBuilderPool.Shared.Rent(bytes.Length * 2);
-        foreach (var b in bytes)
+        StringBuilder sb = StringBuilderPool.Shared.Rent(bytes.Length * 2);
+        foreach (byte b in bytes)
             sb.Append(b.ToString("x2"));
 
         return StringBuilderPool.Shared.ToStringReturn(sb);
@@ -113,16 +118,12 @@ public class CreditTagManager
     {
         try
         {
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
+            using JsonDocument doc = JsonDocument.Parse(json);
+            JsonElement root = doc.RootElement;
 
-            var statusCode = root.TryGetProperty("status", out var statusProp) && statusProp.ValueKind == JsonValueKind.Number
-                ? (HttpStatusCode)statusProp.GetInt32()
-                : HttpStatusCode.InternalServerError;
+            HttpStatusCode statusCode = root.TryGetProperty("status", out JsonElement statusProp) && statusProp.ValueKind == JsonValueKind.Number ? (HttpStatusCode)statusProp.GetInt32() : HttpStatusCode.InternalServerError;
 
-            var message = root.TryGetProperty("message", out var messageProp) && messageProp.ValueKind == JsonValueKind.String
-                ? messageProp.GetString()
-                : null;
+            string message = root.TryGetProperty("message", out JsonElement messageProp) && messageProp.ValueKind == JsonValueKind.String ? messageProp.GetString() : null;
 
             return (statusCode, message);
         }
@@ -137,6 +138,7 @@ public class CreditTagManager
     private sealed class CreditTag
     {
         public string BadgeName { get; init; }
+
         public string Color { get; init; }
     }
 }

@@ -12,8 +12,8 @@ public class EventHandler(Plugin plugin)
 {
     public void OnJoined(PlayerJoinedEventArgs ev)
     {
-        var mtfCount = Player.ReadyList.Count(r => r.IsNTF);
-        var chaosCount = Player.ReadyList.Count(r => r.IsChaos);
+        int mtfCount = Player.ReadyList.Count(r => r.IsNTF);
+        int chaosCount = Player.ReadyList.Count(r => r.IsChaos);
         ev.Player.GiveLoadout(mtfCount > chaosCount ? plugin.Config.ChaosLoadouts : plugin.Config.NtfLoadouts);
 
         ev.Player.EnableEffect<SpawnProtected>(duration: .1f);
@@ -38,8 +38,7 @@ public class EventHandler(Plugin plugin)
 
         ev.Player.CurrentItem ??= ev.Player.AddItem(plugin.Config.AvailableWeapons.RandomItem());
 
-        Timing.CallDelayed(Timing.WaitForOneFrame,
-            () => { ev.Player.Position = RandomClass.GetRandomPosition(plugin.MapInfo.Map); });
+        Timing.CallDelayed(Timing.WaitForOneFrame, () => { ev.Player.Position = RandomClass.GetRandomPosition(plugin.MapInfo.Map); });
     }
 
     public static void OnPlacingBlood(PlayerPlacingBloodEventArgs ev)

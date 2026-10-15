@@ -43,8 +43,7 @@ internal class EventHandler : CustomEventsHandler
         if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
         if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingItem))
             ev.Pickup.Destroy();
-        if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingAmmo) &&
-            ev.Pickup.Type.GetName().Contains("Ammo"))
+        if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingAmmo) && ev.Pickup.Type.GetName().Contains("Ammo"))
             ev.Pickup.Destroy();
         base.OnServerPickupCreated(ev);
     }
@@ -53,10 +52,10 @@ internal class EventHandler : CustomEventsHandler
     {
         if (AutoEvent.InternalEventManager.CurrentEvent is null) return;
 
-        if (!Extensions.InfiniteAmmoList.TryGetValue(ev.Player.NetworkId, out var ammoMode))
+        if (!Extensions.InfiniteAmmoList.TryGetValue(ev.Player.NetworkId, out AmmoMode ammoMode))
             return;
 
-        if (ev.FirearmItem.Base.TryGetModule<MagazineModule>(out var module))
+        if (ev.FirearmItem.Base.TryGetModule(out MagazineModule module))
         {
             if (ev.FirearmItem is ParticleDisruptorItem particleDisruptor)
             {
@@ -64,7 +63,7 @@ internal class EventHandler : CustomEventsHandler
                 return;
             }
 
-            var playersAmmo = module.AmmoMax - module.AmmoStored;
+            int playersAmmo = module.AmmoMax - module.AmmoStored;
             if (ammoMode == AmmoMode.NoReloadInfiniteAmmo)
             {
                 module.AmmoStored = playersAmmo;
@@ -74,9 +73,9 @@ internal class EventHandler : CustomEventsHandler
             ev.Player.SetAmmo(module.AmmoType, (ushort)playersAmmo);
         }
 
-        if (ev.FirearmItem.Base.TryGetModule<CylinderAmmoModule>(out var revModule))
+        if (ev.FirearmItem.Base.TryGetModule(out CylinderAmmoModule revModule))
         {
-            var playersAmmo = revModule.AmmoMax - revModule.AmmoStored;
+            int playersAmmo = revModule.AmmoMax - revModule.AmmoStored;
             ev.Player.SetAmmo(revModule.AmmoType, (ushort)playersAmmo);
         }
 
@@ -95,7 +94,8 @@ internal class EventHandler : CustomEventsHandler
 
     {
         if (AutoEvent.InternalEventManager.CurrentEvent is not { } activeEvent) return;
-        if (activeEvent.EventHandlerSettings.HasFlag(EventFlags.IgnoreDroppingItem))
+        EventFlags flags = activeEvent.EventHandlerSettings;
+        if (flags.HasFlag(EventFlags.IgnoreDroppingItem) || !flags.HasFlag(EventFlags.AllowDroppingItem))
             ev.IsAllowed = false;
         base.OnPlayerDroppingItem(ev);
     }
@@ -113,8 +113,7 @@ internal class EventHandler : CustomEventsHandler
         if (AutoEvent.InternalEventManager.CurrentEvent is null)
             return;
 
-        LogManager.Debug(
-            $"Player {ev.Player.Nickname} ({ev.Player.UserId}, {ev.Player.NetworkId}) died. Cleaning up event data.");
+        LogManager.Debug($"Player {ev.Player.Nickname} ({ev.Player.UserId}, {ev.Player.NetworkId}) died. Cleaning up event data.");
         Extensions.InfinityStaminaList.Remove(ev.Player.NetworkId);
         ev.Player.GiveInfiniteAmmo(AmmoMode.None);
         base.OnPlayerDeath(ev);
@@ -130,7 +129,7 @@ internal class EventHandler : CustomEventsHandler
             return;
         }
 
-        if (ev.NewTarget.TryGetEffect<FogControl>(out var effect))
+        if (ev.NewTarget.TryGetEffect(out FogControl effect))
             ev.Player.EnableEffect<FogControl>(effect.Intensity);
         else
             ev.Player.DisableEffect<FogControl>();
@@ -141,7 +140,7 @@ internal class EventHandler : CustomEventsHandler
     {
         try
         {
-            VersionManager.CheckForUpdates();
+            VersionManager.CheckForUpdates(AutoEvent.Singleton.Name, AutoEvent.Singleton.Version);
         }
         catch (Exception ex)
         {
@@ -153,8 +152,8 @@ internal class EventHandler : CustomEventsHandler
 
     public override void OnServerRoundRestarted()
     {
-        if (AutoEvent.InternalEventManager.CurrentEvent is null) return;
-        AutoEvent.InternalEventManager.CurrentEvent.StopEvent();
+        if (AutoEvent.InternalEventManager.CurrentEvent is not null)
+            AutoEvent.InternalEventManager.CurrentEvent.StopEvent();
         base.OnServerRoundRestarted();
     }
 
@@ -170,7 +169,7 @@ internal class EventHandler : CustomEventsHandler
         try
         {
             if (AutoEvent.Singleton.Config != null && AutoEvent.Singleton.Config.CreditTagSystem)
-                if (CreditTagManager.TryGetCreditTag(ev.Player.UserId, out var tag, out var color))
+                if (CreditTagManager.TryGetCreditTag(ev.Player.UserId, out string tag, out string color))
                 {
                     if (string.IsNullOrEmpty(tag))
                         return;

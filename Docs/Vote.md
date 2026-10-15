@@ -8,16 +8,21 @@ which mini-game to play next using a radio menu interface.
 ## Requirements
 
 - **AutoEvent** plugin (main plugin must be installed)
-- [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI) — required for the radio menu voting interface
+- [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI) **1.4.0 or newer** — required for the radio menu voting
+  interface
 
 ---
 
 ## Installation
 
 1. Download `AutoEvent.Vote.dll` from the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest)
-2. Place it in `LabApi/plugins/global/`
-3. Ensure **RadioMenuAPI** is installed in `LabApi/plugins/global/`
-4. Grant voting permission in `LabApi/configs/permissions.yml`:
+2. Place it in:
+    - Windows: `%AppData%\SCP Secret Laboratory\LabAPI\plugins\global\`
+    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/plugins/global/`
+3. Ensure **RadioMenuAPI** is installed in the same folder
+4. Grant voting permission in `permissions.yml`:
+    - Windows: `%AppData%\SCP Secret Laboratory\LabAPI\configs\permissions.yml`
+    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/configs/permissions.yml`
 
 ```yaml
 owner:
@@ -99,52 +104,70 @@ ev vote end false
 
 ## Voting Results
 
-**Broadcast Messages** (configurable in `configs.yml`):
+**Broadcast Messages** (configurable in `translation.yml`):
 
 - **Vote Started:** Shows remaining time during voting countdown
-- **Vote Ended (Winner):** "The winning event is: [Event Name]" — event starts automatically
-- **Vote Ended (Tie):** "Multiple events are tied: [Event1, Event2, ...]" — no event starts
+- **Vote Ended (Winner):** Shows the winning event and its votes — the event starts automatically
+- **Vote Ended (Tie):** Lists the tied events — no event starts
 - **Vote Ended (No Votes):** Message displayed when no one voted
 - **Vote Ended (By Staff):** Displayed when `ev vote end false` is used
+
+Players can put the radio away and take it out again: the menu opens on the item they highlighted last, and that choice
+is counted even if the radio isn't in their hand when the vote ends.
 
 ---
 
 ## Configuration
 
-Configuration is stored in:
+The texts are stored in (`<port>` is the server port, e.g. `7777`):
 
 ```
-LabApi/configs/global/AutoEvent/configs.yml
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\configs\<port>\AutoEvent.Vote\translation.yml
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/configs/<port>/AutoEvent.Vote/translation.yml
 ```
 
-**AutoEvent.Vote Config Options:**
+The file is created in the language set in AutoEvent (`language` in AutoEvent's config) and is rewritten by
+`ev language load <language>`. AutoEvent.Vote ships the same languages as AutoEvent.
 
 ```yaml
-autoevent_vote:
-  MenuTitle: "Vote for the next event"
-  BroadcastText: "Vote is active! Time remaining: {duration}s"
-  EndedWithWinner: "The winning event is: "
-  EndedWithTie: "Multiple events are tied: "
-  EndedWithNoVote: "No one voted!"
-  EndedButEventNotFound: "The winning event '{winningEvent}' was not found."
-  EndedByStaff: "The vote was ended by staff."
+menu_title: Vote for a minigame!
+broadcast_text: |-
+  <b>Vote for the next minigame with your radio!</b>
+  <size=25>Change your choice with Left Mouse Click. {duration} seconds remaining.</size>
+ended_with_no_vote: <b>The vote has ended with no votes cast.</b>
+ended_with_tie: |-
+  <b>The vote has ended in a tie between:</b>
+  {events}
+ended_with_winner: |-
+  <b>The vote has ended!</b>
+  The winner is <color=yellow>{event}</color> with {votes} vote(s).
+ended_by_staff: <b>The vote was ended by a staff member.</b>
 ```
 
-| Option                  | Default Value                                       | Description                                                                 |
-|-------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------|
-| `MenuTitle`             | "Vote for the next event"                           | Title shown in the radio voting menu                                        |
-| `BroadcastText`         | "Vote is active! Time remaining: {duration}s"       | Countdown message (use `{duration}` placeholder)                            |
-| `EndedWithWinner`       | "The winning event is: "                            | Message when vote has a winner                                              |
-| `EndedWithTie`          | "Multiple events are tied: "                        | Message when multiple events have equal votes                               |
-| `EndedWithNoVote`       | "No one voted!"                                     | Message when no one participates in vote                                    |
-| `EndedButEventNotFound` | "The winning event '{winningEvent}' was not found." | Message when winning event doesn't exist (use `{winningEvent}` placeholder) |
-| `EndedByStaff`          | "The vote was ended by staff."                      | Message when staff ends vote with `false` flag                              |
+| Option               | Placeholders         | Description                                   |
+|----------------------|----------------------|-----------------------------------------------|
+| `menu_title`         |                      | Title shown in the radio voting menu          |
+| `broadcast_text`     | `{duration}`         | Countdown message                             |
+| `ended_with_no_vote` |                      | Message when no one participates in the vote  |
+| `ended_with_tie`     | `{events}`           | Message when multiple events have equal votes |
+| `ended_with_winner`  | `{event}`, `{votes}` | Message when the vote has a winner            |
+| `ended_by_staff`     |                      | Message when staff ends the vote with `false` |
+
+The `config.yml` of AutoEvent.Vote only contains `debug`:
+
+```
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\configs\<port>\AutoEvent.Vote\config.yml
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/configs/<port>/AutoEvent.Vote/config.yml
+```
 
 ---
 
 ## Permissions
 
-Permissions are set in `LabApi/configs/permissions.yml`.
+Permissions are set in `permissions.yml`:
+
+- Windows: `%AppData%\SCP Secret Laboratory\LabAPI\configs\permissions.yml`
+- Linux: `~/.config/SCP Secret Laboratory/LabAPI/configs/permissions.yml`
 
 ```
 ev.vote      — Full access to vote commands
@@ -170,12 +193,16 @@ moderator:
 
 **"RadioMenuAPI plugin is not loaded!"**
 
-- Install RadioMenuAPI in `LabApi/plugins/global/`
+- Install RadioMenuAPI in the plugins folder:
+    - Windows: `%AppData%\SCP Secret Laboratory\LabAPI\plugins\global\`
+    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/plugins/global/`
 - Verify the plugin loads before AutoEvent.Vote
 
 **"AutoEvent plugin is not loaded!"**
 
-- Install AutoEvent.dll in `LabApi/plugins/global/`
+- Install AutoEvent.dll in the plugins folder:
+    - Windows: `%AppData%\SCP Secret Laboratory\LabAPI\plugins\global\`
+    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/plugins/global/`
 - Ensure AutoEvent loads first
 
 **Vote menu not appearing**
@@ -200,6 +227,7 @@ moderator:
 ## See Also
 
 - [Main AutoEvent Documentation](../README.md)
+- [AutoEvent.AutoRun](AutoRun.md) — run mini-games automatically one after another
 - [Installation Guide](Installation.md)
 - [Commands Reference](Commands.md)
 - [PluginApi Reference](PluginApi.md)

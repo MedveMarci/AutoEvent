@@ -17,19 +17,27 @@ public class Plugin : Event<Config, Translation>, IEventMap
     private GameObject _ball;
     private List<GameObject> _doors;
     private EventHandler _eventHandler;
+
     public override string Name { get; set; } = "Simon's Prison";
 
-    public override string Description { get; set; } =
-        "Jail mode from CS 1.6, in which you need to hold events [VERY HARD]";
+    public override string Description { get; set; } = "Jail mode from CS 1.6, in which you need to hold events [VERY HARD]";
 
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "jail";
+
     protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Enable;
+
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreDroppingItem;
+
     protected override float FrameDelayInSeconds { get; set; } = 0.5f;
+
     internal GameObject Button { get; private set; }
+
     internal GameObject PrisonerDoors { get; private set; }
+
     internal Dictionary<Player, int> Deaths { get; set; }
+
     internal List<GameObject> SpawnPoints { get; set; }
 
     public MapInfo MapInfo { get; set; } = new()
@@ -61,7 +69,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
         SpawnPoints = [];
         _doors = [];
 
-        foreach (var obj in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject obj in MapInfo.Map.AttachedBlocks)
             switch (obj.name)
             {
                 case { } str when str.Contains("Spawnpoint"): SpawnPoints.Add(obj); break;
@@ -86,13 +94,13 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 }
             }
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             player.GiveLoadout(Config.PrisonerLoadouts);
             player.Position = SpawnPoints.Where(r => r.name == "Spawnpoint").ToList().RandomItem().transform.position;
         }
 
-        foreach (var ply in Config.JailorRoleCount.GetPlayers())
+        foreach (Player ply in Config.JailorRoleCount.GetPlayers())
         {
             ply.GiveLoadout(Config.JailorLoadouts);
             ply.Position = SpawnPoints.Where(r => r.name == "SpawnpointMtf").ToList().RandomItem().transform.position;
@@ -101,13 +109,10 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 15; time > 0; time--)
+        for (int time = 15; time > 0; time--)
         {
-            foreach (var player in Player.ReadyList)
-                player.Broadcast(
-                    player.HasLoadout(Config.JailorLoadouts)
-                        ? Translation.Start.Replace("{name}", Name).Replace("{time}", time.ToString("00"))
-                        : Translation.StartPrisoners.Replace("{name}", Name).Replace("{time}", time.ToString("00")), 1);
+            foreach (Player player in Player.ReadyList)
+                player.Broadcast(player.HasLoadout(Config.JailorLoadouts) ? Translation.Start.Replace("{name}", Name).Replace("{time}", time.ToString("00")) : Translation.StartPrisoners.Replace("{name}", Name).Replace("{time}", time.ToString("00")), 1);
 
             yield return Timing.WaitForSeconds(1f);
         }
@@ -115,20 +120,19 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
     protected override bool IsRoundDone()
     {
-        return !(Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD) > 0 &&
-                 Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces) > 0);
+        return !(Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD) > 0 && Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces) > 0);
     }
 
     protected override void ProcessFrame()
     {
-        var dClassCount = Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD).ToString();
-        var mtfCount = Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces).ToString();
+        string dClassCount = Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD).ToString();
+        string mtfCount = Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces).ToString();
 
-        var time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
+        string time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
-            foreach (var doorComponent in _doors)
+            foreach (GameObject doorComponent in _doors)
                 if (Vector3.Distance(doorComponent.transform.position, player.Position) < 3)
                     doorComponent.GetComponent<DoorComponent>().Open();
 
@@ -138,21 +142,16 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 rig.AddForce(player.GameObject.transform.forward + new Vector3(0, 0.1f, 0), ForceMode.Impulse);
             }
 
-            player.ClearBroadcasts();
-            player.SendBroadcast(
-                Translation.Cycle.Replace("{name}", Name).Replace("{dclasscount}", dClassCount)
-                    .Replace("{mtfcount}", mtfCount).Replace("{time}", time), 1);
+            player.Broadcast(Translation.Cycle.Replace("{name}", Name).Replace("{dclasscount}", dClassCount).Replace("{mtfcount}", mtfCount).Replace("{time}", time), 1);
         }
     }
 
     protected override void OnFinished()
     {
         if (Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces) == 0)
-            Extensions.ServerBroadcast(
-                Translation.PrisonersWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"), 10);
+            Extensions.ServerBroadcast(Translation.PrisonersWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"), 10);
 
         if (Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD) == 0)
-            Extensions.ServerBroadcast(
-                Translation.JailersWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"), 10);
+            Extensions.ServerBroadcast(Translation.JailersWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"), 10);
     }
 }

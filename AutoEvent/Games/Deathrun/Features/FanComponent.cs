@@ -19,7 +19,7 @@ public class FanComponent : MonoBehaviour
 
     private void OnDestroy()
     {
-        foreach (var handle in _coroutineHandles)
+        foreach (CoroutineHandle handle in _coroutineHandles)
             Timing.KillCoroutines(handle);
         _coroutineHandles.Clear();
     }
@@ -42,15 +42,15 @@ public class FanComponent : MonoBehaviour
         const float pushDistance = 4f;
         const int steps = 15;
 
-        var dir = Vector3.left;
-        var endPos = player.Position + dir * pushDistance;
+        Vector3 dir = Vector3.left;
+        Vector3 endPos = player.Position + dir * pushDistance;
 
-        for (var i = 0; i < steps; i++)
+        for (int i = 0; i < steps; i++)
         {
             const float movementAmount = pushDistance / steps;
-            var newPos = Vector3.MoveTowards(player.Position, endPos, movementAmount);
-            var moveDir = newPos - player.Position;
-            var dist = moveDir.magnitude;
+            Vector3 newPos = Vector3.MoveTowards(player.Position, endPos, movementAmount);
+            Vector3 moveDir = newPos - player.Position;
+            float dist = moveDir.magnitude;
             if (dist < 0.001f) yield break;
 
             player.Position = newPos;

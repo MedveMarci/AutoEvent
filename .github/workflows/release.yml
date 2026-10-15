@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  release:
+    types: [ published ]
+
+permissions:
+  contents: write
+
+env:
+  DEPENDENCIES: ${{ github.workspace }}/Dependencies
+  OUTPUT: bin/x64/Release/net48
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Download SCP:SL references
+        id: references
+        uses: Axwabo/scpsl-references-downloader@v1
+
+      # The plugins referenced by the projects (LABAPI_PLUGINS / LABAPI_DEPENDENCIES in the .csproj files).
+      - name: Download dependencies
+        run: |
+          mkdir -p "$DEPENDENCIES"
+          curl -fsSL -o "$DEPENDENCIES/LabApiExtensions.dll" \
+            https://github.com/KadavasKingdom/LabApiExtensions/releases/latest/download/LabApiExtensions.dll
+          curl -fsSL -o "$DEPENDENCIES/ProjectMER.dll" \
+            https://github.com/Michal78900/ProjectMER/releases/latest/download/ProjectMER.dll
+          curl -fsSL -o "$DEPENDENCIES/RadioMenuAPI.dll" \
+            https://github.com/MedveMarci/RadioMenuAPI/releases/latest/download/RadioMenuAPI.dll
+
+      # Builds AutoEvent, AutoEvent.Vote and AutoEvent.AutoRun.
+      - name: Build
+        env:
+          SL_REFERENCES: ${{ steps.references.outputs.target }}
+          LABAPI_PLUGINS: ${{ env.DEPENDENCIES }}
+          LABAPI_DEPENDENCIES: ${{ env.DEPENDENCIES }}
+        run: dotnet build AutoEvent.sln -c Release
+
+      - name: Upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            AutoEvent/${{ env.OUTPUT }}/AutoEvent.dll
+            AutoEvent.Vote/${{ env.OUTPUT }}/AutoEvent.Vote.dll
+            AutoEvent.AutoRun/${{ env.OUTPUT }}/AutoEvent.AutoRun.dll
+          fail_on_unmatched_files: true

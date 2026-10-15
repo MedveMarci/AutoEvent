@@ -11,7 +11,7 @@ internal static class Scp018ProjectilePatch
 {
     public static void Postfix(Scp018Projectile __instance)
     {
-        var scp018UpdateEvent = new Scp018UpdateArgs(__instance);
+        Scp018UpdateArgs scp018UpdateEvent = new(__instance);
         Handlers.OnScp018Update(scp018UpdateEvent);
     }
 }
@@ -21,7 +21,7 @@ internal static class Scp018ProjectileBouncePatch
 {
     public static void Postfix(Scp018Projectile __instance, Collision collision)
     {
-        var scp018CollisionEvent = new Scp018CollisionArgs(__instance);
+        Scp018CollisionArgs scp018CollisionEvent = new(__instance);
         Handlers.OnScp018Collision(scp018CollisionEvent);
     }
 }

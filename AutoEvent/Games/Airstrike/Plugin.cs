@@ -20,14 +20,23 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
 {
     private CoroutineHandle _grenadeCoroutineHandle;
     public List<GameObject> SpawnList;
+
     public override string Name { get; set; } = "Airstrike Party";
+
     public override string Description { get; set; } = "Survive as grenades rain down from above.";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "airstrike";
+
     protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Enable;
+
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll;
+
     protected override FriendlyFireSettings ForceEnableFriendlyFireAutoban { get; set; } = FriendlyFireSettings.Disable;
+
     private EventHandler EventHandler { get; set; }
+
     private int Stage { get; set; }
 
     public MapInfo MapInfo { get; set; } = new()
@@ -61,8 +70,8 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
     {
         Server.FriendlyFire = true;
 
-        SpawnList = MapInfo.Map.AttachedBlocks.Where(x => x.name == "Spawnpoint").ToList();
-        foreach (var player in Player.ReadyList)
+        SpawnList = [.. MapInfo.Map.AttachedBlocks.Where(x => x.name == "Spawnpoint")];
+        foreach (Player player in Player.ReadyList)
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = SpawnList.RandomItem().transform.position;
@@ -79,7 +88,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
             Extensions.ServerBroadcast($"<size=100><color=red>{time}</color></size>", 1);
             yield return Timing.WaitForSeconds(1f);
@@ -93,25 +102,24 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
 
     protected override void ProcessFrame()
     {
-        var count = Player.ReadyList.Count(r => r.IsAlive).ToString();
-        var cycleTime = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
+        string count = Player.ReadyList.Count(r => r.IsAlive).ToString();
+        string cycleTime = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
         Extensions.ServerBroadcast(Translation.Cycle.Replace("{count}", count).Replace("{time}", cycleTime), 1);
     }
 
     protected override bool IsRoundDone()
     {
-        var playerCount = Player.ReadyList.Count(r => r.IsAlive);
-        return !(playerCount > (Config.LastPlayerAliveWins ? 1 : 0)
-                 && Stage <= Config.Rounds);
+        int playerCount = Player.ReadyList.Count(r => r.IsAlive);
+        return !(playerCount > (Config.LastPlayerAliveWins ? 1 : 0) && Stage <= Config.Rounds);
     }
 
     private IEnumerator<float> GrenadeCoroutine()
     {
         Stage = 1;
         const float fuse = 2f;
-        var height = 20f;
+        float height = 20f;
         float count = 50;
-        var timing = 0.5f;
+        float timing = 0.5f;
         float scale = 1;
         float grenadeRadius = 5;
         const int radius = 15;
@@ -119,22 +127,18 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
         {
             if (KillLoop) yield break;
 
-            LogManager.Debug(
-                $"Stage: {Stage}/{Config.Rounds}. Radius: {radius}, Grenade Radius: {grenadeRadius} Scale: {scale}, Count: {count}, Timing: {timing}, Height: {height}, Fuse: {fuse}, Target: {Config.TargetPlayers}");
+            LogManager.Debug($"Stage: {Stage}/{Config.Rounds}. Radius: {radius}, Grenade Radius: {grenadeRadius} Scale: {scale}, Count: {count}, Timing: {timing}, Height: {height}, Fuse: {fuse}, Target: {Config.TargetPlayers}");
 
             // Not the last round.
             if (Stage != Config.Rounds)
             {
-                for (var i = 0; i < count; i++)
+                for (int i = 0; i < count; i++)
                 {
-                    var pos = MapInfo.Map.Position + new Vector3(Random.Range(-radius, radius), height,
-                        Random.Range(-radius, radius));
-                    // has to be re-iterated every run because a player could have been killed from the last one.
+                    Vector3 pos = MapInfo.Map.Position + new Vector3(Random.Range(-radius, radius), height, Random.Range(-radius, radius));
                     if (Config.TargetPlayers)
                         try
                         {
-                            var randomPlayer = Player.ReadyList.Where(x => x.Role == RoleTypeId.ClassD).ToList()
-                                .RandomItem();
+                            Player randomPlayer = Player.ReadyList.Where(x => x.Role == RoleTypeId.ClassD).ToList().RandomItem();
                             pos = randomPlayer.Position;
                             pos.y = height + MapInfo.Map.Position.y;
                         }
@@ -149,7 +153,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
             }
             else // last round.
             {
-                var pos = MapInfo.Map.Position + new Vector3(Random.Range(-10, 10), 20, Random.Range(-10, 10));
+                Vector3 pos = MapInfo.Map.Position + new Vector3(Random.Range(-10, 10), 20, Random.Range(-10, 10));
                 Extensions.GrenadeSpawn(pos, 75, 5, 0);
             }
 
@@ -178,24 +182,19 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
             });
         }
 
-        var time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
-        var count = Player.ReadyList.Count(r => r.IsAlive);
+        string time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
+        int count = Player.ReadyList.Count(r => r.IsAlive);
         switch (count)
         {
             case > 1:
-                Extensions.ServerBroadcast(
-                    Translation.MorePlayer
-                        .Replace("{count}", $"{Player.ReadyList.Count(p => p.IsAlive)}")
-                        .Replace("{time}", time), 10);
+                Extensions.ServerBroadcast(Translation.MorePlayer.Replace("{count}", $"{Player.ReadyList.Count(p => p.IsAlive)}").Replace("{time}", time), 10);
                 break;
             case 1:
             {
-                var player = Player.ReadyList.First(r => r.IsAlive);
+                Player player = Player.ReadyList.First(r => r.IsAlive);
 
                 player.Health = 1000;
-                Extensions.ServerBroadcast(
-                    Translation.OnePlayer.Replace("{winner}", player.Nickname).Replace("{time}", time),
-                    10);
+                Extensions.ServerBroadcast(Translation.OnePlayer.Replace("{winner}", player.Nickname).Replace("{time}", time), 10);
                 break;
             }
             default:

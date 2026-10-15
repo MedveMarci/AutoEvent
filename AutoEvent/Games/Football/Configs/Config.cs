@@ -11,15 +11,6 @@ namespace AutoEvent.Games.Football;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("Football", new Vector3(0f, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Football_Xmas2025", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
-    }
-
     [Description("How many points a team needs to get to win. [Default: 3]")]
     public int PointsToWin { get; set; } = 3;
 
@@ -51,4 +42,13 @@ public class Config : EventConfig
             ]
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("Football", new Vector3(0f, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Football_Xmas2025", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
+    }
 }

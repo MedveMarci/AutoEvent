@@ -97,9 +97,9 @@ public abstract class SeasonMethod
             return CurStyle;
 
         SeasonStyle style = null;
-        var curDate = new DateTime(2026, DateTime.Now.Month, DateTime.Now.Day);
+        DateTime curDate = new(2026, DateTime.Now.Month, DateTime.Now.Day);
 
-        foreach (var item in Styles)
+        foreach (SeasonStyle item in Styles)
             if (item.FirstDate <= curDate && curDate <= item.LastDate)
                 style = item;
 

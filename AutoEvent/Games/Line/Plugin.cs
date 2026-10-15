@@ -15,9 +15,13 @@ namespace AutoEvent.Games.Line;
 public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private TimeSpan _timeRemaining;
+
     public override string Name { get; set; } = "Death Line";
+
     public override string Description { get; set; } = "Avoid the spinning platform to survive";
+
     public override string Author { get; set; } = "Logic_Gun & RisottoMan";
+
     public override string CommandName { get; set; } = "line";
 
     public MapInfo MapInfo { get; set; } = new()
@@ -35,7 +39,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _timeRemaining = new TimeSpan(0, 2, 0);
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = MapInfo.Map.AttachedBlocks.First(x => x.name == "SpawnPoint").transform.position;
@@ -44,7 +48,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
             Extensions.ServerBroadcast($"{time}", 1);
             yield return Timing.WaitForSeconds(1f);
@@ -56,7 +60,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         if (MapInfo.Map?.AttachedBlocks == null)
             return;
 
-        foreach (var block in MapInfo.Map.AttachedBlocks.Where(block => block != null))
+        foreach (GameObject block in MapInfo.Map.AttachedBlocks.Where(block => block != null))
             switch (block.name)
             {
                 case "DeadZone": block.AddComponent<LineComponent>().Init(this, ObstacleType.MiniWalls); break;
@@ -68,31 +72,23 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void ProcessFrame()
     {
-        Extensions.ServerBroadcast(
-            Translation.Cycle.Replace("{name}", Name)
-                .Replace("{time}", $"{_timeRemaining.Minutes:00}:{_timeRemaining.Seconds:00}").Replace("{count}",
-                    $"{Player.ReadyList.Count(r => r.HasLoadout(Config.Loadouts))}"), 10);
+        Extensions.ServerBroadcast(Translation.Cycle.Replace("{name}", Name).Replace("{time}", $"{_timeRemaining.Minutes:00}:{_timeRemaining.Seconds:00}").Replace("{count}", $"{Player.ReadyList.Count(r => r.HasLoadout(Config.Loadouts))}"), 10);
 
         _timeRemaining -= TimeSpan.FromSeconds(FrameDelayInSeconds);
     }
 
     protected override bool IsRoundDone()
     {
-        // At least 2 players &&
-        // Time is smaller than 2 minutes (+countdown)
         return !(Player.ReadyList.Count(r => r.HasLoadout(Config.Loadouts)) > 1 && EventTime.TotalSeconds < 120);
     }
 
     protected override void OnFinished()
     {
-        if (Player.ReadyList.Count(r => r.Role != AutoEvent.Singleton.Config.LobbyRole) > 1)
-            Extensions.ServerBroadcast(
-                Translation.MorePlayers.Replace("{name}", Name).Replace("{count}",
-                    $"{Player.ReadyList.Count(r => r.HasLoadout(Config.Loadouts))}"), 10);
-        else if (Player.ReadyList.Count(r => r.Role != AutoEvent.Singleton.Config.LobbyRole) == 1)
-            Extensions.ServerBroadcast(
-                Translation.Winner.Replace("{name}", Name).Replace("{winner}",
-                    Player.ReadyList.First(r => r.HasLoadout(Config.Loadouts)).Nickname), 10);
+        List<Player> remaining = [.. Player.ReadyList.Where(r => r.HasLoadout(Config.Loadouts))];
+        if (remaining.Count > 1)
+            Extensions.ServerBroadcast(Translation.MorePlayers.Replace("{name}", Name).Replace("{count}", $"{remaining.Count}"), 10);
+        else if (remaining.Count == 1)
+            Extensions.ServerBroadcast(Translation.Winner.Replace("{name}", Name).Replace("{winner}", remaining[0].Nickname), 10);
         else
             Extensions.ServerBroadcast(Translation.AllDied, 10);
     }

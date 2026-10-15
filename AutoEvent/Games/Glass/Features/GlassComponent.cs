@@ -7,6 +7,7 @@ namespace AutoEvent.Games.Glass.Features;
 public class GlassComponent : MonoBehaviour
 {
     private BoxCollider _collider;
+
     public float RegenerationDelay { get; set; } = 5;
 
     private void Start()

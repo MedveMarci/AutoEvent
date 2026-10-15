@@ -15,26 +15,28 @@ public class EventManager
     private readonly Dictionary<string, Event> _events = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _internalKeys = new(StringComparer.OrdinalIgnoreCase);
     private int _nextId;
+
     public Event CurrentEvent { get; set; }
-    public List<Event> Events => _events.Values.ToList();
+
+    public List<Event> Events => [.. _events.Values];
 
     public ReadOnlyDictionary<string, Event> EventDictionary =>
         new(_events);
 
     public int Count => _events.Count;
+
     public bool IsMerLoaded { get; private set; }
 
     public void RegisterInternalEvents()
     {
         IsMerLoaded = MapSystemIntegration.AnyLoaded;
 
-        var types = Assembly.GetCallingAssembly().GetTypes();
+        Type[] types = Assembly.GetCallingAssembly().GetTypes();
 
-        foreach (var type in types)
+        foreach (Type type in types)
             try
             {
-                if (type.IsAbstract || type.IsEnum || type.IsInterface ||
-                    type.GetInterfaces().All(x => x != typeof(IEvent)))
+                if (type.IsAbstract || type.IsEnum || type.IsInterface || type.GetInterfaces().All(x => x != typeof(IEvent)))
                     continue;
 
                 if (Activator.CreateInstance(type) is not Event ev)
@@ -69,8 +71,7 @@ public class EventManager
         if (ev is null)
             return EventRegistrationResult.EventIsNull;
 
-        if (_events.ContainsKey(ev.InternalName) || _events.Values.Any(x =>
-                string.Equals(x.CommandName, ev.CommandName, StringComparison.OrdinalIgnoreCase)))
+        if (_events.ContainsKey(ev.InternalName) || _events.Values.Any(x => string.Equals(x.CommandName, ev.CommandName, StringComparison.OrdinalIgnoreCase)))
             return EventRegistrationResult.AlreadyRegistered;
 
         if (ev is IEventMap && !IsMerLoaded)
@@ -109,16 +110,14 @@ public class EventManager
         if (string.IsNullOrWhiteSpace(commandName))
             return EventRegistrationResult.NotFound;
 
-        var ev = _events.Values.FirstOrDefault(x =>
-            string.Equals(x.CommandName, commandName, StringComparison.OrdinalIgnoreCase));
+        Event ev = _events.Values.FirstOrDefault(x => string.Equals(x.CommandName, commandName, StringComparison.OrdinalIgnoreCase));
 
         return ev is null ? EventRegistrationResult.NotFound : UnregisterEvent(ev);
     }
 
     public bool IsRegistered(string commandName)
     {
-        return _events.Values.Any(x =>
-            string.Equals(x.CommandName, commandName, StringComparison.OrdinalIgnoreCase));
+        return _events.Values.Any(x => string.Equals(x.CommandName, commandName, StringComparison.OrdinalIgnoreCase));
     }
 
     public Event GetEvent(string query)
@@ -126,7 +125,7 @@ public class EventManager
         if (string.IsNullOrWhiteSpace(query))
             return null;
 
-        return TryGetEvent(query, out var ev) ? ev : null;
+        return TryGetEvent(query, out Event ev) ? ev : null;
     }
 
     public bool TryGetEvent(string query, out Event ev)
@@ -135,7 +134,7 @@ public class EventManager
         if (string.IsNullOrWhiteSpace(query))
             return false;
 
-        if (int.TryParse(query, out var id))
+        if (int.TryParse(query, out int id))
         {
             ev = _events.Values.FirstOrDefault(x => x.Id == id);
             return ev != null;
@@ -144,12 +143,10 @@ public class EventManager
         if (_events.TryGetValue(query, out ev))
             return true;
 
-        ev = _events.Values.FirstOrDefault(x =>
-            string.Equals(x.CommandName, query, StringComparison.OrdinalIgnoreCase));
+        ev = _events.Values.FirstOrDefault(x => string.Equals(x.CommandName, query, StringComparison.OrdinalIgnoreCase));
         if (ev != null) return true;
 
-        ev = _events.Values.FirstOrDefault(x =>
-            string.Equals(x.Name, query, StringComparison.OrdinalIgnoreCase));
+        ev = _events.Values.FirstOrDefault(x => string.Equals(x.Name, query, StringComparison.OrdinalIgnoreCase));
         return ev != null;
     }
 }

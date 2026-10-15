@@ -19,10 +19,10 @@ public abstract class EventHandler
         LogManager.Debug("[Deathrun] Click to button");
 
         // Start the animation when click on the button
-        var animator = ev.Interactable.GameObject.GetComponentInParent<Animator>();
+        Animator animator = ev.Interactable.GameObject.GetComponentInParent<Animator>();
         if (animator == null) return;
 
-        var animationName = animator.name + "Action";
+        string animationName = animator.name + "Action";
         if (animator.name == "Trap1")
         {
             if (ev.Interactable.GameObject.name == "Trap1Interactable1")

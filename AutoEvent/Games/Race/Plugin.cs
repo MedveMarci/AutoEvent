@@ -17,9 +17,13 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     private GameObject _finish;
     private GameObject _wall;
     internal GameObject Spawnpoint;
+
     public override string Name { get; set; } = "Race";
+
     public override string Description { get; set; } = "Get to the end of the map to win";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "race";
 
     public MapInfo MapInfo { get; set; } = new()
@@ -42,7 +46,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _wall = new GameObject();
         _countdown = new TimeSpan(0, 0, Config.EventDurationInSeconds);
 
-        foreach (var block in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject block in MapInfo.Map.AttachedBlocks)
             switch (block.name)
             {
                 case "Wall": _wall = block; break;
@@ -51,7 +55,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "Spawnpoint": Spawnpoint = block; break;
             }
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = Spawnpoint.transform.position;
@@ -81,19 +85,17 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void ProcessFrame()
     {
-        Extensions.ServerBroadcast(
-            Translation.Cycle.Replace("{name}", Name)
-                .Replace("{time}", $"{_countdown.Minutes:00}:{_countdown.Seconds:00}"), 1);
+        Extensions.ServerBroadcast(Translation.Cycle.Replace("{name}", Name).Replace("{time}", $"{_countdown.Minutes:00}:{_countdown.Seconds:00}"), 1);
     }
 
     protected override void OnFinished()
     {
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
             if (Vector3.Distance(player.Position, _finish.transform.position) > 5)
                 player.Kill(Translation.Died);
 
         string text;
-        var count = Player.ReadyList.Count(r => r.IsAlive);
+        int count = Player.ReadyList.Count(r => r.IsAlive);
 
         if (count > 1)
             text = Translation.PlayersSurvived.Replace("{count}", Player.ReadyList.Count(r => r.IsAlive).ToString());

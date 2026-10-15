@@ -16,7 +16,7 @@ public class TeleportComponent : MonoBehaviour
     private void OnTriggerEnter(Collider collider)
     {
         if (Player.Get(collider.gameObject) is not { } player) return;
-        foreach (var teleportOut in Plugin.TeleportOuts)
+        foreach (GameObject teleportOut in Plugin.TeleportOuts)
             if (teleportOut.name == gameObject.name.Replace("In", "Out"))
                 player.Position = teleportOut.transform.position;
     }

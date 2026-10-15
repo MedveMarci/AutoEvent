@@ -14,12 +14,14 @@ namespace AutoEvent.Games.Knives;
 public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     public override string Name { get; set; } = "Knives of Death";
+
     public override string Description { get; set; } = "Knife players against each other on a 35hp map from cs 1.6";
+
     public override string Author { get; set; } = "RisottoMan/code & xleb.ik/map";
+
     public override string CommandName { get; set; } = "knives";
 
-    public override EventFlags EventHandlerSettings { get; set; } =
-        EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing;
+    public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing;
 
 
     public MapInfo MapInfo { get; set; } = new()
@@ -45,9 +47,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void OnStart()
     {
-        var count = 0;
-        var spawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name.Contains("Spawnpoint")).ToList();
-        foreach (var player in Player.ReadyList)
+        int count = 0;
+        List<GameObject> spawnList = [.. MapInfo.Map.AttachedBlocks.Where(r => r.name.Contains("Spawnpoint"))];
+        foreach (Player player in Player.ReadyList)
         {
             if (count % 2 == 0)
             {
@@ -68,7 +70,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
             Extensions.ServerBroadcast($"<size=100><color=red>{time}</color></size>", 1);
             yield return Timing.WaitForSeconds(1f);
@@ -77,23 +79,20 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void CountdownFinished()
     {
-        foreach (var wall in MapInfo.Map.AttachedBlocks.Where(x => x.name == "Wall")) Object.Destroy(wall);
+        foreach (GameObject wall in MapInfo.Map.AttachedBlocks.Where(x => x.name == "Wall")) Object.Destroy(wall);
     }
 
     protected override bool IsRoundDone()
     {
-        return !(Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces) > 0 &&
-                 Player.ReadyList.Count(r => r.RoleBase.Team == Team.ChaosInsurgency) > 0);
+        return !(Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces) > 0 && Player.ReadyList.Count(r => r.RoleBase.Team == Team.ChaosInsurgency) > 0);
     }
 
     protected override void ProcessFrame()
     {
-        var mtfCount = Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces).ToString();
-        var chaosCount = Player.ReadyList.Count(r => r.RoleBase.Team == Team.ChaosInsurgency).ToString();
+        string mtfCount = Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces).ToString();
+        string chaosCount = Player.ReadyList.Count(r => r.RoleBase.Team == Team.ChaosInsurgency).ToString();
 
-        Extensions.ServerBroadcast(
-            Translation.Cycle.Replace("{name}", Name).Replace("{mtfcount}", mtfCount)
-                .Replace("{chaoscount}", chaosCount), 1);
+        Extensions.ServerBroadcast(Translation.Cycle.Replace("{name}", Name).Replace("{mtfcount}", mtfCount).Replace("{chaoscount}", chaosCount), 1);
     }
 
     protected override void OnFinished()

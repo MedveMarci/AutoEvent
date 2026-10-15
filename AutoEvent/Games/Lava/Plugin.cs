@@ -14,16 +14,18 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     internal EventHandler _eventHandler;
     private GameObject _lava;
+
     public override string Name { get; set; } = "The floor is LAVA";
+
     public override string Description { get; set; } = "Survival, in which you need to avoid lava and shoot at others";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "lava";
+
     protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Enable;
 
-    public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll |
-                                                                    EventFlags.IgnoreHandcuffing |
-                                                                    EventFlags.IgnoreBulletHole |
-                                                                    EventFlags.IgnoreBloodDecal;
+    public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing | EventFlags.IgnoreBulletHole | EventFlags.IgnoreBloodDecal | EventFlags.AllowDroppingItem;
 
     public MapInfo MapInfo { get; set; } = new()
     {
@@ -39,7 +41,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void RegisterEvents()
     {
-        _eventHandler = new EventHandler(this);
+        _eventHandler = new EventHandler();
         PlayerEvents.Hurting += EventHandler.OnHurting;
         PlayerEvents.PickedUpItem += _eventHandler.OnPickedUpItem;
     }
@@ -53,16 +55,16 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void OnStart()
     {
-        var spawnpoints = new List<GameObject>();
+        List<GameObject> spawnpoints = [];
 
-        foreach (var obj in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject obj in MapInfo.Map.AttachedBlocks)
             switch (obj.name)
             {
                 case "Spawnpoint": spawnpoints.Add(obj); break;
                 case "LavaObject": _lava = obj; break;
             }
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             player.GiveLoadout(Config.Loadouts, LoadoutFlags.IgnoreGodMode);
             player.Position = spawnpoints.RandomItem().transform.position;
@@ -71,7 +73,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
             Extensions.ServerBroadcast(Translation.Start.Replace("{time}", $"{time}"), 1);
             yield return Timing.WaitForSeconds(1f);
@@ -81,7 +83,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void CountdownFinished()
     {
         _lava.AddComponent<LavaComponent>().StartComponent(this);
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
             player.GiveInfiniteAmmo(AmmoMode.InfiniteAmmo);
     }
 
@@ -92,21 +94,14 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void ProcessFrame()
     {
-        var text = EventTime.TotalSeconds % 2 == 0
-            ? "<size=90><color=red><b>《 ! 》</b></color></size>\n"
-            : "<size=90><color=red><b>!</b></color></size>\n";
+        string text = EventTime.TotalSeconds % 2 == 0 ? "<size=90><color=red><b>《 ! 》</b></color></size>\n" : "<size=90><color=red><b>!</b></color></size>\n";
 
-        Extensions.ServerBroadcast(
-            text + Translation.Cycle.Replace("{count}", $"{Player.ReadyList.Count(r => r.IsAlive)}"), 1);
+        Extensions.ServerBroadcast(text + Translation.Cycle.Replace("{count}", $"{Player.ReadyList.Count(r => r.IsAlive)}"), 1);
         _lava.transform.position += new Vector3(0, 0.08f, 0);
     }
 
     protected override void OnFinished()
     {
-        Extensions.ServerBroadcast(
-            Player.ReadyList.Count(r => r.IsAlive) == 1
-                ? Translation.Win.Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname)
-                : Translation.AllDead,
-            10);
+        Extensions.ServerBroadcast(Player.ReadyList.Count(r => r.IsAlive) == 1 ? Translation.Win.Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname) : Translation.AllDead, 10);
     }
 }

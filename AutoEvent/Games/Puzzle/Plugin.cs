@@ -27,10 +27,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     private int _stage;
     private float _timeDelay;
+
     public override string Name { get; set; } = "Puzzle";
+
     public override string Description { get; set; } = "Get up the fastest on the right color";
+
     public override string Author { get; set; } = "RisottoMan && Redforce";
+
     public override string CommandName { get; set; } = "puzzle";
+
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll;
 
 
@@ -52,7 +57,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _colorIndicators = [];
         GameObject spawnpoint = new();
 
-        foreach (var block in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject block in MapInfo.Map.AttachedBlocks)
             switch (block.name)
             {
                 case "Lava":
@@ -63,7 +68,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "Platform": _platforms.Add(block); break;
             }
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             player.GiveLoadout(Config.Loadout);
             player.Position = spawnpoint.transform.position;
@@ -72,9 +77,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
-            var text = Translation.Start.Replace("{name}", Name).Replace("{time}", $"{time}");
+            string text = Translation.Start.Replace("{name}", Name).Replace("{time}", $"{time}");
             Extensions.ServerBroadcast(text, 1);
             yield return Timing.WaitForSeconds(1f);
         }
@@ -114,28 +119,24 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
 
         LogManager.Debug(_eventState.ToString());
-        Extensions.ServerBroadcast(Translation.Stage
-            .Replace("{name}", Name)
-            .Replace("{stageNum}", $"{_stage}")
-            .Replace("{stageFinal}", $"{Config.Rounds}")
-            .Replace("{count}", $"{Player.ReadyList.Count(r => r.IsAlive)}"), 1);
+        Extensions.ServerBroadcast(Translation.Stage.Replace("{name}", Name).Replace("{stageNum}", $"{_stage}").Replace("{stageFinal}", $"{Config.Rounds}").Replace("{count}", $"{Player.ReadyList.Count(r => r.IsAlive)}"), 1);
     }
 
     protected void UpdateWaitingState()
     {
-        var selectionDelay = Config.SelectionTime.GetValue(_stage, 10, 0, 10);
+        float selectionDelay = Config.SelectionTime.GetValue(_stage, 10, 0, 10);
         _fallDelay = Config.FallDelay.GetValue(_stage, 10, .3f, 8);
-        var safePlatformCount = (int)Config.NonFallingPlatforms.GetValue(_stage, Config.Rounds, 1, 100);
+        int safePlatformCount = (int)Config.NonFallingPlatforms.GetValue(_stage, Config.Rounds, 1, 100);
 
         _fallingPlatforms = [];
-        var shuffledPlatforms = _platforms;
-        for (var i = shuffledPlatforms.Count - 1; i > 0; i--)
+        List<GameObject> shuffledPlatforms = _platforms;
+        for (int i = shuffledPlatforms.Count - 1; i > 0; i--)
         {
-            var j = Random.Range(0, i + 1);
+            int j = Random.Range(0, i + 1);
             (shuffledPlatforms[i], shuffledPlatforms[j]) = (shuffledPlatforms[j], shuffledPlatforms[i]);
         }
 
-        foreach (var platform in _platforms)
+        foreach (GameObject platform in _platforms)
             if (_fallingPlatforms.Count < shuffledPlatforms.Count - safePlatformCount)
                 _fallingPlatforms.Add(platform);
 
@@ -146,17 +147,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected void UpdateStartingState()
     {
-        foreach (var platform in _platforms)
-            platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = new Color(Random.Range(0f, 1f),
-                Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);
+        foreach (GameObject platform in _platforms)
+            platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);
 
-        foreach (var colorIndicator in _colorIndicators)
+        foreach (GameObject colorIndicator in _colorIndicators)
         {
-            var color = new Color(Random.Range(0f, 1f),
-                Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);
-            if (colorIndicator.TryGetComponent<PrimitiveObjectToy>(out var primitive))
+            Color color = new(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);
+            if (colorIndicator.TryGetComponent(out PrimitiveObjectToy primitive))
                 primitive.NetworkMaterialColor = color;
-            else if (colorIndicator.TryGetComponent<LightSourceToy>(out var labPrimitive))
+            else if (colorIndicator.TryGetComponent(out LightSourceToy labPrimitive))
                 labPrimitive.NetworkLightColor = color;
         }
 
@@ -166,38 +165,34 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         // Change the color of those platforms that should fall to magenta
         if (!Config.UseRandomPlatformColors)
         {
-            foreach (var platform in _platforms)
-                platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor =
-                    _fallingPlatforms.Contains(platform) ? Color.magenta : Color.green;
-            foreach (var colorIndicator in _colorIndicators)
-                if (colorIndicator.TryGetComponent<PrimitiveObjectToy>(out var primitive))
+            foreach (GameObject platform in _platforms)
+                platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = _fallingPlatforms.Contains(platform) ? Color.magenta : Color.green;
+            foreach (GameObject colorIndicator in _colorIndicators)
+                if (colorIndicator.TryGetComponent(out PrimitiveObjectToy primitive))
                     primitive.NetworkMaterialColor = Color.green;
-                else if (colorIndicator.TryGetComponent<LightSourceToy>(out var labPrimitive))
+                else if (colorIndicator.TryGetComponent(out LightSourceToy labPrimitive))
                     labPrimitive.NetworkLightColor = Color.green;
         }
 
         else
         {
-            var palette = new[]
-            {
+            Color[] palette =
+            [
                 Color.black, Color.blue, Color.cyan, Color.gray,
                 Color.green, Color.magenta, Color.red, Color.white,
                 Color.yellow
-            };
+            ];
 
-            var selectedColor = palette[Random.Range(0, palette.Length)];
+            Color selectedColor = palette[Random.Range(0, palette.Length)];
 
-            foreach (var colorIndicator in _colorIndicators)
-                if (colorIndicator.TryGetComponent<PrimitiveObjectToy>(out var primitive))
+            foreach (GameObject colorIndicator in _colorIndicators)
+                if (colorIndicator.TryGetComponent(out PrimitiveObjectToy primitive))
                     primitive.NetworkMaterialColor = selectedColor;
-                else if (colorIndicator.TryGetComponent<LightSourceToy>(out var labPrimitive))
+                else if (colorIndicator.TryGetComponent(out LightSourceToy labPrimitive))
                     labPrimitive.NetworkLightColor = selectedColor;
 
-            foreach (var platform in _platforms)
-                platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor =
-                    _fallingPlatforms.Contains(platform)
-                        ? palette.Where(c => c != selectedColor).OrderBy(c => Random.value).First()
-                        : selectedColor;
+            foreach (GameObject platform in _platforms)
+                platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = _fallingPlatforms.Contains(platform) ? palette.Where(c => c != selectedColor).OrderBy(c => Random.value).First() : selectedColor;
         }
 
 
@@ -211,7 +206,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         if (_countdown.TotalSeconds > 0)
             return;
 
-        foreach (var platform in _fallingPlatforms) platform.transform.position += Vector3.down * 5;
+        foreach (GameObject platform in _fallingPlatforms) platform.transform.position += Vector3.down * 5;
 
         _countdown = TimeSpan.FromSeconds(_fallDelay);
         _eventState++;
@@ -222,7 +217,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         if (_countdown.TotalSeconds > 0)
             return;
 
-        foreach (var platform in _fallingPlatforms) platform.transform.position += Vector3.up * 5;
+        foreach (GameObject platform in _fallingPlatforms) platform.transform.position += Vector3.up * 5;
 
         _countdown = TimeSpan.FromSeconds(_speed);
         _eventState++;
@@ -242,7 +237,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void OnFinished()
     {
         string text;
-        var count = Player.ReadyList.Count(r => r.IsAlive);
+        int count = Player.ReadyList.Count(r => r.IsAlive);
 
         if (count < 1)
         {
@@ -250,7 +245,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         }
         else if (count == 1)
         {
-            var nickname = Player.ReadyList.First(r => r.IsAlive).Nickname;
+            string nickname = Player.ReadyList.First(r => r.IsAlive).Nickname;
             text = Translation.Winner.Replace("{name}", Name).Replace("{winner}", nickname);
         }
         else

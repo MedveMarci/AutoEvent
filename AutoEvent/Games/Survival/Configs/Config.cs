@@ -11,15 +11,6 @@ namespace AutoEvent.Games.Survival;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("Survival", new Vector3(0f, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Survival_Xmas2025", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
-    }
-
     [Description("How long the round should last in seconds.")]
     public int RoundDurationInSeconds { get; set; } = 300;
 
@@ -71,4 +62,13 @@ public class Config : EventConfig
 
     [Description("Zombie screams sounds.")]
     public List<string> ZombieScreams { get; set; } = ["human_death_01.ogg", "human_death_02.ogg"];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("Survival", new Vector3(0f, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Survival_Xmas2025", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
+    }
 }

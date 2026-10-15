@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using AutoEvent.API;
 using AutoEvent.ApiFeatures;
 using AutoEvent.Interfaces;
 using LabApi.Features.Wrappers;
@@ -53,52 +54,46 @@ public static class ConfigManager
             if (!File.Exists(ConfigPath))
             {
                 configs = new Dictionary<string, object>();
-                foreach (var ev in AutoEvent.InternalEventManager.Events.OrderBy(r => r.InternalName))
+                foreach (Event ev in AutoEvent.InternalEventManager.Events.OrderBy(r => r.InternalName))
                     configs[ev.InternalName] = ev.InternalConfig;
                 File.WriteAllText(ConfigPath, YamlConfigParser.Serializer.Serialize(configs));
                 return;
             }
 
-            configs =
-                YamlConfigParser.Deserializer.Deserialize<Dictionary<string, object>>(
-                    File.ReadAllText(ConfigPath));
+            configs = YamlConfigParser.Deserializer.Deserialize<Dictionary<string, object>>(File.ReadAllText(ConfigPath));
 
-            foreach (var ev in AutoEvent.InternalEventManager.Events)
+            foreach (Event ev in AutoEvent.InternalEventManager.Events)
             {
                 if (configs is null)
                     continue;
 
-                if (!configs.TryGetValue(ev.InternalName, out var rawDeserializedConfig))
+                if (!configs.TryGetValue(ev.InternalName, out object rawDeserializedConfig))
                 {
                     LogManager.Warn($"[ConfigManager] {ev.InternalName} doesn't have configs");
                     continue;
                 }
 
-                var loadedConfig = (EventConfig)YamlConfigParser.Deserializer.Deserialize(
-                    YamlConfigParser.Serializer.Serialize(rawDeserializedConfig),
-                    ev.InternalConfig.GetType());
+                EventConfig loadedConfig = (EventConfig)YamlConfigParser.Deserializer.Deserialize(YamlConfigParser.Serializer.Serialize(rawDeserializedConfig), ev.InternalConfig.GetType());
 
-                var originalMaps = ev.InternalConfig.AvailableMaps?.ToList();
+                List<MapChance> originalMaps = ev.InternalConfig.AvailableMaps?.ToList();
                 ev.InternalConfig.CopyProperties(loadedConfig);
 
                 // If the YAML had only empty map_name entries (old/corrupt config),
                 // restore the code-defined defaults so the event can actually start.
-                if (ev.InternalConfig.AvailableMaps is { Count: > 0 } &&
-                    ev.InternalConfig.AvailableMaps.All(m => string.IsNullOrEmpty(m.MapName)) &&
-                    originalMaps is { Count: > 0 } &&
-                    originalMaps.Any(m => !string.IsNullOrEmpty(m.MapName)))
+                if (ev.InternalConfig.AvailableMaps is { Count: > 0 } && ev.InternalConfig.AvailableMaps.All(m => string.IsNullOrEmpty(m.MapName)) && originalMaps is { Count: > 0 } && originalMaps.Any(m => !string.IsNullOrEmpty(m.MapName)))
                 {
                     ev.InternalConfig.AvailableMaps = originalMaps;
-                    LogManager.Warn(
-                        $"[ConfigManager] {ev.InternalName}: AvailableMaps had empty names in config, restored defaults.");
+                    LogManager.Warn($"[ConfigManager] {ev.InternalName}: AvailableMaps had empty names in config, restored defaults.");
                 }
             }
 
-            var updatedConfigs = new Dictionary<string, object>();
-            foreach (var ev in AutoEvent.InternalEventManager.Events.OrderBy(r => r.InternalName))
+            // Keep the sections of events that aren't registered yet (external events register after
+            // AutoEvent loads), otherwise their configs would be wiped on every startup.
+            Dictionary<string, object> updatedConfigs = configs ?? new Dictionary<string, object>();
+            foreach (Event ev in AutoEvent.InternalEventManager.Events)
                 updatedConfigs[ev.InternalName] = ev.InternalConfig;
 
-            File.WriteAllText(ConfigPath, YamlConfigParser.Serializer.Serialize(updatedConfigs));
+            File.WriteAllText(ConfigPath, YamlConfigParser.Serializer.Serialize(updatedConfigs.OrderBy(r => r.Key).ToDictionary(r => r.Key, r => r.Value)));
 
             LogManager.Info("[ConfigManager] The configs of the mini-games are loaded and updated.");
         }
@@ -117,10 +112,10 @@ public static class ConfigManager
 
             if (!File.Exists(TranslationPath))
             {
-                var countryCode = "EN";
+                string countryCode = "EN";
                 try
                 {
-                    var url = $"http://ipinfo.io/{Server.IpAddress}/country";
+                    string url = $"http://ipinfo.io/{Server.IpAddress}/country";
                     countryCode = HttpQuery.Get(url).Trim();
                 }
                 catch (Exception)
@@ -128,35 +123,39 @@ public static class ConfigManager
                     LogManager.Warn("Couldn't verify the server country. Providing default translation.");
                 }
 
-                LogManager.Warn(
-                    $"[ConfigManager] The translation.yml file was not found. Creating a new translation for {countryCode} language...");
+                LogManager.Warn($"[ConfigManager] The translation.yml file was not found. Creating a new translation for {countryCode} language...");
                 translations = LoadTranslationFromAssembly(countryCode);
+
+                LanguageManager.SetLanguage(ResolveLanguage(countryCode) ?? LanguageManager.DefaultLanguage, false);
             }
-            // Otherwise, check language of the translation with the language of the config.
             else
             {
-                translations =
-                    YamlConfigParser.Deserializer.Deserialize<Dictionary<string, object>>(
-                        File.ReadAllText(TranslationPath));
+                translations = YamlConfigParser.Deserializer.Deserialize<Dictionary<string, object>>(File.ReadAllText(TranslationPath));
             }
 
             // Move translations to each mini-games
-            var events = AutoEvent.InternalEventManager?.Events;
+            List<Event> events = AutoEvent.InternalEventManager?.Events;
 
             if (events == null)
                 return;
 
-            foreach (var ev in events.Where(_ => translations is not null))
+            translations ??= new Dictionary<string, object>();
+            bool addedMissing = false;
+
+            foreach (Event ev in events)
             {
-                if (!translations.TryGetValue(ev.InternalName, out var rawDeserializedTranslation))
+                if (!translations.TryGetValue(ev.InternalName, out object rawDeserializedTranslation))
                 {
-                    LogManager.Warn($"[ConfigManager] {ev.InternalName} doesn't have translations");
+                    LogManager.Warn($"[ConfigManager] {ev.InternalName} doesn't have translations, adding the default one.");
+                    ev.InternalTranslation.Name = ev.Name;
+                    ev.InternalTranslation.Description = ev.Description;
+                    ev.InternalTranslation.CommandName = ev.CommandName;
+                    translations[ev.InternalName] = ev.InternalTranslation;
+                    addedMissing = true;
                     continue;
                 }
 
-                var obj = YamlConfigParser.Deserializer.Deserialize(
-                    YamlConfigParser.Serializer.Serialize(rawDeserializedTranslation),
-                    ev.InternalTranslation.GetType());
+                object obj = YamlConfigParser.Deserializer.Deserialize(YamlConfigParser.Serializer.Serialize(rawDeserializedTranslation), ev.InternalTranslation.GetType());
                 if (obj is not EventTranslation translation)
                 {
                     LogManager.Warn($"[ConfigManager] {ev.InternalName} malformed translation.");
@@ -165,10 +164,16 @@ public static class ConfigManager
 
                 ev.InternalTranslation.CopyProperties(translation);
 
-                ev.Name = translation.Name;
-                ev.Description = translation.Description;
-                ev.CommandName = translation.CommandName;
+                if (!string.IsNullOrWhiteSpace(translation.Name))
+                    ev.Name = translation.Name;
+                if (translation.Description != null)
+                    ev.Description = translation.Description;
+                if (!string.IsNullOrWhiteSpace(translation.CommandName))
+                    ev.CommandName = translation.CommandName;
             }
+
+            if (addedMissing)
+                File.WriteAllText(TranslationPath, YamlConfigParser.Serializer.Serialize(translations.OrderBy(r => r.Key).ToDictionary(r => r.Key, r => r.Value)));
 
             LogManager.Info("[ConfigManager] The translations of the mini-games are loaded.");
         }
@@ -183,25 +188,24 @@ public static class ConfigManager
         if (string.IsNullOrWhiteSpace(input))
             return null;
 
-        if (LanguageByCountryCodeDictionary.TryGetValue(input.ToUpperInvariant(), out var byCode))
+        if (LanguageByCountryCodeDictionary.TryGetValue(input.ToUpperInvariant(), out string byCode))
             return byCode;
 
-        var languages = LanguageByCountryCodeDictionary.Values.Distinct().ToList();
+        List<string> languages = [.. LanguageByCountryCodeDictionary.Values.Distinct()];
 
-        var exact = languages.FirstOrDefault(l => string.Equals(l, input, StringComparison.OrdinalIgnoreCase));
+        string exact = languages.FirstOrDefault(l => string.Equals(l, input, StringComparison.OrdinalIgnoreCase));
         if (exact != null)
             return exact;
 
-        var matches = languages.Where(l => l.StartsWith(input, StringComparison.OrdinalIgnoreCase)).ToList();
+        List<string> matches = [.. languages.Where(l => l.StartsWith(input, StringComparison.OrdinalIgnoreCase))];
         return matches.Count == 1 ? matches[0] : null;
     }
 
     internal static Dictionary<string, object> LoadTranslationFromAssembly(string input)
     {
-        var language = ResolveLanguage(input);
+        string language = ResolveLanguage(input);
 
-        if (language == null ||
-            !TryGetTranslationFromAssembly(language, TranslationPath, out Dictionary<string, object> translations))
+        if (language == null || !TryGetTranslationFromAssembly(language, TranslationPath, out Dictionary<string, object> translations))
             translations = GenerateDefaultTranslations();
 
         return translations;
@@ -210,14 +214,14 @@ public static class ConfigManager
     private static Dictionary<string, object> GenerateDefaultTranslations()
     {
         // Otherwise, create default translations from all mini-games.
-        var translations = new Dictionary<string, object>();
+        Dictionary<string, object> translations = new();
 
-        var events = AutoEvent.InternalEventManager?.Events;
+        List<Event> events = AutoEvent.InternalEventManager?.Events;
         if (events == null) return translations;
 
         // Key by InternalName — that is what LoadTranslations looks up, and unlike
         // Name it never changes when a translation is applied.
-        foreach (var ev in events.OrderBy(r => r.InternalName))
+        foreach (Event ev in events.OrderBy(r => r.InternalName))
         {
             ev.InternalTranslation.Name = ev.Name;
             ev.InternalTranslation.Description = ev.Description;
@@ -233,12 +237,12 @@ public static class ConfigManager
 
     private static bool TryGetTranslationFromAssembly<T>(string language, string path, out T translationFile)
     {
-        var resourceName = $"AutoEvent.Translations.{language}.yml";
+        string resourceName = $"AutoEvent.Translations.{language}.yml";
 
         try
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream(resourceName);
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            using Stream stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null)
             {
                 LogManager.Warn($"[ConfigManager] The language '{language}' was not found in the assembly.");
@@ -246,8 +250,8 @@ public static class ConfigManager
                 return false;
             }
 
-            using var reader = new StreamReader(stream);
-            var yaml = reader.ReadToEnd();
+            using StreamReader reader = new(stream);
+            string yaml = reader.ReadToEnd();
             translationFile = YamlConfigParser.Deserializer.Deserialize<T>(yaml);
 
             // Save the translation file
@@ -265,10 +269,10 @@ public static class ConfigManager
 
     private static void CopyProperties(this object target, object source)
     {
-        var type = target.GetType();
+        Type type = target.GetType();
         if (type != source.GetType())
             throw new InvalidTypeException("Target and source type mismatch!");
-        foreach (var property in type.GetProperties())
+        foreach (PropertyInfo property in type.GetProperties())
         {
             if (!property.CanRead || !property.CanWrite) continue;
             type.GetProperty(property.Name)?.SetValue(target, property.GetValue(source, null), null);

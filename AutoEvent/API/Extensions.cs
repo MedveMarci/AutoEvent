@@ -8,6 +8,7 @@ using AutoEvent.API.Enums;
 using AutoEvent.ApiFeatures;
 using AutoEvent.Integrations.Audio;
 using AutoEvent.Integrations.MapEditor;
+using CustomPlayerEffects;
 using Footprinting;
 using InventorySystem;
 using InventorySystem.Items.Pickups;
@@ -42,8 +43,8 @@ public static class Extensions
         if (items.Count == 1)
             return items[0];
 
-        var roll = Random.Range(0f, items.Sum(weightOf));
-        foreach (var item in items)
+        float roll = Random.Range(0f, items.Sum(weightOf));
+        foreach (T item in items)
         {
             roll -= weightOf(item);
             if (roll <= 0f)
@@ -55,7 +56,7 @@ public static class Extensions
 
     public static void TeleportEnd()
     {
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             player.SetRole(AutoEvent.Singleton.Config.LobbyRole);
             player.GiveInfiniteAmmo(AmmoMode.None);
@@ -75,8 +76,7 @@ public static class Extensions
             return true;
         }
 
-        response = $"You need to download the {schematicName} map to run this mini-game.\n" +
-                   $"Download and install Schematics.tar.gz from the github.";
+        response = $"You need to download the {schematicName} map to run this mini-game.\n" + $"Run 'ev update' to download the schematics.";
         return false;
     }
 
@@ -101,12 +101,10 @@ public static class Extensions
 
     public static void CleanUpAll()
     {
-        foreach (var item in Object.FindObjectsByType<ItemPickupBase>(FindObjectsInactive.Exclude,
-                     FindObjectsSortMode.None))
+        foreach (ItemPickupBase item in Object.FindObjectsByType<ItemPickupBase>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             Object.Destroy(item.gameObject);
 
-        foreach (var ragdoll in Object.FindObjectsByType<BasicRagdoll>(FindObjectsInactive.Exclude,
-                     FindObjectsSortMode.None))
+        foreach (BasicRagdoll ragdoll in Object.FindObjectsByType<BasicRagdoll>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             Object.Destroy(ragdoll.gameObject);
     }
 
@@ -121,61 +119,56 @@ public static class Extensions
             return;
         if (result.Projectile is not TimeGrenade projectile)
             return;
-        var timeGrenade = Object.Instantiate(projectile, pos, Quaternion.identity);
+        TimeGrenade timeGrenade = Object.Instantiate(projectile, pos, Quaternion.identity);
         timeGrenade.Info = new PickupSyncInfo(result.ItemTypeId, result.Weight, locked: true);
         timeGrenade.PreviousOwner = new Footprint(Player.Host?.ReferenceHub);
         timeGrenade.gameObject.transform.localScale = new Vector3(scale, scale, scale);
         NetworkServer.Spawn(timeGrenade.gameObject);
         timeGrenade.ServerActivate();
-        var grenadeProjectile = (ExplosiveGrenadeProjectile)Pickup.Get(timeGrenade);
+        ExplosiveGrenadeProjectile grenadeProjectile = (ExplosiveGrenadeProjectile)Pickup.Get(timeGrenade);
         grenadeProjectile.RemainingTime = fuseTime;
         grenadeProjectile.MaxRadius = radius;
-        grenadeProjectile.Base._playerDamageOverDistance =
-            new AnimationCurve(new Keyframe(grenadeProjectile.MaxRadius, 200));
+        grenadeProjectile.Base._playerDamageOverDistance = new AnimationCurve(new Keyframe(grenadeProjectile.MaxRadius, 200));
     }
-    
-    public static IAudioHandle PlayAudio(string fileName, bool isLoop = false, bool isSpatial = false,
-        float minDistance = 5f, float maxDistance = 5000f, Vector3 speakerPosition = default)
+
+    public static IAudioHandle PlayAudio(string fileName, bool isLoop = false, bool isSpatial = false, float minDistance = 5f, float maxDistance = 5000f, Vector3 speakerPosition = default)
     {
-        var filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, fileName);
+        string filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, fileName);
         LogManager.Debug($"[PlayAudio] File path: {filePath}");
-        if (!File.Exists(filePath))
+        if (!File.Exists(filePath) && !MusicManager.IsEmbedded(fileName))
         {
             LogManager.Debug($"[PlayAudio] The music file {fileName} does not exist at path {filePath}");
             return null;
         }
 
-        return SlNaExtensions.PlayAudio(filePath, isLoop, isSpatial, minDistance, maxDistance, speakerPosition);
+        return SlNaExtensions.PlayAudio(fileName, filePath, isLoop, isSpatial, minDistance, maxDistance, speakerPosition);
     }
-    
+
     public static IAudioHandle PlayPlayerAudio(Player player, string fileName, bool isLoop = false)
     {
-        var filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, fileName);
+        string filePath = Path.Combine(AutoEvent.Singleton.Config.MusicDirectoryPath, fileName);
         LogManager.Debug($"[PlayPlayerAudio] File path: {filePath}");
-        if (!File.Exists(filePath))
+        if (!File.Exists(filePath) && !MusicManager.IsEmbedded(fileName))
         {
             LogManager.Debug($"[PlayPlayerAudio] The music file {fileName} does not exist at path {filePath}");
             return null;
         }
 
-        return SlNaExtensions.PlayPlayerAudio(player, filePath, isLoop);
+        return SlNaExtensions.PlayPlayerAudio(player, fileName, filePath, isLoop);
     }
 
     extension(Player ply)
     {
-        public bool HasLoadout(List<Loadout> loadouts,
-            LoadoutCheckMethods checkMethod = LoadoutCheckMethods.HasRole)
+        public bool HasLoadout(List<Loadout> loadouts, LoadoutCheckMethods checkMethod = LoadoutCheckMethods.HasRole)
         {
             switch (checkMethod)
             {
                 case LoadoutCheckMethods.HasRole:
                     return loadouts.Any(loadout => loadout.Roles.Any(role => role.Key == ply.Role));
                 case LoadoutCheckMethods.HasAllItems:
-                    return loadouts.Any(loadout =>
-                        loadout.Items.All(item => ply.Items.Select(itm => itm.Type).Contains(item)));
+                    return loadouts.Any(loadout => loadout.Items.All(item => ply.Items.Select(itm => itm.Type).Contains(item)));
                 case LoadoutCheckMethods.HasSomeItems:
-                    return loadouts.Any(loadout =>
-                        loadout.Items.Any(item => ply.Items.Select(itm => itm.Type).Contains(item)));
+                    return loadouts.Any(loadout => loadout.Items.Any(item => ply.Items.Select(itm => itm.Type).Contains(item)));
             }
 
             return false;
@@ -183,7 +176,7 @@ public static class Extensions
 
         public void GiveLoadout(List<Loadout> loadouts, LoadoutFlags flags = LoadoutFlags.None)
         {
-            foreach (var loadout1 in loadouts.Where(x => x.Chance <= 0))
+            foreach (Loadout loadout1 in loadouts.Where(x => x.Chance <= 0))
                 loadout1.Chance = 1;
 
             ply.GiveLoadout(PickWeightedRandom(loadouts, x => x.Chance), flags);
@@ -191,7 +184,7 @@ public static class Extensions
 
         public void GiveLoadout(Loadout loadout, LoadoutFlags flags = LoadoutFlags.None)
         {
-            var respawnFlags = RoleSpawnFlags.None;
+            RoleSpawnFlags respawnFlags = RoleSpawnFlags.None;
             if (loadout.Roles is not null && loadout.Roles.Count > 0 && !flags.HasFlag(LoadoutFlags.IgnoreRole))
             {
                 if (flags.HasFlag(LoadoutFlags.UseDefaultSpawnPoint))
@@ -199,12 +192,11 @@ public static class Extensions
                 if (flags.HasFlag(LoadoutFlags.DontClearDefaultItems))
                     respawnFlags |= RoleSpawnFlags.AssignInventory;
 
-                var role = PickWeightedRandom(loadout.Roles.ToList(), x => x.Value).Key;
+                RoleTypeId role = PickWeightedRandom([.. loadout.Roles], x => x.Value).Key;
 
                 if (AutoEvent.Singleton.Config.IgnoredRoles.Contains(role))
                 {
-                    LogManager.Warn(
-                        "AutoEvent is trying to set a player to a role that is apart of IgnoreRoles. This is probably an error. The plugin will instead set players to the lobby role to prevent issues.");
+                    LogManager.Warn("AutoEvent is trying to set a player to a role that is apart of IgnoreRoles. This is probably an error. The plugin will instead set players to the lobby role to prevent issues.");
                     role = AutoEvent.Singleton.Config.LobbyRole;
                 }
 
@@ -214,7 +206,7 @@ public static class Extensions
             if (!flags.HasFlag(LoadoutFlags.DontClearDefaultItems)) ply.ClearInventory();
 
             if (loadout.Items is not null && loadout.Items.Count > 0 && !flags.HasFlag(LoadoutFlags.IgnoreItems))
-                foreach (var item in loadout.Items)
+                foreach (ItemType item in loadout.Items)
                 {
                     if (flags.HasFlag(LoadoutFlags.IgnoreWeapons) && item.ToString().Contains("Gun"))
                         continue;
@@ -222,7 +214,7 @@ public static class Extensions
                     ply.AddItem(item);
                 }
 
-            var ammoMode = loadout.InfiniteAmmo;
+            AmmoMode ammoMode = loadout.InfiniteAmmo;
             if (flags.HasFlag(LoadoutFlags.ForceEndlessClip))
                 ammoMode = AmmoMode.NoReloadInfiniteAmmo;
             else if (flags.HasFlag(LoadoutFlags.ForceInfiniteAmmo))
@@ -234,8 +226,7 @@ public static class Extensions
                 ply.Health = loadout.Health;
             if (loadout.Health == -1 && !flags.HasFlag(LoadoutFlags.IgnoreGodMode)) ply.IsGodModeEnabled = true;
 
-            if (loadout.ArtificialHealth is not null && loadout.ArtificialHealth.MaxAmount > 0 &&
-                !flags.HasFlag(LoadoutFlags.IgnoreAhp)) loadout.ArtificialHealth.ApplyToPlayer(ply);
+            if (loadout.ArtificialHealth is not null && loadout.ArtificialHealth.MaxAmount > 0 && !flags.HasFlag(LoadoutFlags.IgnoreAhp)) loadout.ArtificialHealth.ApplyToPlayer(ply);
 
             if (!flags.HasFlag(LoadoutFlags.IgnoreStamina) && loadout.Stamina != 0)
             {
@@ -249,11 +240,10 @@ public static class Extensions
 
             if (loadout.Size != Vector3.one && !flags.HasFlag(LoadoutFlags.IgnoreSize)) ply.Scale = loadout.Size;
 
-            if (loadout.Effects is null || loadout.Effects.Count <= 0 ||
-                flags.HasFlag(LoadoutFlags.IgnoreEffects)) return;
-            foreach (var effect in loadout.Effects)
+            if (loadout.Effects is null || loadout.Effects.Count <= 0 || flags.HasFlag(LoadoutFlags.IgnoreEffects)) return;
+            foreach (EffectData effect in loadout.Effects)
             {
-                if (!ply.TryGetEffect(effect.Type, out var customEffect)) continue;
+                if (!ply.TryGetEffect(effect.Type, out StatusEffectBase customEffect)) continue;
                 customEffect.Intensity = effect.Intensity;
                 customEffect.Duration = effect.Duration;
             }
@@ -261,8 +251,7 @@ public static class Extensions
 
         public void GiveInfiniteAmmo(AmmoMode ammoMode)
         {
-            LogManager.Debug(
-                $"Setting infinite ammo mode for player {ply.Nickname} ({ply.NetworkId}) to {ammoMode}");
+            LogManager.Debug($"Setting infinite ammo mode for player {ply.Nickname} ({ply.NetworkId}) to {ammoMode}");
             if (ammoMode == AmmoMode.None)
                 InfiniteAmmoList.Remove(ply.NetworkId);
             else
@@ -334,8 +323,8 @@ public static class Extensions
         public void ClearInteractableToy()
         {
             if (toy == null) return;
-            var toyId = toy.netIdentity.netId;
-            foreach (var k in InteractableToys.Keys.Where(k => k >> 32 == toyId))
+            uint toyId = toy.netIdentity.netId;
+            foreach (ulong k in InteractableToys.Keys.Where(k => k >> 32 == toyId))
                 InteractableToys.TryRemove(k, out _);
         }
     }

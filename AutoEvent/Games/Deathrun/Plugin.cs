@@ -18,17 +18,26 @@ namespace AutoEvent.Games.Deathrun;
 public class Plugin : Event<Config, Translation>, IEventMap
 {
     public override string Name { get; set; } = "Death Run";
+
     public override string Description { get; set; } = "Go to the end, avoiding death-activated trap along the way";
+
     public override string Author { get; set; } = "RisottoMan/code & xleb.ik/map";
+
     public override string CommandName { get; set; } = "deathrun";
+
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll;
+
     private GameObject Wall { get; set; }
+
     private List<GameObject> RunnerSpawns { get; set; }
 
-    // The players chosen as "death-guys". Tracked explicitly so the win/round logic does not
-    // rely on raw RoleTypeIds (which can collide with the configurable LobbyRole, e.g. ClassD).
     private List<Player> Deaths { get; set; }
+
     internal static List<GameObject> TeleportOuts { get; set; }
+
+    private int AliveRunners => Player.ReadyList.Count(r => r.IsAlive && !Deaths.Contains(r));
+
+    private int AliveDeaths => Deaths.Count(d => d != null && d.IsAlive);
 
     public MapInfo MapInfo { get; set; } = new()
     {
@@ -54,7 +63,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
         TeleportOuts = [];
         Deaths = [];
         List<GameObject> deathSpawns = [];
-        foreach (var block in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject block in MapInfo.Map.AttachedBlocks)
             switch (block.name)
             {
                 case "RunSpawn": RunnerSpawns.Add(block); break;
@@ -64,8 +73,8 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 case "FanTrigger": block.AddComponent<FanComponent>(); break;
                 case "ColliderTrigger": block.AddComponent<ColliderComponent>(); break;
                 case "WeaponTrigger": block.AddComponent<WeaponComponent>().StartComponent(this); break;
-                case "PoisonTrigger": 
-                case "PoisonComponent": 
+                case "PoisonTrigger":
+                case "PoisonComponent":
                     block.AddComponent<PoisonComponent>(); break;
                 case "RunTeleportIn":
                 case "DeathTeleportIn1":
@@ -82,17 +91,16 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
         if (RunnerSpawns.Count == 0 || deathSpawns.Count == 0)
         {
-            LogManager.Error(
-                $"[Deathrun] Map {MapInfo.MapName} has no RunSpawn/DeathSpawn points, the event cannot start.");
+            LogManager.Error($"[Deathrun] Map {MapInfo.MapName} has no RunSpawn/DeathSpawn points, the event cannot start.");
             StopEvent();
             return;
         }
 
-        var deathCount = Math.Max(1, Player.ReadyList.Count() / 20);
-        var runners = Player.ReadyList.ToList();
-        for (var i = 0; i < deathCount && runners.Count > 0; i++)
+        int deathCount = Math.Max(1, Player.ReadyList.Count() / 20);
+        List<Player> runners = [.. Player.ReadyList];
+        for (int i = 0; i < deathCount && runners.Count > 0; i++)
         {
-            var death = runners.RandomItem();
+            Player death = runners.RandomItem();
             runners.Remove(death);
             Deaths.Add(death);
             death.GiveLoadout(Config.DeathLoadouts);
@@ -100,7 +108,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
         }
 
         // Teleport runners to spawnpoint
-        foreach (var runner in runners)
+        foreach (Player runner in runners)
         {
             runner.GiveLoadout(Config.PlayerLoadouts);
             runner.Position = RunnerSpawns.RandomItem().transform.position;
@@ -112,7 +120,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
     {
         for (float time = 10; time > 0; time--)
         {
-            var text = Translation.BeforeStartBroadcast.Replace("{name}", Name).Replace("{time}", $"{time}");
+            string text = Translation.BeforeStartBroadcast.Replace("{name}", Name).Replace("{time}", $"{time}");
             Extensions.ServerBroadcast(text, 1);
             yield return Timing.WaitForSeconds(1f);
         }
@@ -125,35 +133,29 @@ public class Plugin : Event<Config, Translation>, IEventMap
             NetworkServer.Destroy(Wall);
     }
 
-    // A runner is any participant that is alive and was not chosen as a death-guy.
-    // Dead/finished states are handled by IsAlive, so this stays correct regardless of LobbyRole.
-    private int AliveRunners => Player.ReadyList.Count(r => r.IsAlive && !Deaths.Contains(r));
-    private int AliveDeaths => Deaths.Count(d => d != null && d.IsAlive);
-
     // While both sides are alive and time has not run out
     protected override bool IsRoundDone()
     {
-        return !(AliveDeaths > 0 && AliveRunners > 0 &&
-                 EventTime.TotalSeconds < Config.RoundDurationInSeconds);
+        return !(AliveDeaths > 0 && AliveRunners > 0 && EventTime.TotalSeconds < Config.RoundDurationInSeconds);
     }
 
     // All the logic of the game is handled by AMERT traps, so there is nothing here except the broadcast
     protected override void ProcessFrame()
     {
-        var timeleft = TimeSpan.FromSeconds(Config.RoundDurationInSeconds - EventTime.TotalSeconds);
-        var timetext = $"{timeleft.Minutes:00}:{timeleft.Seconds:00}";
+        TimeSpan timeleft = TimeSpan.FromSeconds(Config.RoundDurationInSeconds - EventTime.TotalSeconds);
+        string timetext = $"{timeleft.Minutes:00}:{timeleft.Seconds:00}";
 
         if (timeleft.TotalSeconds < 0)
         {
             timetext = Translation.OverTimeBroadcast;
-            foreach (var player in Player.ReadyList.Where(r => r.IsAlive && !Deaths.Contains(r)))
+            foreach (Player player in Player.ReadyList.Where(r => r.IsAlive && !Deaths.Contains(r)))
                 if (!player.Items.Any())
                     player.Kill(Translation.Died);
         }
         // A second life for dead players - they come back as runners.
         else if (Config.SecondLifeInSeconds == EventTime.TotalSeconds)
         {
-            foreach (var player in Player.ReadyList.Where(r => r.Role is RoleTypeId.Spectator))
+            foreach (Player player in Player.ReadyList.Where(r => r.Role is RoleTypeId.Spectator))
             {
                 Deaths.Remove(player);
                 player.SetRole(RoleTypeId.ClassD, flags: RoleSpawnFlags.None);
@@ -162,7 +164,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
             }
         }
 
-        var text = Translation.CycleBroadcast;
+        string text = Translation.CycleBroadcast;
         text = text.Replace("{name}", Name);
         text = text.Replace("{runnerCount}", $"{AliveRunners}");
         text = text.Replace("{deathCount}", $"{AliveDeaths}");
@@ -174,9 +176,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
     protected override void OnFinished()
     {
-        var text = AliveRunners == 0
-            ? Translation.DeathWinBroadcast.Replace("{name}", Name)
-            : Translation.RunnerWinBroadcast.Replace("{name}", Name);
+        string text = AliveRunners == 0 ? Translation.DeathWinBroadcast.Replace("{name}", Name) : Translation.RunnerWinBroadcast.Replace("{name}", Name);
 
         Extensions.ServerBroadcast(text, 10);
     }

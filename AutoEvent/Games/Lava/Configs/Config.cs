@@ -11,15 +11,6 @@ namespace AutoEvent.Games.Lava;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("Lava", new Vector3(0f, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Lava_Xmas2024", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
-    }
-
     [Description("A list of available loadouts that players can get.")]
     public List<Loadout> Loadouts { get; set; } =
     [
@@ -33,4 +24,13 @@ public class Config : EventConfig
             ]
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("Lava", new Vector3(0f, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Lava_Xmas2024", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
+    }
 }

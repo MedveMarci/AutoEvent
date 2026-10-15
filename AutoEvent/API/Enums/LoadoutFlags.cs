@@ -83,7 +83,6 @@ public enum LoadoutFlags
     /// <summary>
     ///     Only give players items.
     /// </summary>
-    ItemsOnly = IgnoreStamina | IgnoreGodMode | IgnoreInfiniteAmmo | IgnoreSize | IgnoreAhp | IgnoreHealth |
-                IgnoreStamina | IgnoreEffects | IgnoreRole // None + ForceX 
+    ItemsOnly = IgnoreStamina | IgnoreGodMode | IgnoreInfiniteAmmo | IgnoreSize | IgnoreAhp | IgnoreHealth | IgnoreStamina | IgnoreEffects | IgnoreRole // None + ForceX 
     // 16384
 }

@@ -73,6 +73,7 @@ Among Us:
   accept_divert_power: 'Accept Divert Power'
   download_data: 'Download Data'
   upload_data: 'Upload Data'
+  submit_scan: 'Enviar escaneamento'
   skip: 'Skip'
   vote: 'vote'
   no_one_voted_out: 'No one was voted out.'
@@ -146,7 +147,11 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>VENCEDORES: <color=red>CIENTISTAS</color></color>
-  max_round_reached: 'You reached the max number of rounds!'
+  max_round_reached: |-
+    <color=yellow>Você jogou o máximo de {max} rodadas seguidas!</color>
+    Você poderá voltar à arena depois da próxima rodada.
+  rounds_remaining: 'Você ainda pode jogar <color=yellow>{rounds}</color> rodada(s) seguida(s).'
+  resting: '<color=red>Você precisa ficar uma rodada de fora antes de voltar à arena.</color>'
   name: 'Rinha de Galo'
   description: 'Duelo de jogadores no mapa 35hp do CS 1.6'
   command_name: 'versus'
@@ -365,7 +370,7 @@ Puzzle:
     Mini-game acabou
   some_survived: |-
     <b>{name}</b>
-    <color=red>Diversas pessoas sobreviveram</color>
+    <color=green>{count} jogadores sobreviveram</color>
     Mini-game acabou
   winner: |-
     <b>{name}</b>
@@ -504,7 +509,6 @@ The floor is LAVA:
     Jogador - {winner}</b></color>
   all_dead: '<color=red><b>Ninguém sobreviveu até o final.</b></color>'
   died: '<color=red>Queimou na Lava</color>'
-  reload: 'Reload your weapon!'
   name: 'O Chão é LAVA'
   description: 'Sobrevivência onde você precisa evitar a lava e atirar nos outros.'
   command_name: 'lava'

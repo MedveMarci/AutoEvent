@@ -19,7 +19,7 @@ public class EventHandler(Plugin plugin)
         plugin.PlayerDict.Remove(ev.Player);
 
         // If the player is dead, then remove the last platform
-        var playerCount = Player.ReadyList.Count(r => r.IsAlive);
+        int playerCount = Player.ReadyList.Count(r => r.IsAlive);
         if (playerCount > 0)
             plugin.Platforms = Functions.RearrangePlatforms(playerCount, plugin.Platforms, plugin.MapInfo.Position);
     }

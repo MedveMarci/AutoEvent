@@ -13,7 +13,7 @@ manually.
 | Russian    | RisottoMan              |
 | Polish     | Vretu, Tksemdem         |
 | French     | Robocnop, Antoniofo     |
-| Hungarian  | Öcsi, MedveMarci        |
+| Hungarian  | MedveMarci              |
 | Italian    | NotZer0Two              |
 | German     | SeekEDstroy             |
 | Thai       | karorogunso             |
@@ -40,7 +40,29 @@ manually.
 
 3. Restart the server for the change to take full effect.
 
-The loaded translation replaces `translation.yml` in the AutoEvent config folder.
+The loaded translation replaces AutoEvent's `translation.yml`:
+
+```
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\configs\AutoEvent\translation.yml
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/configs/AutoEvent/translation.yml
+```
+
+The language is saved as `language` in AutoEvent's config (`<port>` is the server port, e.g. `7777`):
+
+```
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\configs\<port>\AutoEvent\config.yml
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/configs/<port>/AutoEvent/config.yml
+```
+
+The add-ons (AutoEvent.AutoRun and AutoEvent.Vote) follow it: `ev language load` rewrites their `translation.yml` too,
+and a missing add-on translation file is created in this language. The add-ons ship the same languages as AutoEvent.
+
+```
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\configs\<port>\AutoEvent.AutoRun\translation.yml
+         %AppData%\SCP Secret Laboratory\LabAPI\configs\<port>\AutoEvent.Vote\translation.yml
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/configs/<port>/AutoEvent.AutoRun/translation.yml
+         ~/.config/SCP Secret Laboratory/LabAPI/configs/<port>/AutoEvent.Vote/translation.yml
+```
 
 ---
 

@@ -10,21 +10,21 @@ public abstract class Functions
 {
     public static List<GameObject> GeneratePlatforms(int count, GameObject parent, Vector3 position)
     {
-        var radius = 0.35f * count;
-        var angleCount = 360f / count;
-        var platformes = new List<GameObject>();
+        float radius = 0.35f * count;
+        float angleCount = 360f / count;
+        List<GameObject> platformes = [];
 
-        for (var i = 0; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
-            var angle = i * angleCount;
-            var radians = angle * Mathf.Deg2Rad;
+            float angle = i * angleCount;
+            float radians = angle * Mathf.Deg2Rad;
 
-            var x = position.x + radius * Mathf.Cos(radians);
-            var z = position.z + radius * Mathf.Sin(radians);
-            var pos = new Vector3(x, parent.transform.position.y, z);
+            float x = position.x + radius * Mathf.Cos(radians);
+            float z = position.z + radius * Mathf.Sin(radians);
+            Vector3 pos = new(x, parent.transform.position.y, z);
 
             // Creating a platform by copying the parent
-            var platform = ProjectMerIntegration.CreatePlatformByParent(parent, pos);
+            GameObject platform = ProjectMerIntegration.CreatePlatformByParent(parent, pos);
             platformes.Add(platform);
         }
 
@@ -38,23 +38,23 @@ public abstract class Functions
 
         for (; playerCount <= platforms.Count;)
         {
-            var lastPlatform = platforms.Last();
+            GameObject lastPlatform = platforms.Last();
             NetworkServer.Destroy(lastPlatform);
             platforms.Remove(lastPlatform);
         }
 
-        var count = platforms.Count;
-        var radius = 0.35f * count;
-        var angleCount = 360f / count;
+        int count = platforms.Count;
+        float radius = 0.35f * count;
+        float angleCount = 360f / count;
 
-        for (var i = 0; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
-            var angle = i * angleCount;
-            var radians = angle * Mathf.Deg2Rad;
+            float angle = i * angleCount;
+            float radians = angle * Mathf.Deg2Rad;
 
-            var x = position.x + radius * Mathf.Cos(radians);
-            var z = position.z + radius * Mathf.Sin(radians);
-            var pos = new Vector3(x, platforms[i].transform.position.y, z);
+            float x = position.x + radius * Mathf.Cos(radians);
+            float z = position.z + radius * Mathf.Sin(radians);
+            Vector3 pos = new(x, platforms[i].transform.position.y, z);
 
             platforms[i].transform.position = pos;
         }

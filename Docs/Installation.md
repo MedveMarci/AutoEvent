@@ -2,96 +2,98 @@
 
 ## Requirements
 
-- Harmony — required for the plugin (included as `0Harmony.dll`)
+- [Harmony](https://github.com/pardeike/Harmony) — required for the plugin (`0Harmony.dll`)
 - LabAPI **1.1.7**
-- [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) — included in the release (required for Among Us)
-- [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI) — included in the release (required for Among Us and AutoEvent.Vote)
-- [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio) — included in the release as `SecretLabNAudio.zip`
-- **Map Plugin**: [ProjectMER](https://github.com/Michal78900/ProjectMER) — required for map/schematic support included in the release
+- [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) — required for Among Us
+- [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI) — required for Among Us and AutoEvent.Vote
+- [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio) — required for music playback
+- [ProjectMER](https://github.com/Michal78900/ProjectMER) — required for map/schematic support
 
-> - A verified working build of ProjectMER is available on
-    the [AutoEvent Discord server](https://discord.gg/KmpA8cfaSA).
+> - The AutoEvent release only contains the AutoEvent DLLs. Download every dependency from its own GitHub releases.
 > - Every Dependency installation guide can be found in their GitHub ReadMes.
 
-| Dependency                                                             | Required | Description                                   |
-|------------------------------------------------------------------------|----------|-----------------------------------------------|
-| Harmony                                                                | Yes      | Included in release as `0Harmony.dll`         |
-| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | Included in release (*required for Among Us)  |
-| [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | Map/schematic loading included in the release |
-| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | Included in release (*required for Among Us)  |
-| [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)           | Yes      | Included in release as `SecretLabNAudio.zip`  |
+| Dependency                                                             | Required | Download                                                       |
+|------------------------------------------------------------------------|----------|----------------------------------------------------------------|
+| [Harmony](https://github.com/pardeike/Harmony)                         | Yes      | `0Harmony.dll`                                                 |
+| [LabApiExtensions](https://github.com/KadavasKingdom/LabApiExtensions) | No*      | `LabApiExtensions.dll` (*required for Among Us)                |
+| [ProjectMER](https://github.com/Michal78900/ProjectMER)                | Yes      | `ProjectMER.dll`, map/schematic loading                        |
+| [RadioMenuAPI](https://github.com/MedveMarci/RadioMenuAPI)             | No*      | `RadioMenuAPI.dll` (*required for Among Us and AutoEvent.Vote) |
+| [SecretLabNAudio](https://github.com/Axwabo/SecretLabNAudio)           | Yes      | `SecretLabNAudio.zip`, music playback                          |
 
 ---
 
 ## Step 1 — Download Files
 
-Download the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest). You need:
+Download `AutoEvent.dll` from the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest), and from
+the dependencies' own releases:
 
-- `AutoEvent.dll`
 - `0Harmony.dll` (skip if you already have Harmony installed)
 - `RadioMenuAPI.dll`
 - `LabApiExtensions.dll`
 - `ProjectMER.dll`
 - `SecretLabNAudio.zip`
-- `Music.zip`
 
 ---
 
 ## Step 2 — Install Files
 
-**Plugin DLLs** — place in `LabApi/plugins/global/`:
+**Plugin DLLs** — place `AutoEvent.dll`, `RadioMenuAPI.dll`, `LabApiExtensions.dll` and `ProjectMER.dll` in:
 
 ```
-AutoEvent.dll
-RadioMenuAPI.dll
-LabApiExtensions.dll
-ProjectMER.dll
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\plugins\global\
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/plugins/global/
 ```
 
 **SecretLabNAudio** — extract `SecretLabNAudio.zip` and place `SecretLabNAudio.dll` in:
 
 ```
-LabApi/plugins/global/
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\plugins\global\
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/plugins/global/
 ```
 
 **Harmony** — place `0Harmony.dll` in:
 
 ```
-LabApi/dependencies/global/
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\dependencies\global\
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/dependencies/global/
 ```
 
-**Music files** — extract `Music.zip` to:
+**Music files** — nothing to do: the music is built into `AutoEvent.dll`. On start, every missing file is saved to:
 
 ```
-LabApi/configs/AutoEvent/Music/
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\configs\AutoEvent\Music\
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/configs/AutoEvent/Music/
 ```
-
-**Optional: AutoEvent.Vote Plugin** — for the voting system (allows players to vote on mini-games):
-
-Download `AutoEvent.Vote.dll` from the [latest release](https://github.com/MedveMarci/AutoEvent/releases/latest) and
-place it in:
-
-```
-LabApi/plugins/global/AutoEvent.Vote.dll
-```
-
-> **Requirements for Vote plugin:**
-> - RadioMenuAPI must be installed
-> - Permission `ev.vote` must be configured in `permissions.yml`
-> - See [Vote Documentation](Vote.md) for full setup and commands
 
 ---
 
 ## Step 3 — Configure Paths
 
-After first launch, verify the following paths in the AutoEvent config (`LabApi/configs/global/AutoEvent/config.yml`):
+After first launch, verify the following paths in the AutoEvent config (`<port>` is the server port, e.g. `7777`):
+
+```
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\configs\<port>\AutoEvent\config.yml
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/configs/<port>/AutoEvent/config.yml
+```
+
+The config needs full paths (`%AppData%` and `~` are not expanded). Windows:
 
 ```yaml
 # Path to the schematics folder
-schematics_directory_path: /home/container/.config/SCP Secret Laboratory/LabApi/configs/AutoEvent/Schematics
+schematics_directory_path: C:\Users\<user>\AppData\Roaming\SCP Secret Laboratory\LabAPI\configs\AutoEvent\Schematics
 
 # Path to the music folder
-music_directory_path: /home/container/.config/SCP Secret Laboratory/LabApi/configs/AutoEvent/Music
+music_directory_path: C:\Users\<user>\AppData\Roaming\SCP Secret Laboratory\LabAPI\configs\AutoEvent\Music
+```
+
+Linux (on Pterodactyl-style hosts the home folder is `/home/container`):
+
+```yaml
+# Path to the schematics folder
+schematics_directory_path: /home/<user>/.config/SCP Secret Laboratory/LabAPI/configs/AutoEvent/Schematics
+
+# Path to the music folder
+music_directory_path: /home/<user>/.config/SCP Secret Laboratory/LabAPI/configs/AutoEvent/Music
 ```
 
 Adjust these paths to match your server's file system if needed. These settings sometimes do not auto-generate
@@ -101,7 +103,12 @@ correctly — verify them manually before reporting issues.
 
 ## Step 4 — Set Permissions
 
-Edit `LabApi/configs/permissions.yml` and add `ev.*` to the desired role:
+Edit `permissions.yml` and add `ev.*` to the desired role:
+
+```
+Windows: %AppData%\SCP Secret Laboratory\LabAPI\configs\permissions.yml
+Linux:   ~/.config/SCP Secret Laboratory/LabAPI/configs/permissions.yml
+```
 
 ```yaml
 owner:

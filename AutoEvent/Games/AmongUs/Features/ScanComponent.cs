@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using AutoEvent.ApiFeatures;
 using AutoEvent.Games.AmongUs.Features;
 using AutoEvent.Games.AmongUs.Skeld;
 using CustomPlayerEffects;
@@ -23,12 +22,11 @@ public class ScanComponent : MonoBehaviour
 
     private void OnTriggerEnter(Collider collider)
     {
-        if (_taskRunning) 
+        if (_taskRunning)
             return;
         if (Player.Get(collider.gameObject) is not { } player) return;
-        if (!TaskManager.TryGet(player, out var taskManager) || taskManager is null ||
-            taskManager.Tasks.Count == 0) return;
-        var task = taskManager.Tasks.FirstOrDefault(task => !task.IsDone && task.Name is TaskName.SubmitScan);
+        if (!TaskManager.TryGet(player, out TaskManager taskManager) || taskManager is null || taskManager.Tasks.Count == 0) return;
+        Task task = taskManager.Tasks.FirstOrDefault(task => !task.IsDone && task.Name is TaskName.SubmitScan);
         if (task is null) return;
         _taskRunning = true;
         player.EnableEffect<Ensnared>();
@@ -38,7 +36,7 @@ public class ScanComponent : MonoBehaviour
 
     private IEnumerator<float> LockRotation(Player player, Collider collider, Task task)
     {
-        var animator = _collider.gameObject.GetComponentInChildren<Animator>();
+        Animator animator = _collider.gameObject.GetComponentInChildren<Animator>();
         if (animator == null)
         {
             player.DisableEffect<Ensnared>();
@@ -46,9 +44,9 @@ public class ScanComponent : MonoBehaviour
             _taskRunning = false;
             yield break;
         }
-        
+
         animator.Play("ScanTask");
-        var scanStarted = false;
+        bool scanStarted = false;
         while (true)
         {
             if (!player.IsAlive || Plugin.Instance == null || Plugin.Instance.MeetingCalled)
@@ -59,7 +57,7 @@ public class ScanComponent : MonoBehaviour
                 yield break;
             }
 
-            var stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
 
             if (!scanStarted)
             {

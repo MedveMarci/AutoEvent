@@ -5,6 +5,7 @@ using AutoEvent.API;
 using AutoEvent.API.Enums;
 using AutoEvent.ApiFeatures;
 using InventorySystem.Items.Firearms.Modules;
+using InventorySystem.Items.Firearms.Modules.Misc;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Features.Wrappers;
 using MEC;
@@ -17,13 +18,13 @@ public class EventHandler(Plugin plugin)
 {
     public void OnShot(PlayerShotWeaponEventArgs ev)
     {
-        if (!ev.FirearmItem.Base.TryGetModule<HitscanHitregModuleBase>(out var hitreg))
+        if (!ev.FirearmItem.Base.TryGetModule(out HitscanHitregModuleBase hitreg))
             return;
 
-        foreach (var obstacle in hitreg.ResultNonAlloc.Obstacles)
+        foreach (HitRayPair obstacle in hitreg.ResultNonAlloc.Obstacles)
         {
             if (obstacle.Hit.collider.gameObject != plugin.Button) continue;
-            if (!plugin.PrisonerDoors.TryGetComponent<JailerComponent>(out var jailerComponent)) continue;
+            if (!plugin.PrisonerDoors.TryGetComponent(out JailerComponent jailerComponent)) continue;
             ev.Player.SendHitMarker(2f);
             jailerComponent.ToggleDoor();
         }
@@ -46,15 +47,10 @@ public class EventHandler(Plugin plugin)
             return;
         }
 
-        var livesRemaining = plugin.Config.PrisonerLives - plugin.Deaths[ev.Player];
+        int livesRemaining = plugin.Config.PrisonerLives - plugin.Deaths[ev.Player];
         ev.Player.SendHint(plugin.Translation.LivesRemaining.Replace("{lives}", livesRemaining.ToString()), 4f);
         ev.Player.GiveLoadout(plugin.Config.PrisonerLoadouts);
-        Timing.CallDelayed(Timing.WaitForOneFrame, () =>
-        {
-            ev.Player.Position = plugin.SpawnPoints.Where(r => r.name == "Spawnpoint").ToList().RandomItem()
-                .transform
-                .position;
-        });
+        Timing.CallDelayed(Timing.WaitForOneFrame, () => { ev.Player.Position = plugin.SpawnPoints.Where(r => r.name == "Spawnpoint").ToList().RandomItem().transform.position; });
     }
 
     public void OnInteractingLocker(PlayerInteractingLockerEventArgs ev)
@@ -63,26 +59,18 @@ public class EventHandler(Plugin plugin)
 
         try
         {
-            if (Vector3.Distance(ev.Player.Position,
-                    plugin.MapInfo.Map.Position + new Vector3(13.1f, -12.23f, -12.14f)) < 2)
+            if (Vector3.Distance(ev.Player.Position, plugin.MapInfo.Map.Position + new Vector3(13.1f, -12.23f, -12.14f)) < 2)
             {
                 ev.Player.ClearInventory();
-                ev.Player.GiveLoadout(plugin.Config.WeaponLockerLoadouts,
-                    LoadoutFlags.IgnoreRole | LoadoutFlags.IgnoreGodMode | LoadoutFlags.DontClearDefaultItems);
+                ev.Player.GiveLoadout(plugin.Config.WeaponLockerLoadouts, LoadoutFlags.IgnoreRole | LoadoutFlags.IgnoreGodMode | LoadoutFlags.DontClearDefaultItems);
             }
-            else if (Vector3.Distance(ev.Player.Position,
-                         plugin.MapInfo.Map.Position + new Vector3(17.855f, -12.43052f, -23.632f)) < 2)
+            else if (Vector3.Distance(ev.Player.Position, plugin.MapInfo.Map.Position + new Vector3(17.855f, -12.43052f, -23.632f)) < 2)
             {
-                ev.Player.GiveLoadout(plugin.Config.AdrenalineLoadouts,
-                    LoadoutFlags.IgnoreRole | LoadoutFlags.IgnoreGodMode | LoadoutFlags.IgnoreWeapons |
-                    LoadoutFlags.DontClearDefaultItems);
+                ev.Player.GiveLoadout(plugin.Config.AdrenalineLoadouts, LoadoutFlags.IgnoreRole | LoadoutFlags.IgnoreGodMode | LoadoutFlags.IgnoreWeapons | LoadoutFlags.DontClearDefaultItems);
             }
-            else if (Vector3.Distance(ev.Player.Position,
-                         plugin.MapInfo.Map.Position + new Vector3(9f, -12.43052f, -21.78f)) < 2)
+            else if (Vector3.Distance(ev.Player.Position, plugin.MapInfo.Map.Position + new Vector3(9f, -12.43052f, -21.78f)) < 2)
             {
-                ev.Player.GiveLoadout(plugin.Config.MedicalLoadouts,
-                    LoadoutFlags.IgnoreRole | LoadoutFlags.IgnoreGodMode | LoadoutFlags.IgnoreWeapons |
-                    LoadoutFlags.DontClearDefaultItems);
+                ev.Player.GiveLoadout(plugin.Config.MedicalLoadouts, LoadoutFlags.IgnoreRole | LoadoutFlags.IgnoreGodMode | LoadoutFlags.IgnoreWeapons | LoadoutFlags.DontClearDefaultItems);
             }
         }
         catch (Exception e)

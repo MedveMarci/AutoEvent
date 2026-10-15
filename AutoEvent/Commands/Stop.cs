@@ -10,7 +10,9 @@ namespace AutoEvent.Commands;
 internal class Stop : ICommand
 {
     public string Command => nameof(Stop);
+
     public string Description => "Force-stops the running mini-game";
+
     public string[] Aliases => [];
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
@@ -20,7 +22,7 @@ internal class Stop : ICommand
             response = "AutoEvent is not loaded. Check console for errors.";
             return false;
         }
-        
+
         if (!sender.HasPermissions("ev.stop"))
         {
             response = "<color=red>You do not have permission to use this command!</color>";
@@ -33,9 +35,9 @@ internal class Stop : ICommand
             return false;
         }
 
-        var eventName = AutoEvent.InternalEventManager.CurrentEvent.Name;
+        string eventName = AutoEvent.InternalEventManager.CurrentEvent.Name;
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
             player.SetRole(RoleTypeId.Spectator);
 
         AutoEvent.InternalEventManager.CurrentEvent.StopEvent();

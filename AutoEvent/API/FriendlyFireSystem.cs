@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using AutoEvent.ApiFeatures;
-using GameCore;
 using LabApi.Features.Wrappers;
 using PlayerStatsSystem;
 
@@ -11,11 +10,10 @@ public abstract class FriendlyFireSystem
 {
     private static MemberInfo _cedModAdminDisabledMember;
     private static bool _cedModResolved;
-    public static bool IsFriendlyFireEnabledByDefault { get; set; }
-    public static bool IsFriendlyFireDetectorPausedByDefault { get; set; }
 
-    private static float DefaultFfMultiplier =>
-        ConfigFile.ServerConfig.GetFloat("friendly_fire_multiplier", 0.4f);
+    public static bool IsFriendlyFireEnabledByDefault { get; set; }
+
+    public static bool IsFriendlyFireDetectorPausedByDefault { get; set; }
 
     private static MemberInfo ResolveCedModAutobanMember()
     {
@@ -26,7 +24,7 @@ public abstract class FriendlyFireSystem
         try
         {
             Type autobanType = null;
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 try
                 {
@@ -47,13 +45,9 @@ public abstract class FriendlyFireSystem
                 return null;
             }
 
-            _cedModAdminDisabledMember =
-                (MemberInfo)autobanType.GetProperty("AdminDisabled", BindingFlags.Public | BindingFlags.Static)
-                ?? autobanType.GetField("AdminDisabled", BindingFlags.Public | BindingFlags.Static);
+            _cedModAdminDisabledMember = (MemberInfo)autobanType.GetProperty("AdminDisabled", BindingFlags.Public | BindingFlags.Static) ?? autobanType.GetField("AdminDisabled", BindingFlags.Public | BindingFlags.Static);
 
-            LogManager.Debug(_cedModAdminDisabledMember != null
-                ? "CedMod has been detected. FF autoban will also be toggled through CedMod."
-                : "CedMod was detected, but its FriendlyFireAutoban.AdminDisabled member was not found.");
+            LogManager.Debug(_cedModAdminDisabledMember != null ? "CedMod has been detected. FF autoban will also be toggled through CedMod." : "CedMod was detected, but its FriendlyFireAutoban.AdminDisabled member was not found.");
         }
         catch (Exception e)
         {
@@ -66,7 +60,7 @@ public abstract class FriendlyFireSystem
 
     private static void SetCedModAutobanDisabled(bool disabled)
     {
-        var member = ResolveCedModAutobanMember();
+        MemberInfo member = ResolveCedModAutobanMember();
         if (member == null) return;
 
         try
@@ -93,13 +87,11 @@ public abstract class FriendlyFireSystem
         try
         {
             FriendlyFireConfig.PauseDetector = false;
-            AttackerDamageHandler._ffMultiplier = DefaultFfMultiplier;
             SetCedModAutobanDisabled(false);
         }
         catch (Exception e)
         {
-            LogManager.Error(
-                $"Failed to enable Friendly Fire Detector: {e.GetType().FullName}: {e}");
+            LogManager.Error($"Failed to enable Friendly Fire Detector: {e.GetType().FullName}: {e}");
         }
     }
 
@@ -113,8 +105,7 @@ public abstract class FriendlyFireSystem
         }
         catch (Exception e)
         {
-            LogManager.Error(
-                $"Failed to disable Friendly Fire Detector: {e.GetType().FullName}: {e.Message}\n{e.StackTrace}");
+            LogManager.Error($"Failed to disable Friendly Fire Detector: {e.GetType().FullName}: {e.Message}\n{e.StackTrace}");
         }
     }
 
@@ -129,7 +120,7 @@ public abstract class FriendlyFireSystem
     {
         LogManager.Debug("Disabling Friendly Fire.");
         Server.FriendlyFire = false;
-        AttackerDamageHandler._ffMultiplier = DefaultFfMultiplier;
+        AttackerDamageHandler._ffMultiplier = 0f;
     }
 
     public static void RestoreFriendlyFire()

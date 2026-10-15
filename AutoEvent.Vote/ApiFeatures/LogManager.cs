@@ -6,6 +6,7 @@ namespace AutoEvent.Vote.ApiFeatures;
 internal static class LogManager
 {
     private static bool DebugEnabled => AutoEventVote.Singleton?.Config.Debug ?? false;
+
     private static string PluginName => AutoEventVote.Singleton?.Name ?? "AutoEvent.Vote";
 
     public static void Debug(string message)

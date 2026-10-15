@@ -18,19 +18,26 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     private TimeSpan _countdown;
     private EventHandler _eventHandler;
     private EventState _eventState;
+    private List<GameObject> _spawnpoints;
     private List<GameObject> _teleports;
     private List<GameObject> _triggers;
+
+    private readonly Dictionary<Player, int> _restUntil = new();
+    private int _completedDuels;
     internal Player ClassD;
     internal int ClassDLifespan;
     internal Player Scientist;
     internal int ScientistLifespan;
+
     public override string Name { get; set; } = "Cock Fights";
+
     public override string Description { get; set; } = "Duel of players on the 35hp map from cs 1.6";
+
     public override string Author { get; set; } = "RisottoMan/code & xleb.ik/map";
+
     public override string CommandName { get; set; } = "versus";
 
-    public override EventFlags EventHandlerSettings { get; set; } =
-        EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing;
+    public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing;
 
     public MapInfo MapInfo { get; set; } = new()
     {
@@ -67,13 +74,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _eventState = 0;
         _triggers = [];
         _teleports = [];
+        _restUntil.Clear();
+        _completedDuels = 0;
         _countdown = new TimeSpan(0, 0, Config.AutoSelectDelayInSeconds);
 
         if (Config.Team1Loadouts == Config.Team2Loadouts)
             LogManager.Debug("Warning: Teams should not have the same roles.");
 
         List<GameObject> spawnpoints = [];
-        foreach (var block in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject block in MapInfo.Map.AttachedBlocks)
             switch (block.name)
             {
                 case "Trigger": _triggers.Add(block); break;
@@ -81,8 +90,10 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 case "Spawnpoint": spawnpoints.Add(block); break;
             }
 
-        var count = 0;
-        foreach (var player in Player.ReadyList)
+        _spawnpoints = spawnpoints;
+
+        int count = 0;
+        foreach (Player player in Player.ReadyList)
         {
             if (count % 2 == 0)
             {
@@ -101,7 +112,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
             Extensions.ServerBroadcast($"<size=100><color=red>{time}</color></size>", 1);
             yield return Timing.WaitForSeconds(1f);
@@ -111,11 +122,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override bool IsRoundDone()
     {
         _countdown = _countdown.TotalSeconds > 0 ? _countdown.Subtract(new TimeSpan(0, 0, 1)) : TimeSpan.Zero;
-        // At least 1 player on scientists && At least 1 player on dbois
-        return !(Player.ReadyList.Any(ply =>
-                     Config.Team1Loadouts.Any(loadout => loadout.Roles.Any(role => ply.Role == role.Key))) &&
-                 Player.ReadyList.Any(ply =>
-                     Config.Team2Loadouts.Any(loadout => loadout.Roles.Any(role => ply.Role == role.Key))));
+        return !(Player.ReadyList.Any(ply => Config.Team1Loadouts.Any(loadout => loadout.Roles.Any(role => ply.Role == role.Key))) && Player.ReadyList.Any(ply => Config.Team2Loadouts.Any(loadout => loadout.Roles.Any(role => ply.Role == role.Key))));
     }
 
     protected override void ProcessFrame()
@@ -128,7 +135,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             case EventState.Playing: UpdatePlayingState(); break;
         }
 
-        var text = string.Empty;
+        string text = string.Empty;
         if (ClassD is null && Scientist is null)
         {
             text = Translation.PlayersNull;
@@ -148,8 +155,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             if (ClassD.Items.All(item => item.Type != ItemType.Jailbird))
                 ClassD.CurrentItem ??= ClassD.AddItem(ItemType.Jailbird);
 
-            text = Translation.PlayersDuel.Replace("{scientist}", Scientist.Nickname)
-                .Replace("{classd}", ClassD.Nickname);
+            text = Translation.PlayersDuel.Replace("{scientist}", Scientist.Nickname).Replace("{classd}", ClassD.Nickname);
         }
 
         Extensions.ServerBroadcast(text.Replace("{name}", Name).Replace("{remain}", $"{_countdown.TotalSeconds}"), 1);
@@ -181,7 +187,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected Player UpdateChoosePlayerState(bool isScientist)
     {
         ushort value = 0;
-        var role = RoleTypeId.Scientist;
+        RoleTypeId role = RoleTypeId.Scientist;
         Player chosenPlayer;
 
         if (isScientist is not true)
@@ -190,13 +196,19 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             role = RoleTypeId.ClassD;
         }
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             if (player.Role != role)
                 continue;
 
             if (Vector3.Distance(player.Position, _triggers.ElementAt(value).transform.position) <= 1f)
             {
+                if (!CanEnter(player, role))
+                {
+                    player.SendHint(Translation.Resting, 2);
+                    continue;
+                }
+
                 chosenPlayer = player;
                 goto End;
             }
@@ -205,10 +217,12 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         if (_countdown.TotalSeconds > 0)
             return null;
 
-        var candidates = Player.ReadyList.Where(r => r.Role == role).ToList();
+        List<Player> candidates = [.. Player.ReadyList.Where(r => r.Role == role)];
         if (candidates.Count == 0)
             return null;
-        chosenPlayer = candidates.RandomItem();
+
+        List<Player> rested = [.. candidates.Where(r => !IsResting(r))];
+        chosenPlayer = (rested.Count > 0 ? rested : candidates).RandomItem();
 
         End:
         chosenPlayer.Position = _teleports.ElementAt(value).transform.position;
@@ -217,8 +231,85 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         if (ClassD is not null)
             ClassD.Position = _teleports.ElementAt(1).transform.position;
         chosenPlayer.Heal(100);
+        _restUntil.Remove(chosenPlayer);
+        if (Config.JailbirdLifespan > 0 && !IsLastOfTeam(chosenPlayer))
+            chosenPlayer.SendHint(Translation.RoundsRemaining.Replace("{rounds}", Config.JailbirdLifespan.ToString()), 5);
+
         _eventState = EventState.Waiting;
         return chosenPlayer;
+    }
+
+    private bool IsResting(Player player)
+    {
+        return _restUntil.TryGetValue(player, out int until) && _completedDuels < until;
+    }
+
+    private static bool IsLastOfTeam(Player player)
+    {
+        return !Player.ReadyList.Any(p => p != player && p.Role == player.Role);
+    }
+
+    private bool CanEnter(Player player, RoleTypeId role)
+    {
+        return !IsResting(player) || !Player.ReadyList.Any(p => p != player && p.Role == role && !IsResting(p));
+    }
+
+    internal void FinishDuel(Player winner, bool scientistWon)
+    {
+        _completedDuels++;
+        if (winner is null)
+            return;
+
+        winner.CurrentItem = null;
+        winner.RemoveItem(ItemType.Jailbird);
+
+        if (Config.JailbirdLifespan <= 0)
+            return;
+
+        if (IsLastOfTeam(winner))
+        {
+            if (scientistWon)
+                ScientistLifespan = 0;
+            else
+                ClassDLifespan = 0;
+            return;
+        }
+
+        int played = scientistWon ? ++ScientistLifespan : ++ClassDLifespan;
+        int remaining = Config.JailbirdLifespan - played;
+        if (remaining > 0)
+        {
+            winner.SendHint(Translation.RoundsRemaining.Replace("{rounds}", remaining.ToString()), 5);
+            return;
+        }
+
+        SendToRest(winner, scientistWon);
+    }
+
+    private void SendToRest(Player player, bool isScientist)
+    {
+        if (isScientist)
+        {
+            Scientist = null;
+            ScientistLifespan = 0;
+        }
+        else
+        {
+            ClassD = null;
+            ClassDLifespan = 0;
+        }
+
+        _restUntil[player] = _completedDuels + 1;
+        player.Heal(100);
+        player.SendHint(Translation.MaxRoundReached.Replace("{max}", Config.JailbirdLifespan.ToString()), 8);
+        
+        Vector3 restPosition = _spawnpoints.ElementAt(isScientist ? 0 : 1).transform.position;
+        Timing.CallDelayed(0.2f, () =>
+        {
+            if (player is null || !player.IsAlive || !IsResting(player) || player == Scientist || player == ClassD)
+                return;
+            player.Position = restPosition;
+        });
     }
 
     protected void UpdatePlayingState()
@@ -229,7 +320,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void OnFinished()
     {
-        var text = string.Empty;
+        string text = string.Empty;
 
         if (Player.ReadyList.Count(r => r.Role == RoleTypeId.Scientist) == 0)
             text = Translation.ClassDWin.Replace("{name}", Name);

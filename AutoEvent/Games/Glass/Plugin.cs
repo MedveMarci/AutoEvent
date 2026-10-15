@@ -25,10 +25,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     private GameObject _spawnpoints;
     private GameObject _wall;
     internal Dictionary<Player, float> PushCooldown;
+
     public override string Name { get; set; } = "Dead Jump";
+
     public override string Description { get; set; } = "Jump on fragile platforms";
+
     public override string Author { get; set; } = "RisottoMan && Redforce";
+
     public override string CommandName { get; set; } = "glass";
+
     private EventHandler EventHandler { get; set; }
 
     public MapInfo MapInfo { get; set; } = new()
@@ -63,7 +68,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _lava = new GameObject();
         _wall = new GameObject();
 
-        var platformCount = 0;
+        int platformCount = 0;
         switch (Player.ReadyList.Count())
         {
             case <= 5 and > 0:
@@ -92,7 +97,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
         GameObject platform = new();
         GameObject platform1 = new();
-        foreach (var block in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject block in MapInfo.Map.AttachedBlocks)
             switch (block.name)
             {
                 case "Platform": platform = block; break;
@@ -108,10 +113,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                     break;
             }
 
-        var delta = new Vector3(3.69f, 0, 0);
-        var selector = new PlatformSelector(platformCount, Config.SeedSalt, Config.MinimumSideOffset,
-            Config.MaximumSideOffset);
-        for (var i = 0; i < platformCount; i++)
+        Vector3 delta = new(3.69f, 0, 0);
+        PlatformSelector selector = new(platformCount, Config.SeedSalt, Config.MinimumSideOffset, Config.MaximumSideOffset);
+        for (int i = 0; i < platformCount; i++)
         {
             PlatformData data;
             try
@@ -122,17 +126,14 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             {
                 data = new PlatformData(Random.Range(0, 2) == 1, -1);
                 LogManager.Error("An error has occured while processing platform data.");
-                LogManager.Error(
-                    $"selector count: {selector.PlatformCount}, selector length: {selector.PlatformData.Count}, specified count: {platformCount}, [i: {i}]");
+                LogManager.Error($"selector count: {selector.PlatformCount}, selector length: {selector.PlatformData.Count}, specified count: {platformCount}, [i: {i}]");
                 LogManager.Error($"{e}");
             }
 
             // Creating a platform by copying the parent
-            var newPlatform =
-                ProjectMerIntegration.CreatePlatformByParent(platform, platform.transform.position + delta * (i + 1));
+            GameObject newPlatform = ProjectMerIntegration.CreatePlatformByParent(platform, platform.transform.position + delta * (i + 1));
             _platforms.Add(newPlatform);
-            var newPlatform1 =
-                ProjectMerIntegration.CreatePlatformByParent(platform1, platform1.transform.position + delta * (i + 1));
+            GameObject newPlatform1 = ProjectMerIntegration.CreatePlatformByParent(platform1, platform1.transform.position + delta * (i + 1));
             _platforms.Add(newPlatform1);
 
             if (data.LeftSideIsDangerous)
@@ -141,10 +142,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
                 newPlatform1.AddComponent<GlassComponent>().Init(Config.BrokenPlatformRegenerateDelayInSeconds);
         }
 
-        _finish.transform.position = (platform.transform.position + platform1.transform.position) / 2f +
-                                     delta * (platformCount + 2);
+        _finish.transform.position = (platform.transform.position + platform1.transform.position) / 2f + delta * (platformCount + 2);
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = _spawnpoints.transform.position;
@@ -153,7 +153,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 15; time > 0; time--)
+        for (int time = 15; time > 0; time--)
         {
             Extensions.ServerBroadcast($"<size=100><color=red>{time}</color></size>", 1);
             yield return Timing.WaitForSeconds(1f);
@@ -171,30 +171,29 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         // At least one player is alive && 
         // At least one player is not on the platform.
 
-        var playerNotOnPlatform = false;
-        foreach (var ply in Player.ReadyList.Where(ply => ply.IsAlive))
+        bool playerNotOnPlatform = false;
+        foreach (Player ply in Player.ReadyList.Where(ply => ply.IsAlive))
             if (Vector3.Distance(_finish.transform.position, ply.Position) >= 4)
             {
                 playerNotOnPlatform = true;
                 break;
             }
 
-        return !(EventTime.TotalSeconds < _matchTimeInSeconds &&
-                 Player.ReadyList.Count(r => r.IsAlive) > 0 && playerNotOnPlatform);
+        return !(EventTime.TotalSeconds < _matchTimeInSeconds && Player.ReadyList.Count(r => r.IsAlive) > 0 && playerNotOnPlatform);
     }
 
     protected override void ProcessFrame()
     {
         _remaining -= TimeSpan.FromSeconds(FrameDelayInSeconds);
-        var text = Translation.Start;
+        string text = Translation.Start;
         text = text.Replace("{plyAlive}", Player.ReadyList.Count(r => r.IsAlive).ToString());
         text = text.Replace("{time}", $"{_remaining.Minutes:00}:{_remaining.Seconds:00}");
 
-        foreach (var key in PushCooldown.Keys.ToList())
+        foreach (Player key in PushCooldown.Keys.ToList())
             if (PushCooldown[key] > 0)
                 PushCooldown[key] -= FrameDelayInSeconds;
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             if (Config.IsEnablePush)
                 player.SendHint(Translation.Push, 1);
@@ -205,18 +204,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void OnFinished()
     {
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
             if (Vector3.Distance(player.Position, _finish.transform.position) >= 10)
                 player.Damage(500, Translation.Died);
 
-        var count = Player.ReadyList.Count(r => r.IsAlive);
+        int count = Player.ReadyList.Count(r => r.IsAlive);
         if (count > 1)
-            Extensions.ServerBroadcast(
-                Translation.WinSurvived.Replace("{plyAlive}", Player.ReadyList.Count(r => r.IsAlive).ToString()), 3);
+            Extensions.ServerBroadcast(Translation.WinSurvived.Replace("{plyAlive}", Player.ReadyList.Count(r => r.IsAlive).ToString()), 3);
         else if (count == 1)
-            Extensions.ServerBroadcast(
-                Translation.Winner.Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname),
-                10);
+            Extensions.ServerBroadcast(Translation.Winner.Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname), 10);
         else
             Extensions.ServerBroadcast(Translation.Fail, 10);
     }

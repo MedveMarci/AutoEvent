@@ -13,18 +13,21 @@ namespace AutoEvent.Games.Deathmatch;
 public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 {
     private int _needKills;
+
     public override string Name { get; set; } = "Team Death-Match";
+
     public override string Description { get; set; } = "Team Death-Match between MTF and Chaos Insurgency";
+
     public override string Author { get; set; } = "RisottoMan/code & xleb.ik/map";
+
     public override string CommandName { get; set; } = "tdm";
 
-    public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll |
-                                                                    EventFlags.IgnoreHandcuffing |
-                                                                    EventFlags.IgnoreBulletHole |
-                                                                    EventFlags.IgnoreBloodDecal;
+    public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing | EventFlags.IgnoreBulletHole | EventFlags.IgnoreBloodDecal;
 
     private EventHandler EventHandler { get; set; }
+
     internal int MtfKills { get; set; }
+
     internal int ChaosKills { get; set; }
 
     public MapInfo MapInfo { get; set; } = new()
@@ -60,13 +63,12 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     {
         MtfKills = 0;
         ChaosKills = 0;
-        _needKills = Config.KillsPerPerson * Player.ReadyList.Count();
+        _needKills = Mathf.Max(1, Config.KillsPerPerson * Player.ReadyList.Count());
 
-        var count = 0;
-        foreach (var player in Player.ReadyList)
+        int count = 0;
+        foreach (Player player in Player.ReadyList)
         {
-            player.GiveLoadout(count % 2 == 0 ? Config.NtfLoadouts : Config.ChaosLoadouts,
-                LoadoutFlags.ForceInfiniteAmmo | LoadoutFlags.IgnoreGodMode | LoadoutFlags.IgnoreWeapons);
+            player.GiveLoadout(count % 2 == 0 ? Config.NtfLoadouts : Config.ChaosLoadouts, LoadoutFlags.ForceInfiniteAmmo | LoadoutFlags.IgnoreGodMode | LoadoutFlags.IgnoreWeapons);
 
             player.Position = RandomClass.GetRandomPosition(MapInfo.Map);
 
@@ -76,7 +78,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
             Extensions.ServerBroadcast($"<size=100><color=red>{time}</color></size>", 1);
             yield return Timing.WaitForSeconds(1f);
@@ -85,15 +87,13 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override void CountdownFinished()
     {
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
             player.CurrentItem ??= player.AddItem(Config.AvailableWeapons.RandomItem());
     }
 
     protected override bool IsRoundDone()
     {
-        return !(MtfKills < _needKills && ChaosKills < _needKills &&
-                 Player.ReadyList.Count(r => r.IsNTF) > 0 &&
-                 Player.ReadyList.Count(r => r.IsChaos) > 0);
+        return !(MtfKills < _needKills && ChaosKills < _needKills && Player.ReadyList.Count(r => r.IsNTF) > 0 && Player.ReadyList.Count(r => r.IsChaos) > 0);
     }
 
     protected override void ProcessFrame()
@@ -101,21 +101,18 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         const string mtfColor = "<color=#42AAFF>";
         const string chaosColor = "<color=green>";
         const string whiteColor = "<color=white>";
-        var mtfIndex = mtfColor.Length + (int)((float)MtfKills / _needKills * 20f);
-        var chaosIndex = whiteColor.Length + 20 - (int)((float)ChaosKills / _needKills * 20f);
-        var mtfString = $"{mtfColor}||||||||||||||||||||{mtfColor}".Insert(mtfIndex, whiteColor);
-        var chaosString = $"{whiteColor}||||||||||||||||||||".Insert(chaosIndex, chaosColor);
+        int mtfIndex = mtfColor.Length + (int)(Mathf.Clamp01((float)MtfKills / _needKills) * 20f);
+        int chaosIndex = whiteColor.Length + 20 - (int)(Mathf.Clamp01((float)ChaosKills / _needKills) * 20f);
+        string mtfString = $"{mtfColor}||||||||||||||||||||{mtfColor}".Insert(mtfIndex, whiteColor);
+        string chaosString = $"{whiteColor}||||||||||||||||||||".Insert(chaosIndex, chaosColor);
 
-        Extensions.ServerBroadcast(
-            Translation.Cycle.Replace("{name}", Name).Replace("{mtftext}", $"{MtfKills} {mtfString}")
-                .Replace("{chaostext}", $"{chaosString} {ChaosKills}"), 1);
+        Extensions.ServerBroadcast(Translation.Cycle.Replace("{name}", Name).Replace("{mtftext}", $"{MtfKills} {mtfString}").Replace("{chaostext}", $"{chaosString} {ChaosKills}"), 1);
     }
 
     protected override void OnFinished()
     {
-        Extensions.ServerBroadcast(
-            MtfKills == _needKills
-                ? Translation.MtfWin.Replace("{name}", Name)
-                : Translation.ChaosWin.Replace("{name}", Name), 10);
+        // The round can also end because a whole team left, not only by reaching the kill goal.
+        bool mtfWon = MtfKills >= _needKills || (ChaosKills < _needKills && !Player.ReadyList.Any(r => r.IsChaos));
+        Extensions.ServerBroadcast(mtfWon ? Translation.MtfWin.Replace("{name}", Name) : Translation.ChaosWin.Replace("{name}", Name), 10);
     }
 }

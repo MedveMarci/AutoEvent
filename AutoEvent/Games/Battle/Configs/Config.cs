@@ -10,15 +10,6 @@ namespace AutoEvent.Games.Battle.Configs;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("Battle", new Vector3(0f, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Battle_Xmas2025", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
-    }
-
     [Description("A List of Loadouts to use.")]
     public List<Loadout> Loadouts { get; set; } =
     [
@@ -66,4 +57,13 @@ public class Config : EventConfig
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("Battle", new Vector3(0f, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Battle_Xmas2025", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
+    }
 }

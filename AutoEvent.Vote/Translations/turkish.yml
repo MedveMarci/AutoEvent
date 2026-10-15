@@ -1,0 +1,12 @@
+menu_title: 'Bir mini oyuna oy ver!'
+broadcast_text: |-
+  <b>Telsizinle sonraki mini oyuna oy ver!</b>
+  <size=25>Seçimini sol tıkla değiştirebilirsin. {duration} saniye kaldı.</size>
+ended_with_no_vote: '<b>Oylama hiç oy kullanılmadan sona erdi.</b>'
+ended_with_tie: |-
+  <b>Oylama berabere bitti:</b>
+  {events}
+ended_with_winner: |-
+  <b>Oylama sona erdi!</b>
+  Kazanan: <color=yellow>{event}</color> ({votes} oy)
+ended_by_staff: '<b>Oylama bir yetkili tarafından sonlandırıldı.</b>'

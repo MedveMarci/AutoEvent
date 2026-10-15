@@ -1,0 +1,12 @@
+menu_title: 'โหวตเลือกมินิเกม!'
+broadcast_text: |-
+  <b>ใช้วิทยุโหวตเลือกมินิเกมถัดไป!</b>
+  <size=25>คลิกซ้ายเพื่อเปลี่ยนตัวเลือก เหลือเวลา {duration} วินาที</size>
+ended_with_no_vote: '<b>การโหวตจบลงโดยไม่มีผู้โหวต</b>'
+ended_with_tie: |-
+  <b>การโหวตเสมอกันระหว่าง:</b>
+  {events}
+ended_with_winner: |-
+  <b>การโหวตจบแล้ว!</b>
+  ผู้ชนะคือ <color=yellow>{event}</color> ด้วย {votes} คะแนน
+ended_by_staff: '<b>การโหวตถูกปิดโดยทีมงาน</b>'

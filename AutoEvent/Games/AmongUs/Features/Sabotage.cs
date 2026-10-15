@@ -8,16 +8,23 @@ using MEC;
 using RadioMenuAPI;
 using UnityEngine;
 using Color = UnityEngine.Color;
+using LightSourceToy = AdminToys.LightSourceToy;
+using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
 
 namespace AutoEvent.Games.AmongUs.Features;
 
 public class Sabotage
 {
     internal string Name { get; init; }
+
     internal SabotageType Type { get; init; }
+
     internal float Duration { get; init; }
+
     internal float Timer { get; set; }
+
     internal bool EnabledMeetings { get; init; }
+
     internal bool IsCritical { get; init; }
 
     internal bool TryActivate(Player player, Plugin plugin, out string reason)
@@ -41,21 +48,21 @@ public class Sabotage
         if (IsCritical)
         {
             Timer = Duration;
-            foreach (var light in plugin.LightToys) light.SetColor(light.NetworkLightColor, Color.red);
+            foreach (LightSourceToy light in plugin.LightToys) light.SetColor(light.NetworkLightColor, Color.red);
         }
 
         plugin.CurrentSabotage = this;
 
-        foreach (var impostor in plugin.Impostors)
+        foreach (Player impostor in plugin.Impostors)
         {
-            foreach (var radio in impostor.Items.Where(i => i.Type == ItemType.Radio).ToList())
+            foreach (Item radio in impostor.Items.Where(i => i.Type == ItemType.Radio).ToList())
                 RadioMenuManager.RemoveMenu(radio.Serial);
             impostor.RemoveItem(ItemType.Radio);
         }
 
         Timing.CallDelayed(plugin.Config.SabotageCooldown, () =>
         {
-            foreach (var impostor in plugin.Impostors.Where(i => i.IsAlive))
+            foreach (Player impostor in plugin.Impostors.Where(i => i.IsAlive))
                 plugin.GiveSabotageMenu(impostor);
         });
 
@@ -66,13 +73,13 @@ public class Sabotage
             case SabotageType.ReactorMeltdown:
                 break;*/
             case SabotageType.FixLights:
-                foreach (var crewmate in plugin.Crewmates) crewmate.GetEffect<FogControl>()!.Intensity = 5;
+                foreach (Player crewmate in plugin.Crewmates) crewmate.GetEffect<FogControl>()!.Intensity = 5;
                 break;
             case SabotageType.DoorLockdown:
-                var deactivated = false;
-                foreach (var door in plugin.DoorList)
+                bool deactivated = false;
+                foreach (PrimitiveObjectToy door in plugin.DoorList)
                 {
-                    if (!door.TryGetComponent<Animator>(out var animator)) continue;
+                    if (!door.TryGetComponent(out Animator animator)) continue;
                     animator.Play("Door_Close");
                     Timing.CallDelayed(10f, () =>
                     {
@@ -98,14 +105,14 @@ public class Sabotage
     {
         LogManager.Debug($"Sabotage deactivated: {Name}");
         if (IsCritical)
-            foreach (var light in plugin.LightToys)
+            foreach (LightSourceToy light in plugin.LightToys)
                 light.SetColor(light.NetworkLightColor, Color.white);
 
         plugin.CurrentSabotage = null;
 
         // If the sabotage outlasted its cooldown, the delayed re-give in TryActivate was
         // blocked by CurrentSabotage being set — hand the menu back now instead.
-        foreach (var impostor in plugin.Impostors.Where(i => i.IsAlive))
+        foreach (Player impostor in plugin.Impostors.Where(i => i.IsAlive))
             plugin.GiveSabotageMenu(impostor);
     }
 }

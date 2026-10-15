@@ -1,8 +1,10 @@
 using System;
+using System.Globalization;
 using AutoEvent.ApiFeatures;
 using AutoEvent.Interfaces;
 using CommandSystem;
 using LabApi.Features.Permissions;
+using UnityEngine;
 
 namespace AutoEvent.Commands;
 
@@ -10,59 +12,59 @@ namespace AutoEvent.Commands;
 internal class Volume : ICommand, IUsageProvider
 {
     public string Command => nameof(Volume);
+
     public string Description => "Set the global music volume, takes on 1 argument - the volume from 0%-200%";
+
     public string[] Aliases => [];
+
+    public string[] Usage => ["Volume %"];
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
+        if (AutoEvent.Singleton is null)
+        {
+            response = "AutoEvent is not loaded. Check console for errors.";
+            return false;
+        }
+
+        if (!sender.HasPermissions("ev.volume"))
+        {
+            response = "<color=red>You do not have permission to use this command!</color>";
+            return false;
+        }
+
+        if (arguments.Count != 1)
+        {
+            response = $"The current volume is {AutoEvent.MusicVolume}%.";
+            return false;
+        }
+
+        string input = arguments.At(0).TrimEnd('%').Replace(',', '.');
+        if (!float.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out float newVolume))
+        {
+            response = "The volume must be a number between 0 and 200.";
+            return false;
+        }
+
+        newVolume = Mathf.Clamp(newVolume, 0f, 200f);
+
         try
         {
-            if (AutoEvent.Singleton is null)
-            {
-                response = "AutoEvent is not loaded. Check console for errors.";
-                return false;
-            }
-            
-            if (!sender.HasPermissions("ev.volume"))
-            {
-                response = "<color=red>You do not have permission to use this command!</color>";
-                return false;
-            }
-
-            if (arguments.Count != 1)
-            {
-                response = $"The current volume is {AutoEvent.MusicVolume}%.";
-                return false;
-            }
-
-            if (AutoEvent.InternalEventManager.CurrentEvent == null)
-            {
-                response = "The mini-game is not running!";
-                return false;
-            }
-
-            var newVolume = float.Parse(arguments.At(0));
             AutoEvent.MusicVolume = newVolume;
-            if (AutoEvent.InternalEventManager.CurrentEvent is IEventSound sound)
+            if (AutoEvent.InternalEventManager?.CurrentEvent is IEventSound sound)
                 sound.SoundInfo.AudioPlayer?.SetVolume(newVolume / 100f);
-            AutoEvent.Singleton.LoadConfigs();
 
             AutoEvent.Singleton.Config.Volume = newVolume;
             AutoEvent.Singleton.SaveConfig();
-            AutoEvent.Singleton.LoadConfigs();
-
-            response = "The volume has been set!";
-            return true;
         }
         catch (Exception e)
         {
-            response =
-                "Could not set the volume due to an error. This could be a bug. Ensure audio is playing while using this command.";
-            LogManager.Error("An error has occured while trying to set the volume.");
-            LogManager.Error($"{e}");
+            response = "Could not set the volume due to an error. Check the server console.";
+            LogManager.Error($"An error has occured while trying to set the volume.\n{e}");
             return false;
         }
-    }
 
-    public string[] Usage => ["Volume %"];
+        response = $"The volume has been set to {newVolume}%.";
+        return true;
+    }
 }

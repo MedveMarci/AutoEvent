@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AdminToys;
 using AutoEvent.API;
 using AutoEvent.ApiFeatures;
 using AutoEvent.Games.AmongUs.Features;
@@ -13,6 +14,7 @@ using LabApiExtensions.FakeExtension;
 using MEC;
 using Mirror;
 using ProjectMER.Features.Extensions;
+using ProjectMER.Features.Objects;
 using ProjectMER.Features.Serializable.Schematics;
 using UnityEngine;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
@@ -21,8 +23,7 @@ namespace AutoEvent.Games.AmongUs;
 
 public class EventHandler(Plugin plugin)
 {
-    internal static bool TryParseToyName(string fullName, out string room, out string task, out bool isTask,
-        out bool isSabotage, out bool isTeleport)
+    internal static bool TryParseToyName(string fullName, out string room, out string task, out bool isTask, out bool isSabotage, out bool isTeleport)
     {
         room = null;
         task = null;
@@ -30,7 +31,7 @@ public class EventHandler(Plugin plugin)
         isSabotage = false;
         isTeleport = false;
         if (string.IsNullOrEmpty(fullName)) return false;
-        var parts = fullName.Split('_');
+        string[] parts = fullName.Split('_');
         if (parts.Length < 2) return false;
         if (parts[0] != "Task" && parts[0] != "Sabotage" && parts[0] != "Teleport") return false;
         isSabotage = parts[0] == "Sabotage";
@@ -44,17 +45,16 @@ public class EventHandler(Plugin plugin)
 
     public void OnPlayerSearchingToy(PlayerSearchingToyEventArgs ev)
     {
-        var name = ev.Interactable.GameObject.name;
+        string name = ev.Interactable.GameObject.name;
         LogManager.Debug($"[OnPlayerSearchedToy] Player='{ev.Player.Nickname}' interacted with '{name}'");
 
-        if (!TryParseToyName(name, out var room, out var tName, out var isTask, out var isSabotage, out var isTeleport))
+        if (!TryParseToyName(name, out string room, out string tName, out bool isTask, out bool isSabotage, out bool isTeleport))
         {
             LogManager.Debug("[OnPlayerSearchedToy] Name parse failed");
             return;
         }
 
-        LogManager.Debug(
-            $"[OnPlayerSearchingToy] Parsed room='{room}' taskName='{tName ?? "null"}' isSabotage='{isSabotage}' isTask='{isTask}' isTeleport='{isTeleport}'");
+        LogManager.Debug($"[OnPlayerSearchingToy] Parsed room='{room}' taskName='{tName ?? "null"}' isSabotage='{isSabotage}' isTask='{isTask}' isTeleport='{isTeleport}'");
 
         if (isSabotage && plugin.CurrentSabotage == null)
         {
@@ -64,19 +64,15 @@ public class EventHandler(Plugin plugin)
 
         if (!isTask) return;
 
-        if (!TaskManager.TryGet(ev.Player, out var tm))
+        if (!TaskManager.TryGet(ev.Player, out TaskManager tm))
         {
             ev.IsAllowed = false;
             return;
         }
 
-        var hasMainTask = tm.Tasks.Any(t =>
-            (string.IsNullOrEmpty(tName) || t.Name.ToString() == tName) &&
-            t.RoomName.ToString() == room && !t.IsDone);
+        bool hasMainTask = tm.Tasks.Any(t => (string.IsNullOrEmpty(tName) || t.Name.ToString() == tName) && t.RoomName.ToString() == room && !t.IsDone);
 
-        var hasStageTask = TaskManager.GetPlayerStageTasks(ev.Player).Any(st =>
-            (string.IsNullOrEmpty(tName) || st.Name.ToString() == tName) &&
-            st.RoomName.ToString() == room && !st.IsDone);
+        bool hasStageTask = TaskManager.GetPlayerStageTasks(ev.Player).Any(st => (string.IsNullOrEmpty(tName) || st.Name.ToString() == tName) && st.RoomName.ToString() == room && !st.IsDone);
 
         if (!hasMainTask && !hasStageTask)
             ev.IsAllowed = false;
@@ -84,23 +80,22 @@ public class EventHandler(Plugin plugin)
 
     public void OnPlayerSearchedToy(PlayerSearchedToyEventArgs ev)
     {
-        var name = ev.Interactable.GameObject.name;
+        string name = ev.Interactable.GameObject.name;
         LogManager.Debug($"[OnPlayerSearchedToy] Player='{ev.Player.Nickname}' interacted with '{name}'");
 
-        if (!TryParseToyName(name, out var room, out var tName, out var isTask, out var isSabotage, out var isTeleport))
+        if (!TryParseToyName(name, out string room, out string tName, out bool isTask, out bool isSabotage, out bool isTeleport))
         {
             LogManager.Debug("[OnPlayerSearchedToy] Name parse failed");
             return;
         }
 
-        LogManager.Debug(
-            $"[OnPlayerSearchedToy] Parsed room='{room}' taskName='{tName ?? "null"}' isSabotage='{isSabotage}' isTask='{isTask}' isTeleport='{isTeleport}'");
+        LogManager.Debug($"[OnPlayerSearchedToy] Parsed room='{room}' taskName='{tName ?? "null"}' isSabotage='{isSabotage}' isTask='{isTask}' isTeleport='{isTeleport}'");
 
         if (isSabotage)
             switch (room)
             {
                 case "Lights":
-                    foreach (var crewmate in plugin.Crewmates) crewmate.GetEffect<FogControl>()!.Intensity = 2;
+                    foreach (Player crewmate in plugin.Crewmates) crewmate.GetEffect<FogControl>()!.Intensity = 2;
                     plugin.CurrentSabotage?.Deactivate(plugin);
                     return;
                 default:
@@ -115,56 +110,47 @@ public class EventHandler(Plugin plugin)
             return;
         }
 
-        if (!TaskManager.TryGet(ev.Player, out var taskManager))
+        if (!TaskManager.TryGet(ev.Player, out TaskManager taskManager))
         {
             LogManager.Debug("[OnPlayerSearchedToy] TaskManager not found for player");
             return;
         }
 
-        var regularTasks = taskManager.Tasks.Select(t =>
-            $"{t.Name} (Room: {t.RoomName}, isDone: {t.IsDone}, isVisual: {t.IsVisual})");
-        var stageTasks = TaskManager.GetPlayerStageTasks(ev.Player, true)
-            .Select(st => $"{st.Name} (Room: {st.RoomName}, isDone: {st.IsDone}, Stage)");
+        IEnumerable<string> regularTasks = taskManager.Tasks.Select(t => $"{t.Name} (Room: {t.RoomName}, isDone: {t.IsDone}, isVisual: {t.IsVisual})");
+        IEnumerable<string> stageTasks = TaskManager.GetPlayerStageTasks(ev.Player, true).Select(st => $"{st.Name} (Room: {st.RoomName}, isDone: {st.IsDone}, Stage)");
         LogManager.Debug("Player tasks: " + string.Join("\n", regularTasks.Concat(stageTasks)));
 
-        var task = taskManager.Tasks.FirstOrDefault(t =>
-            (string.IsNullOrEmpty(tName) || t.Name.ToString() == tName) && t.RoomName.ToString() == room && !t.IsDone);
+        Task task = taskManager.Tasks.FirstOrDefault(t => (string.IsNullOrEmpty(tName) || t.Name.ToString() == tName) && t.RoomName.ToString() == room && !t.IsDone);
 
         if (task is not null)
         {
-            LogManager.Debug(
-                $"[OnPlayerSearchedToy] Found regular task '{task.Name}' in '{task.RoomName}' (isDone={task.IsDone}, isVisual={task.IsVisual})");
+            LogManager.Debug($"[OnPlayerSearchedToy] Found regular task '{task.Name}' in '{task.RoomName}' (isDone={task.IsDone}, isVisual={task.IsVisual})");
             task.IsDone = true;
             if (task.IsVisual)
             {
-                var animator = ev.Interactable.Parent?.GetComponent<Animator>();
+                Animator animator = ev.Interactable.Parent?.GetComponent<Animator>();
                 if (animator != null)
                     animator.Play($"{task.Name}Task");
             }
 
             if (task.StageTasks is { Count: > 0 } && plugin.TaskToyList != null)
-                foreach (var st in task.StageTasks)
-                foreach (var stageToy in plugin.TaskToyList)
+                foreach (StageTask st in task.StageTasks)
+                foreach (InvisibleInteractableToy stageToy in plugin.TaskToyList)
                 {
-                    if (!TryParseToyName(stageToy.name, out var stRoom, out var stName, out var stIsTask, out _, out _))
+                    if (!TryParseToyName(stageToy.name, out string stRoom, out string stName, out bool stIsTask, out _, out _))
                         continue;
                     if (!stIsTask) continue;
-                    if ((!string.IsNullOrEmpty(stName) && st.Name.ToString() != stName) ||
-                        st.RoomName.ToString() != stRoom)
+                    if ((!string.IsNullOrEmpty(stName) && st.Name.ToString() != stName) || st.RoomName.ToString() != stRoom)
                         continue;
-                    LogManager.Debug(
-                        $"[OnPlayerSearchedToy] Unlocking stage toy '{stageToy.name}' for player '{ev.Player.Nickname}'");
+                    LogManager.Debug($"[OnPlayerSearchedToy] Unlocking stage toy '{stageToy.name}' for player '{ev.Player.Nickname}'");
                     stageToy.SetFakeIsLocked(ev.Player, false);
                 }
 
             LogManager.Debug("[OnPlayerSearchedToy] Marked task done. Searching for next regular task...");
-            var nextTask = taskManager.Tasks.FirstOrDefault(t =>
-                (string.IsNullOrEmpty(tName) || t.Name.ToString() == tName) && t.RoomName.ToString() == room &&
-                !t.IsDone);
+            Task nextTask = taskManager.Tasks.FirstOrDefault(t => (string.IsNullOrEmpty(tName) || t.Name.ToString() == tName) && t.RoomName.ToString() == room && !t.IsDone);
             if (nextTask is not null)
             {
-                LogManager.Debug(
-                    $"[OnPlayerSearchedToy] Next regular task '{nextTask.Name}' found. Setting interactable.");
+                LogManager.Debug($"[OnPlayerSearchedToy] Next regular task '{nextTask.Name}' found. Setting interactable.");
                 ev.Interactable.Base.SetFakeInteractionDuration(ev.Player, TaskManager.GetLength(task));
                 ev.Interactable.Base.SetInteractableToy(ev.Player, TaskManager.GetLength(task));
             }
@@ -178,9 +164,7 @@ public class EventHandler(Plugin plugin)
         }
 
         LogManager.Debug("[OnPlayerSearchedToy] No regular task matched. Checking stage tasks...");
-        var stageTask = TaskManager.GetPlayerStageTasks(ev.Player).FirstOrDefault(st =>
-            (string.IsNullOrEmpty(tName) || st.Name.ToString() == tName) && st.RoomName.ToString() == room &&
-            !st.IsDone);
+        StageTask stageTask = TaskManager.GetPlayerStageTasks(ev.Player).FirstOrDefault(st => (string.IsNullOrEmpty(tName) || st.Name.ToString() == tName) && st.RoomName.ToString() == room && !st.IsDone);
 
         if (stageTask is null)
         {
@@ -188,20 +172,16 @@ public class EventHandler(Plugin plugin)
             return;
         }
 
-        LogManager.Debug(
-            $"[OnPlayerSearchedToy] Found stage task '{stageTask.Name}' in '{stageTask.RoomName}' (isDone={stageTask.IsDone})");
+        LogManager.Debug($"[OnPlayerSearchedToy] Found stage task '{stageTask.Name}' in '{stageTask.RoomName}' (isDone={stageTask.IsDone})");
 
         stageTask.IsDone = true;
         LogManager.Debug("[OnPlayerSearchedToy] Marked stage task done.");
 
-        var nextStageTask = TaskManager.GetPlayerStageTasks(ev.Player).FirstOrDefault(st =>
-            (string.IsNullOrEmpty(tName) || st.Name.ToString() == tName) && st.RoomName.ToString() == room &&
-            !st.IsDone);
+        StageTask nextStageTask = TaskManager.GetPlayerStageTasks(ev.Player).FirstOrDefault(st => (string.IsNullOrEmpty(tName) || st.Name.ToString() == tName) && st.RoomName.ToString() == room && !st.IsDone);
 
         if (nextStageTask is not null)
         {
-            LogManager.Debug(
-                $"[OnPlayerSearchedToy] Next stage task '{nextStageTask.Name}' found. Setting interactable.");
+            LogManager.Debug($"[OnPlayerSearchedToy] Next stage task '{nextStageTask.Name}' found. Setting interactable.");
             ev.Interactable.Base.SetFakeInteractionDuration(ev.Player, TaskManager.GetLength(nextStageTask));
             ev.Interactable.Base.SetInteractableToy(ev.Player, TaskManager.GetLength(nextStageTask));
         }
@@ -210,11 +190,8 @@ public class EventHandler(Plugin plugin)
             LogManager.Debug("[OnPlayerSearchedToy] No further stage tasks.");
         }
 
-        var hasMoreRegularTasks = taskManager.Tasks.Any(t =>
-            (string.IsNullOrEmpty(tName) || t.Name.ToString() == tName) && t.RoomName.ToString() == room && !t.IsDone);
-        var hasMoreStageTasks = TaskManager.GetPlayerStageTasks(ev.Player, true).Any(st =>
-            (string.IsNullOrEmpty(tName) || st.Name.ToString() == tName) && st.RoomName.ToString() == room &&
-            !st.IsDone);
+        bool hasMoreRegularTasks = taskManager.Tasks.Any(t => (string.IsNullOrEmpty(tName) || t.Name.ToString() == tName) && t.RoomName.ToString() == room && !t.IsDone);
+        bool hasMoreStageTasks = TaskManager.GetPlayerStageTasks(ev.Player, true).Any(st => (string.IsNullOrEmpty(tName) || st.Name.ToString() == tName) && st.RoomName.ToString() == room && !st.IsDone);
         if (hasMoreRegularTasks || hasMoreStageTasks) return;
         LogManager.Debug("[OnPlayerSearchedToy] No more tasks (regular or stage) for this interactable. Locking it.");
         ev.Interactable.Base.SetFakeIsLocked(ev.Player, true);
@@ -232,10 +209,9 @@ public class EventHandler(Plugin plugin)
             return;
         }
 
-        if (!plugin.KillCooldowns.TryGetValue(ev.Player, out var time)) return;
+        if (!plugin.KillCooldowns.TryGetValue(ev.Player, out DateTime time)) return;
         if (time <= DateTime.UtcNow) return;
-        ev.Player.SendHint(
-            plugin.Translation.KillCooldown.Replace("{time}", (time - DateTime.UtcNow).Seconds.ToString()));
+        ev.Player.SendHint(plugin.Translation.KillCooldown.Replace("{time}", (time - DateTime.UtcNow).Seconds.ToString()));
     }
 
     internal void OnPlayerHurting(PlayerHurtingEventArgs ev)
@@ -243,31 +219,30 @@ public class EventHandler(Plugin plugin)
         if (ev.Attacker == null) return;
         if (ev.DamageHandler is not Scp1509DamageHandler) return;
         ev.IsAllowed = false;
-        if (plugin.KillCooldowns.TryGetValue(ev.Attacker, out var time) && time > DateTime.UtcNow)
+        if (plugin.KillCooldowns.TryGetValue(ev.Attacker, out DateTime time) && time > DateTime.UtcNow)
         {
             ev.IsAllowed = false;
-            ev.Attacker.SendHint(
-                plugin.Translation.KillCooldown.Replace("{time}", (time - DateTime.UtcNow).Seconds.ToString()));
+            ev.Attacker.SendHint(plugin.Translation.KillCooldown.Replace("{time}", (time - DateTime.UtcNow).Seconds.ToString()));
             return;
         }
 
         if (plugin.Impostors.Contains(ev.Player)) return;
         if (!plugin.Impostors.Contains(ev.Attacker)) return;
 
-        if (plugin.PlayerSkins.TryGetValue(ev.Player.NetworkId, out var skin) && skin != null)
+        if (plugin.PlayerSkins.TryGetValue(ev.Player.NetworkId, out GameObject skin) && skin != null)
         {
-            var deathSkin = ProjectMerIntegration.LoadSchematic(new SerializableSchematic
+            SchematicObject deathSkin = ProjectMerIntegration.LoadSchematic(new SerializableSchematic
             {
                 SchematicName = "DeathSkin",
                 Position = ev.Player.Position,
                 Rotation = ev.Player.Rotation.eulerAngles + new Vector3(0, -90, 0)
             });
 
-            foreach (var obj in deathSkin.AdminToyBases)
+            foreach (AdminToyBase obj in deathSkin.AdminToyBases)
             {
                 if (obj.name == "Bones") continue;
-                if (!obj.TryGetComponent<PrimitiveObjectToy>(out var toy)) continue;
-                if (!plugin.PlayerColors.TryGetValue(ev.Player.NetworkId, out var color)) continue;
+                if (!obj.TryGetComponent(out PrimitiveObjectToy toy)) continue;
+                if (!plugin.PlayerColors.TryGetValue(ev.Player.NetworkId, out string color)) continue;
                 toy.NetworkMaterialColor = color.GetColorFromString();
             }
 
@@ -285,7 +260,7 @@ public class EventHandler(Plugin plugin)
         TaskManager.ClearForPlayers([ev.Player]);
         plugin.KillCooldowns[ev.Attacker] = DateTime.UtcNow.AddSeconds(plugin.Config.KillCooldown);
 
-        var attacker = ev.Attacker;
+        Player attacker = ev.Attacker;
         attacker.RemoveItem(ItemType.SCP1509);
         Timing.CallDelayed(plugin.Config.KillCooldown, () =>
         {
@@ -307,14 +282,14 @@ public class EventHandler(Plugin plugin)
         LogManager.Debug("Interacted with toy: " + ev.Interactable.GameObject.name);
         if (ev.Interactable.GameObject.name.StartsWith("Vent") && plugin.Impostors.Contains(ev.Player))
         {
-            var parent = ev.Interactable.Parent?.parent.parent;
+            Transform parent = ev.Interactable.Parent?.parent.parent;
             if (parent is null) return;
-            if (!parent.gameObject.TryGetComponent<Animator>(out var animator)) return;
+            if (!parent.gameObject.TryGetComponent(out Animator animator)) return;
 
-            var state = animator.GetCurrentAnimatorStateInfo(0);
+            AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
             if (!state.IsName("Vent_Idle")) return;
 
-            var vented = plugin.VentedPlayers.Contains(ev.Player);
+            bool vented = plugin.VentedPlayers.Contains(ev.Player);
             animator.Play(vented ? "Vent_Exit" : "Vent_Enter");
 
             if (vented)
@@ -329,7 +304,7 @@ public class EventHandler(Plugin plugin)
             }
 
             LogManager.Debug("PlayerPos_" + (vented ? "Exit" : "Enter"));
-            var posTf = parent.Find("PlayerPos_" + (vented ? "Exit" : "Enter"));
+            Transform posTf = parent.Find("PlayerPos_" + (vented ? "Exit" : "Enter"));
             LogManager.Debug(posTf?.name ?? "null");
             if (posTf == null) return;
 
@@ -353,8 +328,7 @@ public class EventHandler(Plugin plugin)
                 return;
             }
 
-            if (plugin.PlayerMeetings.TryGetValue(ev.Player, out var meetings) &&
-                meetings >= plugin.Config.EmergencyMeetings)
+            if (plugin.PlayerMeetings.TryGetValue(ev.Player, out int meetings) && meetings >= plugin.Config.EmergencyMeetings)
             {
                 ev.Player.SendHint(plugin.Translation.EmergencyMeetingsReached);
                 return;
@@ -362,18 +336,15 @@ public class EventHandler(Plugin plugin)
 
             if (plugin.MeetingCooldown > 0)
             {
-                ev.Player.SendHint(
-                    plugin.Translation.MeetingCooldown.Replace("{time}", plugin.MeetingCooldown.ToString()));
+                ev.Player.SendHint(plugin.Translation.MeetingCooldown.Replace("{time}", plugin.MeetingCooldown.ToString()));
                 return;
             }
 
             plugin.PlayerMeetings[ev.Player] = meetings + 1;
 
-            if (!plugin.PlayerColors.TryGetValue(ev.Player.NetworkId, out var color))
+            if (!plugin.PlayerColors.TryGetValue(ev.Player.NetworkId, out string color))
                 color = "#FFFFFF";
-            plugin.StartMeeting(
-                plugin.Translation.MeetingCalled.Replace("{player}",
-                    $"<color={color}>{ev.Player.Nickname} {Plugin.GetColorTypeByHex(color)}</color>"), ev.Player);
+            plugin.StartMeeting(plugin.Translation.MeetingCalled.Replace("{player}", $"<color={color}>{ev.Player.Nickname} {Plugin.GetColorTypeByHex(color)}</color>"), ev.Player);
         }
 
         if (ev.Interactable.GameObject.name == "ReportBody")
@@ -383,28 +354,22 @@ public class EventHandler(Plugin plugin)
             LogManager.Debug("Reported body is a player skin");
             if (!plugin.Impostors.Contains(ev.Player) && !plugin.Crewmates.Contains(ev.Player)) return;
             LogManager.Debug("Reporter is a valid player");
-            var playerId = plugin.PlayerSkins.First(x => x.Value == ev.Interactable.Parent?.parent.gameObject).Key;
-            var deadPlayer = Player.Get(playerId);
+            uint playerId = plugin.PlayerSkins.First(x => x.Value == ev.Interactable.Parent?.parent.gameObject).Key;
+            Player deadPlayer = Player.Get(playerId);
             if (deadPlayer is null) return;
             LogManager.Debug("Reported PlayerId: " + deadPlayer.Nickname);
 
-            if (!plugin.PlayerColors.TryGetValue(deadPlayer.NetworkId, out var color)) return;
-            if (!plugin.PlayerColors.TryGetValue(ev.Player.NetworkId, out var reportedColor)) return;
+            if (!plugin.PlayerColors.TryGetValue(deadPlayer.NetworkId, out string color)) return;
+            if (!plugin.PlayerColors.TryGetValue(ev.Player.NetworkId, out string reportedColor)) return;
             if (Plugin.Instance.MeetingCalled) return;
 
-            plugin.StartMeeting(
-                plugin.Translation.DeathBodyReported
-                    .Replace("{deadPlayer}",
-                        $"<color={color}>{deadPlayer.Nickname} {Plugin.GetColorTypeByHex(color)}</color>")
-                    .Replace("{reportedPlayer}",
-                        $"<color={reportedColor}>{ev.Player.Nickname} {Plugin.GetColorTypeByHex(reportedColor)}</color>"),
-                ev.Player);
+            plugin.StartMeeting(plugin.Translation.DeathBodyReported.Replace("{deadPlayer}", $"<color={color}>{deadPlayer.Nickname} {Plugin.GetColorTypeByHex(color)}</color>").Replace("{reportedPlayer}", $"<color={reportedColor}>{ev.Player.Nickname} {Plugin.GetColorTypeByHex(reportedColor)}</color>"), ev.Player);
         }
 
         if (ev.Interactable.GameObject.name.StartsWith("Teleport") && plugin.Impostors.Contains(ev.Player))
         {
-            var room = ev.Interactable.GameObject.name.Split('_')[1];
-            if (plugin.TeleportOutList.TryGetValue(room, out var position))
+            string room = ev.Interactable.GameObject.name.Split('_')[1];
+            if (plugin.TeleportOutList.TryGetValue(room, out Vector3 position))
             {
                 ev.Player.Position = position;
                 LogManager.Debug($"[OnPlayerSearchedToy] Teleported player to '{room}' at position {position}.");
@@ -422,19 +387,19 @@ public class EventHandler(Plugin plugin)
         yield return Timing.WaitForSeconds(0.05f);
         player.EnableEffect<Ensnared>();
 
-        var clips = animator.GetCurrentAnimatorClipInfo(0);
+        AnimatorClipInfo[] clips = animator.GetCurrentAnimatorClipInfo(0);
         if (clips.Length == 0)
         {
             player.DisableEffect<Ensnared>();
             yield break;
         }
 
-        var initialClipName = clips[0].clip.name;
+        string initialClipName = clips[0].clip.name;
 
         while (true)
         {
             yield return Timing.WaitForOneFrame;
-            var clipInfo = animator.GetCurrentAnimatorClipInfo(0);
+            AnimatorClipInfo[] clipInfo = animator.GetCurrentAnimatorClipInfo(0);
             if (clipInfo.Length == 0 || clipInfo[0].clip.name != initialClipName)
             {
                 player.DisableEffect<Ensnared>();
@@ -464,7 +429,7 @@ public class EventHandler(Plugin plugin)
         }
 
         TaskManager.ClearForPlayers([ev.Player]);
-        if (plugin.PlayerSkins.TryGetValue(ev.Player.NetworkId, out var skin))
+        if (plugin.PlayerSkins.TryGetValue(ev.Player.NetworkId, out GameObject skin))
             NetworkServer.Destroy(skin);
         plugin.PlayerSkins.Remove(ev.Player.NetworkId);
     }

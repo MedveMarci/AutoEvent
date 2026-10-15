@@ -17,11 +17,17 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     private EventHandler _eventHandler;
     private List<Loadout> _loadouts;
+
     public override string Name { get; set; } = "Spleef";
+
     public override string Description { get; set; } = "Shoot at the platforms and don't fall into the void";
+
     public override string Author { get; set; } = "Redforce04 (created logic code) && RisottoMan (modified map)";
+
     public override string CommandName { get; set; } = "spleef";
+
     protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Disable;
+
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll;
 
 
@@ -53,19 +59,19 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     {
         _countdown = TimeSpan.FromSeconds(Config.RoundDurationInSeconds);
         _loadouts = [];
-        var spawnpoint = new GameObject();
+        GameObject spawnpoint = new();
 
-        var lava = MapInfo.Map.AttachedBlocks.First(x => x.name == "Lava");
+        GameObject lava = MapInfo.Map.AttachedBlocks.First(x => x.name == "Lava");
         lava.AddComponent<LavaComponent>().StartComponent(this);
 
-        foreach (var gameObject in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject gameObject in MapInfo.Map.AttachedBlocks)
             switch (gameObject.name)
             {
                 case "Spawnpoint": spawnpoint = gameObject; break;
                 case "Platform": gameObject.AddComponent<FallPlatformComponent>(); break;
             }
 
-        var count = Player.ReadyList.Count();
+        int count = Player.ReadyList.Count();
 
         switch (count)
         {
@@ -74,7 +80,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
             default: _loadouts = Config.PlayerNormalLoadouts; break;
         }
 
-        foreach (var ply in Player.ReadyList)
+        foreach (Player ply in Player.ReadyList)
         {
             ply.GiveLoadout(_loadouts, LoadoutFlags.IgnoreWeapons);
             ply.Position = spawnpoint.transform.position;
@@ -83,7 +89,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
             Extensions.ServerBroadcast($"{Translation.Start.Replace("{time}", $"{time}")}", 1);
             yield return Timing.WaitForSeconds(1f);
@@ -92,7 +98,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override void CountdownFinished()
     {
-        foreach (var ply in Player.ReadyList) ply.GiveLoadout(_loadouts, LoadoutFlags.ItemsOnly);
+        foreach (Player ply in Player.ReadyList) ply.GiveLoadout(_loadouts, LoadoutFlags.ItemsOnly);
     }
 
     protected override bool IsRoundDone()
@@ -103,22 +109,18 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override void ProcessFrame()
     {
-        Extensions.ServerBroadcast(
-            Translation.Cycle.Replace("{name}", Name)
-                .Replace("{players}", $"{Player.ReadyList.Count(x => x.IsAlive)}")
-                .Replace("{remaining}", $"{_countdown.Minutes:00}:{_countdown.Seconds:00}"), 1);
+        Extensions.ServerBroadcast(Translation.Cycle.Replace("{name}", Name).Replace("{players}", $"{Player.ReadyList.Count(x => x.IsAlive)}").Replace("{remaining}", $"{_countdown.Minutes:00}:{_countdown.Seconds:00}"), 1);
     }
 
     protected override void OnFinished()
     {
         string text;
-        var count = Player.ReadyList.Count(x => x.IsAlive);
+        int count = Player.ReadyList.Count(x => x.IsAlive);
 
         if (count > 1)
             text = Translation.SomeSurvived;
         else if (count == 1)
-            text = Translation.Winner.Replace("{winner}",
-                Player.ReadyList.First(x => x.IsAlive).Nickname);
+            text = Translation.Winner.Replace("{winner}", Player.ReadyList.First(x => x.IsAlive).Nickname);
         else
             text = Translation.AllDied;
 

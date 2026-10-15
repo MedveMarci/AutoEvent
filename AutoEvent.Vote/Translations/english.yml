@@ -1,0 +1,12 @@
+menu_title: 'Vote for a minigame!'
+broadcast_text: |-
+  <b>Vote for the next minigame with your radio!</b>
+  <size=25>Change your choice with Left Mouse Click. {duration} seconds remaining.</size>
+ended_with_no_vote: '<b>The vote has ended with no votes cast.</b>'
+ended_with_tie: |-
+  <b>The vote has ended in a tie between:</b>
+  {events}
+ended_with_winner: |-
+  <b>The vote has ended!</b>
+  The winner is <color=yellow>{event}</color> with {votes} vote(s).
+ended_by_staff: '<b>The vote was ended by a staff member.</b>'
