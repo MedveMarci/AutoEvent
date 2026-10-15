@@ -73,6 +73,7 @@ Among Us:
   accept_divert_power: 'Autoriser la redirection d''énergie'
   download_data: 'Télécharger les données'
   upload_data: 'Uploader les données'
+  submit_scan: 'Submit Scan'
   skip: 'Skip'
   vote: 'vote'
   no_one_voted_out: 'Personne n''a été voté.'
@@ -146,7 +147,11 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>GAGNANT: <color=red>SCIENTIFIQUES</color></color>
-  max_round_reached: 'Tu as atteint le maximum de rounds !'
+  max_round_reached: |-
+    <color=yellow>You played the maximum of {max} rounds in a row!</color>
+    You can enter the arena again after the next round.
+  rounds_remaining: 'You can play <color=yellow>{rounds}</color> more round(s) in a row.'
+  resting: '<color=red>You have to sit out one round before entering the arena again.</color>'
   name: 'Cock Fights'
   description: 'Duel de joueurs sur la carte 35hp de cs 1.6'
   command_name: 'versus'
@@ -365,7 +370,7 @@ Puzzle:
     Mini-jeu terminé
   some_survived: |-
     <b>{name}</b>
-    <color=red>Une partie des joueurs a survécu</color>
+    <color=green>{count} joueurs ont survécu</color>
     Mini-jeu terminé
   winner: |-
     <b>{name}</b>
@@ -504,7 +509,6 @@ The floor is LAVA:
     Joueur - {winner}</b></color>
   all_dead: '<color=red><b>Perssone na survecu jusqua la fin.</b></color>'
   died: '<color=red>Brulée dans la lave !</color>'
-  reload: 'Recharge ton arme !'
   name: 'Le sol cest de la lave !'
   description: 'Un mode de jeu survie ou tu dois grimper et tuer tout les autres avec des armes !'
   command_name: 'lava'

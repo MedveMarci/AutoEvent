@@ -9,12 +9,12 @@ internal class TaskManager
 {
     private static readonly Dictionary<Player, TaskManager> PlayerTasks = new();
 
+    internal List<Task> Tasks { get; init; } = [];
+
     internal TaskManager(Player player)
     {
         PlayerTasks[player] = this;
     }
-
-    internal List<Task> Tasks { get; init; } = [];
 
     internal static bool TryGet(Player player, out TaskManager tm)
     {
@@ -29,8 +29,8 @@ internal class TaskManager
 
     private static Task CloneTask(Task original)
     {
-        var rand = new Random();
-        var clone = new Task
+        Random rand = new();
+        Task clone = new()
         {
             Name = original.Name,
             RoomName = original.RoomName,
@@ -42,11 +42,11 @@ internal class TaskManager
         };
 
         if (original.StageTasks is not { Count: > 0 }) return clone;
-        var list = original.StageTasks;
+        List<StageTask> list = original.StageTasks;
         if (original.MaxStageTask > 0 && list.Count > original.MaxStageTask)
-            list = list.OrderBy(_ => rand.Next()).Take(original.MaxStageTask).ToList();
+            list = [.. list.OrderBy(_ => rand.Next()).Take(original.MaxStageTask)];
 
-        foreach (var st in list)
+        foreach (StageTask st in list)
             clone.StageTasks.Add(new StageTask
             {
                 Name = st.Name,
@@ -60,17 +60,16 @@ internal class TaskManager
 
     internal static int CountByType(Player player, TaskType type)
     {
-        return !TryGet(player, out var tm) ? 0 : tm.Tasks.Count(t => t.Type == type);
+        return !TryGet(player, out TaskManager tm) ? 0 : tm.Tasks.Count(t => t.Type == type);
     }
 
     internal static List<StageTask> GetPlayerStageTasks(Player player, bool forceGet = false)
     {
-        if (!TryGet(player, out var tm)) return [];
-        return tm.Tasks
-            .Where(t => (forceGet || t.IsDone) && t.StageTasks.Count > 0)
-            .SelectMany(t => t.StageTasks)
-            .Where(st => !st.IsDone)
-            .ToList();
+        if (!TryGet(player, out TaskManager tm)) return [];
+        return
+        [
+            .. tm.Tasks.Where(t => (forceGet || t.IsDone) && t.StageTasks.Count > 0).SelectMany(t => t.StageTasks).Where(st => !st.IsDone)
+        ];
     }
 
     internal static bool IsTaskDone(Task task)
@@ -104,9 +103,9 @@ internal class TaskManager
 
     internal static void ClearForPlayers(IEnumerable<Player> players)
     {
-        foreach (var p in players)
+        foreach (Player p in players)
         {
-            if (!TryGet(p, out var tm)) continue;
+            if (!TryGet(p, out TaskManager tm)) continue;
             tm.Tasks.Clear();
             PlayerTasks.Remove(p);
         }

@@ -1,11 +1,11 @@
-﻿using InventorySystem.Items.Firearms.Modules;
-using LabApi.Events.Arguments.PlayerEvents;
+﻿using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Features.Wrappers;
 using PlayerStatsSystem;
+using UnityEngine;
 
 namespace AutoEvent.Games.Lava;
 
-public class EventHandler(Plugin plugin)
+public class EventHandler
 {
     public static void OnHurting(PlayerHurtingEventArgs ev)
     {
@@ -23,10 +23,18 @@ public class EventHandler(Plugin plugin)
 
     public void OnPickedUpItem(PlayerPickedUpItemEventArgs ev)
     {
-        if (ev.Item is not FirearmItem firearm2) return;
-        if (!firearm2.Base.TryGetModule<MagazineModule>(out var module)) return;
-        ev.Player.SendHint(plugin.Translation.Reload, 5);
-        ev.Player.AddAmmo(module.AmmoType, (ushort)module.AmmoMax);
+        if (ev.Item is not FirearmItem firearm) return;
+
+        if (firearm.MaxAmmo > 0)
+            firearm.StoredAmmo = firearm.MaxAmmo;
+
+        if (firearm.ChamberMax > 0)
+        {
+            firearm.ChamberedAmmo = firearm.ChamberMax;
+            firearm.Cocked = true;
+        }
+
+        ev.Player.AddAmmo(firearm.AmmoType, (ushort)Mathf.Max(firearm.MaxAmmo, 1));
         ev.Player.CurrentItem = ev.Item;
     }
 }

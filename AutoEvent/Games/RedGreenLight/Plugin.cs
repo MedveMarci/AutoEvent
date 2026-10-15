@@ -23,9 +23,13 @@ public class Plugin : Event<Config, Translation>, IEventMap
     private GameObject _redLine;
     private GameObject _wall;
     internal Dictionary<Player, float> PushCooldown;
+
     public override string Name { get; set; } = "Red Light Green Light";
+
     public override string Description { get; set; } = "Reach the end of the finish line";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "light";
 
     protected override float FrameDelayInSeconds { get; set; } = 0.1f;
@@ -57,9 +61,9 @@ public class Plugin : Event<Config, Translation>, IEventMap
         _doll = null;
         _eventState = 0;
         PushCooldown = new Dictionary<Player, float>();
-        var spawnpoints = new List<GameObject>();
+        List<GameObject> spawnpoints = [];
 
-        foreach (var gameObject in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject gameObject in MapInfo.Map.AttachedBlocks)
             switch (gameObject.name)
             {
                 case "Spawnpoint": spawnpoints.Add(gameObject); break;
@@ -73,7 +77,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 }
             }
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             player.GiveLoadout(Config.PlayerLoadout);
             player.Position = spawnpoints.RandomItem().transform.position;
@@ -82,9 +86,9 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
-            var text = Translation.Start.Replace("{time}", time.ToString());
+            string text = Translation.Start.Replace("{time}", time.ToString());
             Extensions.ServerBroadcast(text, 1);
             yield return Timing.WaitForSeconds(1f);
         }
@@ -99,10 +103,8 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
     protected override bool IsRoundDone()
     {
-        var aliveCount = Player.ReadyList.Count(r => r.IsAlive);
-        var lineCount = _redLine != null
-            ? Player.ReadyList.Count(player => player.Position.z > _redLine.transform.position.z)
-            : 0;
+        int aliveCount = Player.ReadyList.Count(r => r.IsAlive);
+        int lineCount = _redLine != null ? Player.ReadyList.Count(player => player.Position.z > _redLine.transform.position.z) : 0;
         if (aliveCount == lineCount) return true;
 
         _countdown = _countdown > 0 ? _countdown - FrameDelayInSeconds : 0;
@@ -111,7 +113,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
 
     protected override void ProcessFrame()
     {
-        var text = string.Empty;
+        string text = string.Empty;
         switch (_eventState)
         {
             case EventState.GreenLight: UpdateGreenLightState(ref text); break;
@@ -120,18 +122,16 @@ public class Plugin : Event<Config, Translation>, IEventMap
             case EventState.Return: UpdateReturnState(ref text); break;
         }
 
-        foreach (var key in PushCooldown.Keys.ToList())
+        foreach (Player key in PushCooldown.Keys.ToList())
             if (PushCooldown[key] > 0)
                 PushCooldown[key] -= FrameDelayInSeconds;
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             if (Config.IsEnablePush)
                 player.SendHint(Translation.Hint, 1);
 
-            player.Broadcast(
-                Translation.Cycle.Replace("{name}", Name).Replace("{state}", text).Replace("{time}",
-                    $"{Config.TotalTimeInSeconds - (int)EventTime.TotalSeconds}"), 1);
+            player.Broadcast(Translation.Cycle.Replace("{name}", Name).Replace("{state}", text).Replace("{time}", $"{Config.TotalTimeInSeconds - (int)EventTime.TotalSeconds}"), 1);
         }
     }
 
@@ -156,7 +156,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
             return;
 
         _playerRotation = new Dictionary<Player, Quaternion>();
-        foreach (var player in Player.ReadyList) _playerRotation.Add(player, player.Camera.rotation);
+        foreach (Player player in Player.ReadyList) _playerRotation.Add(player, player.Camera.rotation);
 
         _eventState++;
     }
@@ -165,23 +165,22 @@ public class Plugin : Event<Config, Translation>, IEventMap
     {
         text = Translation.RedLight;
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             if ((int)_redLine.transform.position.z <= (int)player.Position.z)
                 continue;
 
-            var camera = _doll.transform.position + new Vector3(0, 10, 0);
-            var distance = player.Position - camera;
-            Physics.Raycast(camera, distance.normalized, out var raycastHit, distance.magnitude);
+            Vector3 camera = _doll.transform.position + new Vector3(0, 10, 0);
+            Vector3 distance = player.Position - camera;
+            Physics.Raycast(camera, distance.normalized, out RaycastHit raycastHit, distance.magnitude);
 
             if (raycastHit.collider == null || raycastHit.collider.gameObject.layer != 13)
                 continue;
 
-            if (!_playerRotation.TryGetValue(player, out var value))
+            if (!_playerRotation.TryGetValue(player, out Quaternion value))
                 continue;
 
-            if (player.Velocity == Vector3.zero &&
-                Quaternion.Angle(value, player.Camera.rotation) < 10)
+            if (player.Velocity == Vector3.zero && Quaternion.Angle(value, player.Camera.rotation) < 10)
 
                 continue;
 
@@ -211,7 +210,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
     protected override void OnFinished()
     {
         if (_redLine != null)
-            foreach (var player in Player.ReadyList)
+            foreach (Player player in Player.ReadyList)
                 if ((int)_redLine.transform.position.z > (int)player.Position.z)
                 {
                     Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f);
@@ -219,7 +218,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
                 }
 
         string text;
-        var count = Player.ReadyList.Count(r => r.IsAlive);
+        int count = Player.ReadyList.Count(r => r.IsAlive);
 
         if (count > 1)
         {
@@ -227,7 +226,7 @@ public class Plugin : Event<Config, Translation>, IEventMap
         }
         else if (count == 1)
         {
-            var winner = Player.ReadyList.FirstOrDefault(r => r.IsAlive);
+            Player winner = Player.ReadyList.FirstOrDefault(r => r.IsAlive);
             text = Translation.PlayerWin.Replace("{name}", Name).Replace("{winner}", winner?.Nickname ?? "Unknown");
         }
         else

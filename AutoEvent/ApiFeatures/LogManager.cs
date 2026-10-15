@@ -6,6 +6,7 @@ namespace AutoEvent.ApiFeatures;
 internal static class LogManager
 {
     private static bool DebugEnabled => AutoEvent.Singleton?.Config.Debug ?? false;
+
     private static string PluginName => AutoEvent.Singleton?.Name ?? "AutoEvent";
 
     public static void Debug(string message)
@@ -28,5 +29,10 @@ internal static class LogManager
     public static void Error(string message, ConsoleColor color = ConsoleColor.Red)
     {
         Logger.Raw($"[ERROR] [{PluginName}] {message}", color);
+    }
+
+    internal static void Raw(string level, string pluginName, string message, ConsoleColor color)
+    {
+        Logger.Raw($"[{level}] [{pluginName}] {message}", color);
     }
 }

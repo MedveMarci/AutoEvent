@@ -2,7 +2,6 @@ using System;
 using AutoEvent.ApiFeatures;
 using CommandSystem;
 using LabApi.Features.Permissions;
-using ProjectMER.Events.Handlers;
 
 namespace AutoEvent.Commands;
 
@@ -10,7 +9,9 @@ namespace AutoEvent.Commands;
 internal class Update : ICommand
 {
     public string Command => nameof(Update);
+
     public string Description => "Checks and updates schematics to the latest versions.";
+
     public string[] Aliases => [];
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
@@ -20,7 +21,7 @@ internal class Update : ICommand
             response = "AutoEvent is not loaded. Check console for errors.";
             return false;
         }
-        
+
         if (!sender.HasPermissions("ev.update"))
         {
             response = "<color=red>You do not have permission to use this command!</color>";
@@ -35,7 +36,7 @@ internal class Update : ICommand
 
         try
         {
-            var (updated, failed, total) = SchematicManager.Update();
+            (int updated, int failed, int total) = SchematicManager.Update();
 
             if (total == 0)
             {
@@ -43,9 +44,7 @@ internal class Update : ICommand
                 return true;
             }
 
-            response = failed > 0
-                ? $"Updated {updated}/{total} schematics. {failed} failed (see server console)."
-                : $"Update complete! Updated {updated}/{total} schematics.";
+            response = failed > 0 ? $"Updated {updated}/{total} schematics. {failed} failed (see server console)." : $"Update complete! Updated {updated}/{total} schematics.";
             return true;
         }
         catch (Exception ex)

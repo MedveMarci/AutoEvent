@@ -11,18 +11,6 @@ namespace AutoEvent.Games.GunGame;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("sl_waterworld", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Shipment", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Shipment_Xmas2025", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
-        AvailableMaps.Add(new MapChance("Shipment_Halloween2024", new Vector3(0, 40f, 0f),
-            season: SeasonFlags.Halloween));
-    }
-
     [Description("A list of guns a player can get.")]
     public List<GunRole> Guns { get; set; } =
     [
@@ -46,6 +34,9 @@ public class Config : EventConfig
         new(ItemType.None, 34)
     ];
 
+    [Description("Duration (in seconds) of spawn protection applied after a respawn/weapon change. Set to 0 to disable spawn protection entirely.")]
+    public float SpawnProtectionDuration { get; set; } = 1.5f;
+
     [Description("The loadouts a player can get.")]
     public List<Loadout> Loadouts { get; set; } =
     [
@@ -66,23 +57,33 @@ public class Config : EventConfig
             ]
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("sl_waterworld", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Shipment", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Shipment_Xmas2025", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance("Shipment_Halloween2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Halloween));
+    }
 }
 
 public class GunRole
 {
+    [Description("The weapon that the player will recieve once they get to this role.")]
+    public ItemType Item { get; set; } = ItemType.GunCOM15;
+
+    [Description("Total kills needed to get this gun. [Default: 1]")]
+    public int KillsRequired { get; set; } = 1;
+
     public GunRole()
-    {
-    }
+    { }
 
     public GunRole(ItemType item, int killsRequired)
     {
         Item = item;
         KillsRequired = killsRequired;
     }
-
-    [Description("The weapon that the player will recieve once they get to this role.")]
-    public ItemType Item { get; set; } = ItemType.GunCOM15;
-
-    [Description("Total kills needed to get this gun. [Default: 1]")]
-    public int KillsRequired { get; set; } = 1;
 }

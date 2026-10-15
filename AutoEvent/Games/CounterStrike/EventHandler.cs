@@ -33,7 +33,7 @@ public class EventHandler(Plugin plugin)
         ev.Player.DisableEffect<HeavyFooted>();
         _bombAudio?.Stop();
         if (plugin.BombObject == null) return;
-        var lightSource = plugin.BombObject.transform.Find("Bomb_Source/LightSource");
+        Transform lightSource = plugin.BombObject.transform.Find("Bomb_Source/LightSource");
         if (lightSource != null)
             NetworkServer.Destroy(lightSource.gameObject);
     }
@@ -155,7 +155,7 @@ public class EventHandler(Plugin plugin)
             ev.Player.DisableEffect<HeavyFooted>();
         }
 
-        if (ev.NewItem != null && ev.NewItem.Base.ItemId != Bomb.Base.ItemId) return;
+        if (ev.NewItem == null || ev.NewItem.Base.ItemId != Bomb.Base.ItemId) return;
         ev.Player.SendHint(plugin.Translation.EquippedBomb);
     }
 

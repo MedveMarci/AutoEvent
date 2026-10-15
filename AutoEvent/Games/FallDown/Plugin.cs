@@ -17,10 +17,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     private bool _noPlatformsRemainingWarning;
     private int _platformId;
     private List<GameObject> _platforms;
+
     public override string Name { get; set; } = "FallDown";
+
     public override string Description { get; set; } = "All platforms are destroyed. It is necessary to survive";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "fall";
+
     protected override float FrameDelayInSeconds { get; set; } = 0.9f;
 
     public MapInfo MapInfo { get; set; } = new()
@@ -38,8 +43,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         _noPlatformsRemainingWarning = true;
 
-        var spawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint").ToList();
-        foreach (var player in Player.ReadyList)
+        List<GameObject> spawnList = [.. MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint")];
+        foreach (Player player in Player.ReadyList)
         {
             player.GiveLoadout(Config.Loadouts);
             player.Position = spawnList.RandomItem().transform.position;
@@ -61,10 +66,10 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void CountdownFinished()
     {
         _platformId = 0;
-        _platforms = MapInfo.Map.AttachedBlocks.Where(x => x.name == "Platform").ToList();
+        _platforms = [.. MapInfo.Map.AttachedBlocks.Where(x => x.name == "Platform")];
         Object.Destroy(MapInfo.Map.AttachedBlocks.First(x => x.name == "Wall"));
         if (!Config.PlatformsHaveColorWarning) return;
-        foreach (var platform in _platforms)
+        foreach (GameObject platform in _platforms)
             platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = Color.white;
     }
 
@@ -80,10 +85,9 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         _platformId++;
         FrameDelayInSeconds = Config.DelayInSeconds.GetValue(_platformId, 169, 1, 0.3f);
 
-        var count = Player.ReadyList.Count(r => r.IsAlive);
-        var time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
-        Extensions.ServerBroadcast(
-            Translation.Broadcast.Replace("{name}", Name).Replace("{time}", time).Replace("{count}", $"{count}"), 1);
+        int count = Player.ReadyList.Count(r => r.IsAlive);
+        string time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
+        Extensions.ServerBroadcast(Translation.Broadcast.Replace("{name}", Name).Replace("{time}", time).Replace("{count}", $"{count}"), 1);
 
         if (_platforms.Count < 1)
         {
@@ -94,29 +98,22 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             return;
         }
 
-        var platform = _platforms.RandomItem();
+        // Remove it from the pool right away, so a platform that is already warned can't be picked again.
+        GameObject platform = _platforms.RandomItem();
+        _platforms.Remove(platform);
         platform.GetComponent<PrimitiveObjectToy>().NetworkMaterialColor = Color.red;
         if (Config.PlatformsHaveColorWarning)
-        {
             Timing.CallDelayed(Config.WarningDelayInSeconds.GetValue(_platformId, 169, 0, 3), () =>
             {
-                _platforms.Remove(platform);
-                Object.Destroy(platform);
+                if (platform != null)
+                    Object.Destroy(platform);
             });
-        }
         else
-        {
-            _platforms.Remove(platform);
             Object.Destroy(platform);
-        }
     }
 
     protected override void OnFinished()
     {
-        Extensions.ServerBroadcast(
-            Player.ReadyList.Count(r => r.IsAlive) == 1
-                ? Translation.Winner.Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname)
-                : Translation.Died,
-            10);
+        Extensions.ServerBroadcast(Player.ReadyList.Count(r => r.IsAlive) == 1 ? Translation.Winner.Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname) : Translation.Died, 10);
     }
 }

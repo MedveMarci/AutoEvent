@@ -11,21 +11,10 @@ namespace AutoEvent.Games.Versus;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("35Hp", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("35Hp_PresidentFinny", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("35Hp_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
-        AvailableMaps.Add(new MapChance("35Hp_Halloween2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Halloween));
-    }
-
     [Description("Can be used to disable the jailbird charging attack.")]
     public bool JailbirdCanCharge { get; set; } = false;
 
-    [Description("Number of rounds each player plays. Set to 0 for infinite rounds.")]
+    [Description("How many rounds a player can play in a row. After that they are taken out of the arena and have to sit out one round. Set to 0 for infinite rounds.")]
     public int JailbirdLifespan { get; set; } = 0;
 
     [Description("How long to wait before forcefully selecting a random player. Set to -1 to disable.")]
@@ -52,4 +41,15 @@ public class Config : EventConfig
             Effects = [new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }]
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("35Hp", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("35Hp_PresidentFinny", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("35Hp_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance("35Hp_Halloween2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Halloween));
+    }
 }

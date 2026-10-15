@@ -11,15 +11,6 @@ namespace AutoEvent.Games.Spleef;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("Spleef", new Vector3(0f, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Spleef_Xmas2024", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
-    }
-
     [Description("How long the round should last.")]
     public int RoundDurationInSeconds { get; set; } = 120;
 
@@ -85,4 +76,13 @@ public class Config : EventConfig
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("Spleef", new Vector3(0f, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Spleef_Xmas2024", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
+    }
 }

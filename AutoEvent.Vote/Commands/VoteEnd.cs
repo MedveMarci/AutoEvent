@@ -15,6 +15,8 @@ public class VoteEnd : ICommand, IUsageProvider
 
     public string[] Aliases => [];
 
+    public string[] Usage { get; } = ["true/false"];
+
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
         if (AutoEvent.Singleton is null)
@@ -22,7 +24,13 @@ public class VoteEnd : ICommand, IUsageProvider
             response = "AutoEvent is not loaded. Check console for errors.";
             return false;
         }
-        
+
+        if (AutoEventVote.Singleton is null)
+        {
+            response = "AutoEvent.Vote is not loaded. Check console for errors.";
+            return false;
+        }
+
         if (!sender.HasPermissions("ev.vote"))
         {
             response = "<color=red>You do not have permission to use this command!</color>";
@@ -41,7 +49,7 @@ public class VoteEnd : ICommand, IUsageProvider
             return false;
         }
 
-        if (!bool.TryParse(arguments.First(), out var runEvent))
+        if (!bool.TryParse(arguments.First(), out bool runEvent))
         {
             response = "The first argument must be 'true' or 'false' to indicate whether to run the winning event.";
             return false;
@@ -51,6 +59,4 @@ public class VoteEnd : ICommand, IUsageProvider
         response = "The vote has been ended.";
         return true;
     }
-
-    public string[] Usage { get; } = ["true/false"];
 }

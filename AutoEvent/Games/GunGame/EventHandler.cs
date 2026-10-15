@@ -14,16 +14,16 @@ public class EventHandler
 {
     private readonly Plugin _plugin;
 
-    public EventHandler(Plugin plugin)
-    {
-        _plugin = plugin;
-        PlayerStats = plugin.PlayerStats;
-    }
-
     internal Dictionary<Player, Stats> PlayerStats
     {
         get => _plugin.PlayerStats;
         set => _plugin.PlayerStats = value;
+    }
+
+    public EventHandler(Plugin plugin)
+    {
+        _plugin = plugin;
+        PlayerStats = plugin.PlayerStats;
     }
 
     public void OnJoined(PlayerJoinedEventArgs ev)
@@ -41,7 +41,7 @@ public class EventHandler
 
         if (ev.Attacker != null)
         {
-            if (!PlayerStats.TryGetValue(ev.Attacker, out var statsAttacker))
+            if (!PlayerStats.TryGetValue(ev.Attacker, out Stats statsAttacker))
             {
                 PlayerStats.Add(ev.Attacker, new Stats(1));
                 GetWeaponForPlayer(ev.Attacker);
@@ -57,10 +57,10 @@ public class EventHandler
 
         if (ev.Player == null) return;
         GetWeaponForPlayer(ev.Player);
-        var deathPos = ev.Player.Position;
+        Vector3 deathPos = ev.Player.Position;
         Timing.CallDelayed(Timing.WaitForOneFrame, () =>
         {
-            var safe = _plugin.SpawnPoints.Where(p => Vector3.Distance(p, deathPos) > 3f).ToList();
+            List<Vector3> safe = [.. _plugin.SpawnPoints.Where(p => Vector3.Distance(p, deathPos) > 3f)];
             ev.Player.Position = safe.Count > 0 ? safe.RandomItem() : _plugin.SpawnPoints.RandomItem();
         });
     }
@@ -72,7 +72,7 @@ public class EventHandler
 
         if (_plugin.Config.Guns is null)
         {
-            var conf = new Config();
+            Config conf = new();
             _plugin.Config.Guns = conf.Guns;
         }
 
@@ -80,10 +80,10 @@ public class EventHandler
 
         if (!PlayerStats.ContainsKey(player)) PlayerStats.Add(player, new Stats(0));
 
-        var itemType = _plugin.Config.Guns.OrderByDescending(y => y.KillsRequired)
-            .FirstOrDefault(x => PlayerStats[player].Kill >= x.KillsRequired)!.Item;
+        ItemType itemType = _plugin.Config.Guns.OrderByDescending(y => y.KillsRequired).FirstOrDefault(x => PlayerStats[player].Kill >= x.KillsRequired)!.Item;
 
-        player.EnableEffect<SpawnProtected>(1, 1.5f);
+        if (_plugin.Config.SpawnProtectionDuration > 0)
+            player.EnableEffect<SpawnProtected>(1, _plugin.Config.SpawnProtectionDuration);
 
         player.Heal(500); // Since the player does not die, his hp goes into negative hp, so need to completely heal the player.
         if (player.CurrentItem != null && player.CurrentItem.Type == itemType) return;

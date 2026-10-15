@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoEvent", "AutoEvent\Auto
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoEvent.Vote", "AutoEvent.Vote\AutoEvent.Vote.csproj", "{7D879ADC-57D0-4725-9A7D-5AAB62A31133}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoEvent.AutoRun", "AutoEvent.AutoRun\AutoEvent.AutoRun.csproj", "{310F4DC0-92C0-4F8C-8F8D-07BB58E4709C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Release|x64 = Release|x64
@@ -18,5 +20,9 @@ Global
 		{7D879ADC-57D0-4725-9A7D-5AAB62A31133}.Debug|x64.Build.0 = Debug|x64
 		{7D879ADC-57D0-4725-9A7D-5AAB62A31133}.Release|x64.ActiveCfg = Release|x64
 		{7D879ADC-57D0-4725-9A7D-5AAB62A31133}.Release|x64.Build.0 = Release|x64
+		{310F4DC0-92C0-4F8C-8F8D-07BB58E4709C}.Release|x64.ActiveCfg = Release|x64
+		{310F4DC0-92C0-4F8C-8F8D-07BB58E4709C}.Release|x64.Build.0 = Release|x64
+		{310F4DC0-92C0-4F8C-8F8D-07BB58E4709C}.Debug|x64.ActiveCfg = Debug|x64
+		{310F4DC0-92C0-4F8C-8F8D-07BB58E4709C}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 EndGlobal

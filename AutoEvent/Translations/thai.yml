@@ -73,6 +73,7 @@ Among Us:
   accept_divert_power: 'Accept Divert Power'
   download_data: 'Download Data'
   upload_data: 'Upload Data'
+  submit_scan: 'ส่งผลสแกน'
   skip: 'Skip'
   vote: 'vote'
   no_one_voted_out: 'No one was voted out.'
@@ -146,7 +147,11 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>ทีมชนะ: <color=red>SCIENTISTS</color></color>
-  max_round_reached: 'You reached the max number of rounds!'
+  max_round_reached: |-
+    <color=yellow>คุณเล่นครบสูงสุด {max} รอบติดต่อกันแล้ว!</color>
+    คุณจะกลับเข้าสนามได้อีกครั้งหลังจบรอบถัดไป
+  rounds_remaining: 'คุณยังเล่นต่อได้อีก <color=yellow>{rounds}</color> รอบติดต่อกัน'
+  resting: '<color=red>คุณต้องพักหนึ่งรอบก่อนจะกลับเข้าสนามได้</color>'
   name: 'แลกหมัดมวย'
   description: 'ปะทะผู้เล่นอีกฝั่งโดยการเข้าเวที'
   command_name: 'versus'
@@ -365,7 +370,7 @@ Puzzle:
     เกมจบแล้ว
   some_survived: |-
     <b>{name}</b>
-    <color=red>มีหลายคนรอบ</color>
+    <color=green>มีผู้รอดชีวิต {count} คน</color>
     เกมจบแล้ว
   winner: |-
     <b>{name}</b>
@@ -504,7 +509,6 @@ The floor is LAVA:
     ผู้ชนะ - {winner}</b></color>
   all_dead: '<color=red><b>ไม่มีใครรอดจนถึงสุดท้าย</b></color>'
   died: '<color=red>หล่นลาวาตาย</color>'
-  reload: 'Reload your weapon!'
   name: 'พื้นเป็นลาวา'
   description: 'เอาตัวรอดด้วยการหลีกเลี่ยงลาวา และสังหารผู้เล่นอื่นด้วย'
   command_name: 'lava'

@@ -16,7 +16,7 @@ public class ColliderComponent : MonoBehaviour
 
     private void OnTriggerEnter(Collider collider)
     {
-        var animator = gameObject.GetComponentInParent<Animator>();
+        Animator animator = gameObject.GetComponentInParent<Animator>();
         if (animator != null)
         {
             if (EventManager.CurrentEvent is IEventMap eventMap && eventMap.MapInfo.MapName.Contains("Temple"))

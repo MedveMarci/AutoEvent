@@ -4,6 +4,7 @@ public class JailerComponent : MonoBehaviour
 {
     private Transform _doorTransform;
     private Vector3 _originalPosition;
+
     public bool IsOpen { get; private set; }
 
     private void Start()

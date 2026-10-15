@@ -1,0 +1,12 @@
+menu_title: 'Vota un minigioco!'
+broadcast_text: |-
+  <b>Vota il prossimo minigioco con la tua radio!</b>
+  <size=25>Cambia scelta con il clic sinistro. Mancano {duration} secondi.</size>
+ended_with_no_vote: '<b>La votazione è terminata senza voti.</b>'
+ended_with_tie: |-
+  <b>La votazione è finita in parità tra:</b>
+  {events}
+ended_with_winner: |-
+  <b>La votazione è terminata!</b>
+  Ha vinto <color=yellow>{event}</color> con {votes} voto/i.
+ended_by_staff: '<b>La votazione è stata chiusa da un membro dello staff.</b>'

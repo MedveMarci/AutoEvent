@@ -8,7 +8,9 @@ namespace AutoEvent.API;
 public class MapObject
 {
     public List<GameObject> AttachedBlocks { get; set; } = [];
+
     public List<AdminToyBase> AdminToyBases { get; set; } = [];
+
     public GameObject GameObject { get; set; }
 
     public Vector3 Position

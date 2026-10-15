@@ -26,7 +26,10 @@ All AutoEvent commands use the `ev` prefix and are entered in the **Remote Admin
 
 ## Permissions
 
-Permissions are set in `LabApi/configs/permissions.yml`.
+Permissions are set in `permissions.yml`:
+
+- Windows: `%AppData%\SCP Secret Laboratory\LabAPI\configs\permissions.yml`
+- Linux: `~/.config/SCP Secret Laboratory/LabAPI/configs/permissions.yml`
 
 ```
 ev.*              — Full access to all AutoEvent commands

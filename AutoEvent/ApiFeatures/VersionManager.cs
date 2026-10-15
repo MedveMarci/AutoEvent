@@ -1,143 +1,51 @@
-﻿using System;
-using System.Net;
+using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AutoEvent.ApiFeatures;
 
-internal static class VersionManager
+public static class VersionManager
 {
-    private const string ApiBase = "https://bearmanapi.hu";
-    private const string SupportUrl = "https://discord.gg/KmpA8cfaSA";
-    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(8);
-    
-    internal static void CheckForUpdates()
+    private const string ApiBase = "https://bearmanapi.hu/api/v1/plugin";
+
+    public static void CheckForUpdates(string pluginName, Version version)
     {
-        Task.Run(async () =>
-        {
-            var name = AutoEvent.Singleton.Name;
-            var current = AutoEvent.Singleton.Version;
+        if (string.IsNullOrWhiteSpace(pluginName) || version is null)
+            return;
 
-            try
-            {
-                var latest = await FetchLatestVersion(name);
-                if (latest is null)
-                    return;
-
-                if (await IsCurrentVersionRecalled(name, current, latest.Value.Version))
-                    return;
-
-                ReportVersionStatus(name, current, latest.Value.Version, latest.Value.DownloadUrl);
-
-                SchematicManager.CheckSchematicUpdates();
-            }
-            catch (TimeoutException)
-            {
-                LogManager.Error("Version check timed out.");
-            }
-            catch (Exception ex)
-            {
-                LogManager.Error("Version check failed.");
-                LogManager.Debug($"Version check exception:\n{ex}");
-            }
-        });
+        string url = $"{ApiBase}/{Uri.EscapeDataString(pluginName)}/check-update?current={Uri.EscapeDataString(version.ToString())}";
+        Task.Run(() => CheckAsync(pluginName, url));
     }
 
-    private static async Task<(Version Version, string DownloadUrl)?> FetchLatestVersion(string name)
-    {
-        var resp = await WithTimeout(
-            HttpQuery.GetAsync($"{ApiBase}/api/v1/plugin/{Uri.EscapeDataString(name)}/latest"));
-
-        var (code, _) = ParseResponse(resp);
-        if (code != HttpStatusCode.OK)
-        {
-            LogManager.Error($"Version check failed: {code}");
-            return null;
-        }
-
-        var root = JsonDocument.Parse(resp).RootElement;
-        if (!root.TryGetProperty("version", out var vProp) || vProp.ValueKind != JsonValueKind.String ||
-            !Version.TryParse(vProp.GetString() ?? string.Empty, out var latest))
-        {
-            LogManager.Error("Version check: invalid response format.");
-            return null;
-        }
-
-        return (latest, GetDownloadUrl(root));
-    }
-
-    private static async Task<bool> IsCurrentVersionRecalled(string name, Version current, Version latest)
-    {
-        var resp = await WithTimeout(
-            HttpQuery.GetAsync(
-                $"{ApiBase}/api/v1/plugin/{Uri.EscapeDataString(name)}/version/{Uri.EscapeDataString(current.ToString())}"));
-
-        var root = JsonDocument.Parse(resp).RootElement;
-        if (!root.TryGetProperty("is_recalled", out var recalled) || recalled.ValueKind != JsonValueKind.True)
-            return false;
-
-        var reason = root.TryGetProperty("recall_reason", out var r) && r.ValueKind == JsonValueKind.String
-            ? r.GetString()
-            : "No reason provided.";
-
-        LogManager.Error(
-            $"This version of {name} has been recalled! Update to {latest} ASAP.\nReason: {reason}", ConsoleColor.DarkRed);
-        return true;
-    }
-
-    private static void ReportVersionStatus(string name, Version current, Version latest, string downloadUrl)
-    {
-        if (latest > current)
-        {
-            LogManager.Info(
-                $"New version of {name} available: {latest} (you have {current}). {downloadUrl}".TrimEnd(),
-                ConsoleColor.DarkRed);
-        }
-        else if (current > latest)
-        {
-            LogManager.Info(
-                $"You are running a newer version of {name} ({current}) than {latest}. " +
-                "This is a development/pre-release build and it can contain errors or bugs.",
-                ConsoleColor.DarkMagenta);
-        }
-        else
-        {
-            LogManager.Info($"Thank you for using {name} v{current}. Support: {SupportUrl}", ConsoleColor.Blue);
-        }
-    }
-
-    private static async Task<string> WithTimeout(Task<string> task)
-    {
-        var completed = await Task.WhenAny(task, Task.Delay(RequestTimeout));
-        if (completed != task)
-            throw new TimeoutException();
-        return await task;
-    }
-
-    private static (HttpStatusCode code, string message) ParseResponse(string json)
+    private static async Task CheckAsync(string pluginName, string url)
     {
         try
         {
-            var root = JsonDocument.Parse(json).RootElement;
-            var code = root.TryGetProperty("status", out var s) && s.ValueKind == JsonValueKind.Number
-                ? (HttpStatusCode)s.GetInt32()
-                : HttpStatusCode.InternalServerError;
-            var msg = root.TryGetProperty("message", out var m) && m.ValueKind == JsonValueKind.String
-                ? m.GetString()
-                : null;
-            return (code, msg);
-        }
-        catch
-        {
-            return (HttpStatusCode.InternalServerError, null);
-        }
-    }
+            Task<string> request = HttpQuery.GetAsync(url);
+            if (await Task.WhenAny(request, Task.Delay(TimeSpan.FromSeconds(8))) != request)
+            {
+                _ = request.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+                LogManager.Raw("ERROR", pluginName, "Version check timed out.", ConsoleColor.Red);
+                return;
+            }
 
-    private static string GetDownloadUrl(JsonElement root)
-    {
-        return root.TryGetProperty("download_url", out var d) && d.ValueKind == JsonValueKind.String &&
-               !string.IsNullOrEmpty(d.GetString())
-            ? $"Download: {d.GetString()}"
-            : string.Empty;
+            using JsonDocument doc = JsonDocument.Parse(await request);
+            if (!doc.RootElement.TryGetProperty("log", out JsonElement log) || log.ValueKind != JsonValueKind.Object || !log.TryGetProperty("message", out JsonElement message) || message.ValueKind != JsonValueKind.String)
+            {
+                LogManager.Raw("ERROR", pluginName, "Version check failed: invalid response.", ConsoleColor.Red);
+                return;
+            }
+
+            ConsoleColor color = log.TryGetProperty("color", out JsonElement c) && c.ValueKind == JsonValueKind.String && Enum.TryParse(c.GetString(), true, out ConsoleColor parsed) ? parsed : ConsoleColor.White;
+            bool isError = log.TryGetProperty("level", out JsonElement level) && level.ValueKind == JsonValueKind.String && string.Equals(level.GetString(), "error", StringComparison.OrdinalIgnoreCase);
+
+            LogManager.Raw(isError ? "ERROR" : "INFO", pluginName, message.GetString(), color);
+        }
+        catch (Exception ex)
+        {
+            LogManager.Raw("ERROR", pluginName, "Version check failed.", ConsoleColor.Red);
+            if (AutoEvent.Singleton?.Config.Debug == true)
+                LogManager.Raw("DEBUG", pluginName, $"Version check exception:\n{ex}", ConsoleColor.Green);
+        }
     }
 }

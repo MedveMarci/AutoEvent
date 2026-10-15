@@ -18,21 +18,25 @@ namespace AutoEvent.Games.AllDeathmatch;
 public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
 {
     internal Dictionary<uint, int> TotalKills;
+
     public override string Name { get; set; } = "All Deathmatch";
+
     public override string Description { get; set; } = "Fight against each other in all deathmatch.";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "dm";
+
     protected override FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Enable;
 
-    public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll |
-                                                                    EventFlags.IgnoreHandcuffing |
-                                                                    EventFlags.IgnoreBulletHole |
-                                                                    EventFlags.IgnoreBloodDecal |
-                                                                    EventFlags.IgnoreDroppingItem;
+    public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing | EventFlags.IgnoreBulletHole | EventFlags.IgnoreBloodDecal | EventFlags.IgnoreDroppingItem;
 
     private EventHandler EventHandler { get; set; }
+
     private int NeedKills { get; set; }
+
     private Player Winner { get; set; }
+
     internal List<GameObject> SpawnList { get; set; }
 
     public MapInfo MapInfo { get; set; } = new()
@@ -83,7 +87,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
             _ => NeedKills
         };
 
-        foreach (var gameObject in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject gameObject in MapInfo.Map.AttachedBlocks)
             switch (gameObject.name)
             {
                 case "Spawnpoint_Deathmatch":
@@ -93,10 +97,9 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
                     break;
             }
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
-            player.GiveLoadout(Config.NtfLoadouts,
-                LoadoutFlags.ForceInfiniteAmmo | LoadoutFlags.IgnoreGodMode | LoadoutFlags.IgnoreWeapons);
+            player.GiveLoadout(Config.NtfLoadouts, LoadoutFlags.ForceInfiniteAmmo | LoadoutFlags.IgnoreGodMode | LoadoutFlags.IgnoreWeapons);
             player.Position = SpawnList.RandomItem().transform.position;
 
             if (!TotalKills.ContainsKey(player.NetworkId))
@@ -106,7 +109,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 10; time > 0; time--)
+        for (int time = 10; time > 0; time--)
         {
             Extensions.ServerBroadcast($"<size=100><color=red>{time}</color></size>", 1);
             yield return Timing.WaitForSeconds(1f);
@@ -115,56 +118,50 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
 
     protected override void CountdownFinished()
     {
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
             player.CurrentItem ??= player.AddItem(Config.AvailableWeapons.RandomItem());
     }
 
     protected override bool IsRoundDone()
     {
-        return !(Config.TimeMinutesRound >= EventTime.TotalMinutes &&
-                 Player.ReadyList.Count(r => r.IsAlive) > 1 && Winner is null);
+        return !(Config.TimeMinutesRound >= EventTime.TotalMinutes && Player.ReadyList.Count(r => r.IsAlive) > 1 && Winner is null);
     }
 
     protected override void ProcessFrame()
     {
-        var remainTime = Config.TimeMinutesRound - EventTime.TotalMinutes;
-        var time = $"{(int)remainTime:00}:{(int)(remainTime * 60 % 60):00}";
-        var sortedDict = TotalKills.OrderByDescending(r => r.Value).ToDictionary(x => x.Key, x => x.Value);
+        double remainTime = Config.TimeMinutesRound - EventTime.TotalMinutes;
+        string time = $"{(int)remainTime:00}:{(int)(remainTime * 60 % 60):00}";
+        Dictionary<uint, int> sortedDict = TotalKills.OrderByDescending(r => r.Value).ToDictionary(x => x.Key, x => x.Value);
 
-        var leaderboard = new StringBuilder($"{Translation.Leaderboard}:\n");
-        for (var i = 0; i < 3; i++)
+        StringBuilder leaderboard = new($"{Translation.Leaderboard}:\n");
+        for (int i = 0; i < 3; i++)
             if (i < sortedDict.Count)
             {
-                var color = i switch
+                string color = i switch
                 {
                     0 => "#ffd700",
                     1 => "#c0c0c0",
                     2 => "#cd7f32",
                     _ => string.Empty
                 };
-                var player = Player.Get(sortedDict.ElementAt(i).Key);
+                Player player = Player.Get(sortedDict.ElementAt(i).Key);
                 if (player is null) continue;
-                var length = Math.Min(player.Nickname.Length, 10);
-                leaderboard.Append(Translation.LeaderboardContent.Replace("{color}", color))
-                    .Replace("{num}", (i + 1).ToString())
-                    .Replace("{playerName}", player.Nickname.Substring(0, length))
-                    .Replace("{kills}", sortedDict.ElementAt(i).Value.ToString());
+                int length = Math.Min(player.Nickname.Length, 10);
+                leaderboard.Append(Translation.LeaderboardContent.Replace("{color}", color)).Replace("{num}", (i + 1).ToString()).Replace("{playerName}", player.Nickname.Substring(0, length)).Replace("{kills}", sortedDict.ElementAt(i).Value.ToString());
                 leaderboard.Append("\n");
             }
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
             if (!TotalKills.ContainsKey(player.NetworkId))
                 TotalKills.Add(player.NetworkId, 0);
 
             if (TotalKills[player.NetworkId] >= NeedKills) Winner = player;
 
-            var playerItem = sortedDict.FirstOrDefault(x => x.Key == player.NetworkId);
-            var playerText = leaderboard + Translation.HintCycle.Replace("{kills}", playerItem.Value.ToString())
-                .Replace("{needKills}", NeedKills.ToString());
+            KeyValuePair<uint, int> playerItem = sortedDict.FirstOrDefault(x => x.Key == player.NetworkId);
+            string playerText = leaderboard + Translation.HintCycle.Replace("{kills}", playerItem.Value.ToString()).Replace("{needKills}", NeedKills.ToString());
 
-            var text = Translation.Cycle.Replace("{name}", Name).Replace("{kills}", playerItem.Value.ToString())
-                .Replace("{needKills}", NeedKills.ToString()).Replace("{time}", time);
+            string text = Translation.Cycle.Replace("{name}", Name).Replace("{kills}", playerItem.Value.ToString()).Replace("{needKills}", NeedKills.ToString()).Replace("{time}", time);
             player.SendHint($"<line-height=95%><voffset=25em><align=right><size=30>{playerText}</size></align>", 1);
             player.Broadcast(text, 1);
         }
@@ -172,10 +169,10 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
 
     protected override void OnFinished()
     {
-        var time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
-        foreach (var player in Player.ReadyList)
+        string time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
+        foreach (Player player in Player.ReadyList)
         {
-            var text = string.Empty;
+            string text = string.Empty;
             if (Player.ReadyList.Count(r => r.IsAlive) <= 1)
                 text = Translation.NoPlayers;
             else if (EventTime.TotalMinutes >= Config.TimeMinutesRound)
@@ -183,7 +180,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
             else if (Winner != null)
                 text = Translation.WinnerEnd.Replace("{winner}", Winner.Nickname).Replace("{time}", time);
 
-            text = text.Replace("{count}", TotalKills.First(x => x.Key == player.NetworkId).Value.ToString());
+            text = text.Replace("{count}", TotalKills.TryGetValue(player.NetworkId, out int kills) ? kills.ToString() : "0");
             player.Broadcast(text, 10);
         }
     }

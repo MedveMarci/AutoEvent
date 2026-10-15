@@ -6,6 +6,7 @@ namespace AutoEvent.Events;
 public abstract class Handlers
 {
     public static event Action<Scp018CollisionArgs> Scp018Collision;
+
     public static event Action<Scp018UpdateArgs> Scp018Update;
 
     public static void OnScp018Collision(Scp018CollisionArgs ev)

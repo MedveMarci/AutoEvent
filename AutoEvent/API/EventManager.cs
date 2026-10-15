@@ -7,9 +7,13 @@ namespace AutoEvent.API;
 public static class EventManager
 {
     private static Loader.EventManager Core => AutoEvent.InternalEventManager;
+
     public static Event CurrentEvent => Core?.CurrentEvent;
+
     public static List<Event> Events => Core?.Events;
+
     public static int Count => Core?.Count ?? 0;
+
     public static bool IsMerLoaded => Core?.IsMerLoaded ?? false;
 
     public static EventRegistrationResult RegisterEvent(Event ev)

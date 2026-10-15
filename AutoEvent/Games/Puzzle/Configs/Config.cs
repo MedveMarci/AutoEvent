@@ -11,15 +11,6 @@ namespace AutoEvent.Games.Puzzle;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("Puzzle", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Puzzle_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
-    }
-
     [Description("The number of rounds in the match.")]
     public int Rounds { get; set; } = 10;
 
@@ -48,4 +39,13 @@ public class Config : EventConfig
             ]
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("Puzzle", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Puzzle_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
+    }
 }

@@ -17,13 +17,16 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     private TimeSpan _countdown;
     private EventHandler _eventHandler;
     private EventState _eventState;
+
     public override string Name { get; set; } = "Tag";
+
     public override string Description { get; set; } = "We need to catch up with all the players on the map";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "tag";
 
-    public override EventFlags EventHandlerSettings { get; set; } =
-        EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing;
+    public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing;
 
 
     public MapInfo MapInfo { get; set; } = new()
@@ -54,8 +57,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void OnStart()
     {
         _eventState = 0;
-        var spawnpoints = MapInfo.Map.AttachedBlocks.Where(x => x.name == "Spawnpoint").ToList();
-        foreach (var player in Player.ReadyList)
+        List<GameObject> spawnpoints = [.. MapInfo.Map.AttachedBlocks.Where(x => x.name == "Spawnpoint")];
+        foreach (Player player in Player.ReadyList)
         {
             player.GiveLoadout(Config.PlayerLoadouts);
             player.Position = spawnpoints.RandomItem().transform.position;
@@ -81,7 +84,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void ProcessFrame()
     {
-        var text = string.Empty;
+        string text = string.Empty;
         switch (_eventState)
         {
             case EventState.SelectPlayers: SelectPlayers(ref text); break;
@@ -96,16 +99,15 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected void SelectPlayers(ref string text)
     {
         text = Translation.Broadcast.Replace("{time}", $"{_countdown.TotalSeconds}");
-        var playersToChoose = Player.ReadyList.Where(x => x.IsAlive).ToList();
-        foreach (var ply in Config.TaggerCount.GetPlayers(true, playersToChoose))
+        List<Player> playersToChoose = [.. Player.ReadyList.Where(x => x.IsAlive)];
+        foreach (Player ply in Config.TaggerCount.GetPlayers(true, playersToChoose))
         {
             ply.GiveLoadout(Config.TaggerLoadouts);
             ply.CurrentItem ??= ply.AddItem(Config.TaggerWeapon);
         }
 
-        if (Player.ReadyList.Count(ply => ply.HasLoadout(Config.PlayerLoadouts)) <=
-            Config.PlayersRequiredForBreachScannerEffect)
-            foreach (var player in Player.ReadyList.Where(ply => ply.HasLoadout(Config.PlayerLoadouts)))
+        if (Player.ReadyList.Count(ply => ply.HasLoadout(Config.PlayerLoadouts)) <= Config.PlayersRequiredForBreachScannerEffect)
+            foreach (Player player in Player.ReadyList.Where(ply => ply.HasLoadout(Config.PlayerLoadouts)))
                 player.EnableEffect<Scanned>(255);
 
         _countdown = new TimeSpan(0, 0, Config.TagDuration);
@@ -124,7 +126,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         text = Translation.Cycle.Replace("{time}", $"{_countdown.TotalSeconds}");
 
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
             if (player.Items.Any(r => r.Type == Config.TaggerWeapon))
             {
                 player.ClearInventory();
@@ -147,9 +149,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         string text;
         if (Player.ReadyList.Count(r => r.IsAlive) >= 1)
-            text = Translation.OnePlayer
-                .Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname)
-                .Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}");
+            text = Translation.OnePlayer.Replace("{winner}", Player.ReadyList.First(r => r.IsAlive).Nickname).Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}");
         else
             text = Translation.AllDie.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}");
 

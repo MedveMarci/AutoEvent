@@ -24,15 +24,16 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     internal AdminToyBase BombObject;
     internal BombState BombState;
     internal TimeSpan RoundTime;
+
     public override string Name { get; set; } = "Counter-Strike";
+
     public override string Description { get; set; } = "Fight between terrorists and counter-terrorists";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "cs";
 
-    public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll |
-                                                                    EventFlags.IgnoreHandcuffing |
-                                                                    EventFlags.IgnoreBulletHole |
-                                                                    EventFlags.IgnoreBloodDecal;
+    public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll | EventFlags.IgnoreHandcuffing | EventFlags.IgnoreBulletHole | EventFlags.IgnoreBloodDecal;
 
     public MapInfo MapInfo { get; set; } = new()
     {
@@ -87,7 +88,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         List<GameObject> ctSpawn = [];
         List<GameObject> tSpawn = [];
 
-        foreach (var gameObject in MapInfo.Map.AdminToyBases)
+        foreach (AdminToyBase gameObject in MapInfo.Map.AdminToyBases)
             switch (gameObject.name)
             {
                 case "Spawnpoint_Counter": ctSpawn.Add(gameObject.gameObject); break;
@@ -112,21 +113,19 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
                     break;
             }
 
-        var shuffledPlayers = Player.ReadyList.OrderBy(_ => Random.value).ToList();
-        var count = 0;
-        foreach (var player in shuffledPlayers)
+        List<Player> shuffledPlayers = [.. Player.ReadyList.OrderBy(_ => Random.value)];
+        int count = 0;
+        foreach (Player player in shuffledPlayers)
         {
             if (count % 2 != 0)
             {
                 player.GiveLoadout(Config.NtfLoadouts);
-                player.Position = ctSpawn.RandomItem().transform.position +
-                                  new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
+                player.Position = ctSpawn.RandomItem().transform.position + new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
             }
             else
             {
                 player.GiveLoadout(Config.ChaosLoadouts);
-                player.Position = tSpawn.RandomItem().transform.position +
-                                  new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
+                player.Position = tSpawn.RandomItem().transform.position + new Vector3(Random.Range(-2f, 2f), 0, Random.Range(-2f, 2f));
                 if (EventHandler.Bomb == null)
                 {
                     EventHandler.Bomb = (Scp1576Item)player.AddItem(ItemType.SCP1576);
@@ -144,7 +143,7 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 20; time > 0; time--)
+        for (int time = 20; time > 0; time--)
         {
             Extensions.ServerBroadcast($"<size=100><color=red>{time}</color></size>", 1);
             yield return Timing.WaitForSeconds(1f);
@@ -154,32 +153,29 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
     protected override void CountdownFinished()
     {
         // We are removing the walls so that the players can walk.
-        MapInfo.Map.AttachedBlocks.Where(r => r.name == "Wall").ToList()
-            .ForEach(Object.Destroy);
+        MapInfo.Map.AttachedBlocks.Where(r => r.name == "Wall").ToList().ForEach(Object.Destroy);
     }
 
     protected override bool IsRoundDone()
     {
-        var ctCount = Player.ReadyList.Count(r => r.IsNTF);
-        var tCount = Player.ReadyList.Count(r => r.IsChaos);
+        int ctCount = Player.ReadyList.Count(r => r.IsNTF);
+        int tCount = Player.ReadyList.Count(r => r.IsChaos);
 
-        return !(RoundTime.TotalSeconds > 0 &&
-                 ctCount > 0 &&
-                 (tCount > 0 || BombState == BombState.Planted));
+        return !(RoundTime.TotalSeconds > 0 && ctCount > 0 && (tCount > 0 || BombState == BombState.Planted));
     }
 
     protected override void ProcessFrame()
     {
-        var ctCount = Player.ReadyList.Count(r => r.IsNTF);
-        var tCount = Player.ReadyList.Count(r => r.IsChaos);
-        var time = $"{RoundTime.Minutes:00}:{RoundTime.Seconds:00}";
+        int ctCount = Player.ReadyList.Count(r => r.IsNTF);
+        int tCount = Player.ReadyList.Count(r => r.IsChaos);
+        string time = $"{RoundTime.Minutes:00}:{RoundTime.Seconds:00}";
 
         // Counts the time until the end of the round and changes according to the actions of the players
         TimeCounter();
 
         // Shows all players their missions
-        var ctTask = string.Empty;
-        var tTask = string.Empty;
+        string ctTask = string.Empty;
+        string tTask = string.Empty;
         if (BombState == BombState.NoPlanted)
         {
             ctTask = Translation.NoPlantedCounter;
@@ -192,12 +188,9 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
         }
 
         // Output of missions to broadcast and killboard to hints
-        foreach (var player in Player.ReadyList)
+        foreach (Player player in Player.ReadyList)
         {
-            var text = Translation.Cycle.Replace("{name}", Name)
-                .Replace("{task}", player.Role == RoleTypeId.NtfSpecialist ? ctTask : tTask)
-                .Replace("{ctCount}", ctCount.ToString()).Replace("{tCount}", tCount.ToString())
-                .Replace("{time}", time);
+            string text = Translation.Cycle.Replace("{name}", Name).Replace("{task}", player.Role == RoleTypeId.NtfSpecialist ? ctTask : tTask).Replace("{ctCount}", ctCount.ToString()).Replace("{tCount}", tCount.ToString()).Replace("{time}", time);
 
             player.Broadcast(text, 1);
         }
@@ -219,13 +212,13 @@ public class Plugin : Event<Config, Translation>, IEventMap, IEventSound
 
     protected override void OnFinished()
     {
-        var ctCount = Player.ReadyList.Count(r => r.IsNTF);
-        var tCount = Player.ReadyList.Count(r => r.IsChaos);
+        int ctCount = Player.ReadyList.Count(r => r.IsNTF);
+        int tCount = Player.ReadyList.Count(r => r.IsChaos);
 
         string text;
         if (BombState == BombState.Exploded)
         {
-            foreach (var player in Player.ReadyList.Where(p => p.IsAlive))
+            foreach (Player player in Player.ReadyList.Where(p => p.IsAlive))
             {
                 Extensions.GrenadeSpawn(player.Position, 0.1f, 0.1f, 0);
                 Warhead.Shake();

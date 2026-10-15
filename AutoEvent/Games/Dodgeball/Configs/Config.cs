@@ -24,15 +24,6 @@ public class Config : EventConfig
         }
     ];
 
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("Dodgeball", new Vector3(0, 0, 30)));
-        AvailableMaps.Add(new MapChance("Snowball", new Vector3(0, 0, 30), season: SeasonFlags.Christmas));
-    }
-
     [Description("After how many seconds the round will end. [Default: 180]")]
     public int TotalTimeInSeconds { get; set; } = 180;
 
@@ -48,4 +39,13 @@ public class Config : EventConfig
             ]
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("Dodgeball", new Vector3(0, 0, 30)));
+        AvailableMaps.Add(new MapChance("Snowball", new Vector3(0, 0, 30), season: SeasonFlags.Christmas));
+    }
 }

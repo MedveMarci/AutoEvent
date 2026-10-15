@@ -11,28 +11,16 @@ namespace AutoEvent.Games.Glass;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("Glass", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Glass_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
-    }
-
-    [Description(
-        "Random percent from 40 - 60 will be chosen (ex: 50 percent). 50% of the platforms will be on one side. 50% on the other. This is the Lower Value.")]
+    [Description("Random percent from 40 - 60 will be chosen (ex: 50 percent). 50% of the platforms will be on one side. 50% on the other. This is the Lower Value.")]
     public int MinimumSideOffset { get; set; } = 40;
 
-    [Description(
-        "Random percent from 40 - 60 will be chosen (ex: 50 percent). 50% of the platforms will be on one side. 50% on the other. This is the Higher Value.")]
+    [Description("Random percent from 40 - 60 will be chosen (ex: 50 percent). 50% of the platforms will be on one side. 50% on the other. This is the Higher Value.")]
     public int MaximumSideOffset { get; set; } = 60;
 
     [Description("The salt to use for the cryptographic seed generator.")]
     public string SeedSalt { get; set; } = "salty hasbrown";
 
-    [Description(
-        "How many seconds until the platforms regenerate. Prevents players from sitting around. -1 to disable.")]
+    [Description("How many seconds until the platforms regenerate. Prevents players from sitting around. -1 to disable.")]
     public float BrokenPlatformRegenerateDelayInSeconds { get; set; } = 5;
 
     [Description("The players will push each other for fun. Default: false.")]
@@ -56,4 +44,13 @@ public class Config : EventConfig
             ]
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("Glass", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Glass_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
+    }
 }

@@ -73,6 +73,7 @@ Among Us:
   accept_divert_power: 'Accept Divert Power'
   download_data: 'Download Data'
   upload_data: 'Upload Data'
+  submit_scan: 'Invia scansione'
   skip: 'Skip'
   vote: 'vote'
   no_one_voted_out: 'No one was voted out.'
@@ -146,7 +147,11 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>VINCITORI: <color=red>SCIENZIATI</color></color>
-  max_round_reached: 'You reached the max number of rounds!'
+  max_round_reached: |-
+    <color=yellow>Hai giocato il massimo di {max} round di fila!</color>
+    Potrai rientrare nell'arena dopo il prossimo round.
+  rounds_remaining: 'Puoi giocare ancora <color=yellow>{rounds}</color> round di fila.'
+  resting: '<color=red>Devi saltare un round prima di rientrare nell''arena.</color>'
   name: 'Combattimenti di galli'
   description: 'Duello tra player con 35hp nella mappa di cs 1.6'
   command_name: 'versus'
@@ -365,7 +370,7 @@ Puzzle:
     Minigioco finito
   some_survived: |-
     <b>{name}</b>
-    <color=red>Diverse persone sono sopravvissute</color>
+    <color=green>{count} giocatori sono sopravvissuti</color>
     Minigioco finito
   winner: |-
     <b>{name}</b>
@@ -504,7 +509,6 @@ The floor is LAVA:
     Player - {winner}</b></color>
   all_dead: '<color=red><b>Nessuno è sopravvissuto.</b></color>'
   died: '<color=red>Bruciato nella lava</color>'
-  reload: 'Reload your weapon!'
   name: 'Il pavimento è lava'
   description: 'Sopravvivenza, in cui devi evitare la lava e sparare agli altri'
   command_name: 'lava'

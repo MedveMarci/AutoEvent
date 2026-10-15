@@ -1,5 +1,26 @@
-/AutoEvent/bin/
-/AutoEvent/obj/
-/obj/
-/.idea/
-AutoEvent.sln.DotSettings.user
+# Build outputs (matches at any depth, so it covers every project: AutoEvent, AutoEvent.Vote,
+# AutoEvent.AutoRun, and any future ones)
+bin/
+obj/
+
+# Rider / IntelliJ
+.idea/
+*.iml
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ReSharper / Rider settings
+*.DotSettings.user
+
+# NuGet
+*.nupkg
+packages/
+
+# OS junk
+.DS_Store
+Thumbs.db

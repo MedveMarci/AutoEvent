@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using AutoEvent.API;
 using AutoEvent.ApiFeatures;
 using AutoEvent.Integrations.MapEditor;
@@ -10,7 +9,6 @@ using HarmonyLib;
 using LabApi.Events.CustomHandlers;
 using LabApi.Features;
 using LabApi.Features.Wrappers;
-using LabApi.Loader;
 using LabApi.Loader.Features.Paths;
 using LabApi.Loader.Features.Plugins;
 using LabApi.Loader.Features.Plugins.Enums;
@@ -26,6 +24,7 @@ public class AutoEvent : Plugin<Config>
     internal static EventManager InternalEventManager;
     private static EventHandler _eventHandler;
     internal static float MusicVolume;
+
     public override string Name => "AutoEvent";
 
     public override string Author =>
@@ -34,8 +33,10 @@ public class AutoEvent : Plugin<Config>
     public override string Description =>
         "A plugin that allows you to play mini-games in SCP:SL. It includes a variety of games such as Spleef, Lava, Hide and Seek, Knives, and more. Each game has its own unique mechanics and rules, providing a fun and engaging experience for players.";
 
-    public override Version Version => new(10, 1, 3);
+    public override Version Version => new(10, 2, 0);
+
     public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
+
     public override LoadPriority Priority => LoadPriority.High;
 
     public static string BaseConfigPath { get; private set; }
@@ -59,8 +60,7 @@ public class AutoEvent : Plugin<Config>
 
             if (Config.IgnoredRoles.Contains(Config.LobbyRole))
             {
-                LogManager.Error(
-                    "The Lobby Role is also in ignored roles. This will break the game if not changed. The plugin will remove the lobby role from ignored roles.");
+                LogManager.Error("The Lobby Role is also in ignored roles. This will break the game if not changed. The plugin will remove the lobby role from ignored roles.");
                 Config.IgnoredRoles.Remove(Config.LobbyRole);
             }
 
@@ -83,9 +83,7 @@ public class AutoEvent : Plugin<Config>
             try
             {
                 LogManager.Debug($"Base Config Path: {BaseConfigPath}");
-                LogManager.Debug($"Configs paths: \n" +
-                                 $"{Config.SchematicsDirectoryPath}\n" +
-                                 $"{Config.MusicDirectoryPath}\n");
+                LogManager.Debug($"Configs paths: \n" + $"{Config.SchematicsDirectoryPath}\n" + $"{Config.MusicDirectoryPath}\n");
                 CreateDirectoryIfNotExists(BaseConfigPath);
                 CreateDirectoryIfNotExists(Config.SchematicsDirectoryPath);
                 CreateDirectoryIfNotExists(Config.MusicDirectoryPath);
@@ -94,6 +92,8 @@ public class AutoEvent : Plugin<Config>
             {
                 LogManager.Error($"An error has occured while trying to initialize directories.\n{e}");
             }
+
+            MusicManager.ExtractMissing(Config.MusicDirectoryPath);
 
             InternalEventManager = new EventManager();
             InternalEventManager.RegisterInternalEvents();

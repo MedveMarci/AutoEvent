@@ -6,16 +6,6 @@ namespace AutoEvent.Interfaces;
 
 public class SoundInfo
 {
-    public SoundInfo()
-    {
-    }
-
-    public SoundInfo(string name, bool loop = true)
-    {
-        SoundName = name;
-        Loop = loop;
-    }
-
     [Description("The name of the sound.")]
     public string SoundName { get; set; }
 
@@ -25,4 +15,13 @@ public class SoundInfo
     [YamlIgnore] public IAudioHandle AudioPlayer { get; set; }
 
     [YamlIgnore] public bool StartAutomatically { get; set; } = true;
+
+    public SoundInfo()
+    { }
+
+    public SoundInfo(string name, bool loop = true)
+    {
+        SoundName = name;
+        Loop = loop;
+    }
 }

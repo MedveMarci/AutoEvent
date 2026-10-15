@@ -9,7 +9,6 @@ namespace AutoEvent.API;
 
 internal static class DependencyManager
 {
-
     private static readonly List<string> Dependencies =
     [
         "SecretLabNAudio",
@@ -21,63 +20,51 @@ internal static class DependencyManager
         if (string.IsNullOrWhiteSpace(name))
             return false;
 
-        var lower = name.ToLowerInvariant();
-        return PluginLoader.Plugins.Keys.Any(p =>
-                   !string.IsNullOrEmpty(p.Name) && p.Name.ToLowerInvariant().Contains(lower))
-               || PluginLoader.Dependencies.Any(a =>
-                   a.GetName().Name?.ToLowerInvariant().Contains(lower) == true);
+        string lower = name.ToLowerInvariant();
+        return PluginLoader.Plugins.Keys.Any(p => !string.IsNullOrEmpty(p.Name) && p.Name.ToLowerInvariant().Contains(lower)) || PluginLoader.Dependencies.Any(a => a.GetName().Name?.ToLowerInvariant().Contains(lower) == true);
     }
-    
+
     public static bool ValidateCore()
     {
         LogManager.Info("Checking AutoEvent dependencies...");
-        var allRequiredPresent = true;
+        bool allRequiredPresent = true;
 
-        foreach (var dep in Dependencies)
+        foreach (string dep in Dependencies)
         {
             if (IsLoaded(dep))
             {
                 LogManager.Info($"  [OK] {dep} is loaded.");
                 continue;
             }
+
             allRequiredPresent = false;
-            LogManager.Error(
-                    $"  [MISSING] {dep} was not found. " +
-                    "AutoEvent will not load until it is installed.");
-            
+            LogManager.Error($"  [MISSING] {dep} was not found. " + "AutoEvent will not load until it is installed.");
         }
 
         return allRequiredPresent;
     }
-    
+
     public static void ReportEventDependencies(IEnumerable<Event> events)
     {
         if (events is null)
             return;
 
-        var anyMissing = false;
-        foreach (var ev in events)
+        bool anyMissing = false;
+        foreach (Event ev in events)
         {
             if (ev is not IRequiresPlugins req)
                 continue;
 
-            var missing = (req.RequiredPlugins ?? [])
-                .Concat(req.RequiredDependencies ?? [])
-                .Where(d => !IsLoaded(d))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            List<string> missing = [.. (req.RequiredPlugins ?? []).Concat(req.RequiredDependencies ?? []).Where(d => !IsLoaded(d)).Distinct(StringComparer.OrdinalIgnoreCase)];
 
             if (missing.Count == 0)
                 continue;
 
             anyMissing = true;
-            LogManager.Warn(
-                $"Mini-game '{ev.Name}' cannot be started — missing: {string.Join(", ", missing)}.");
+            LogManager.Warn($"Mini-game '{ev.Name}' cannot be started — missing: {string.Join(", ", missing)}.");
         }
 
         if (anyMissing)
-            LogManager.Warn(
-                "Install the dependencies listed above to run the disabled mini-games. " +
-                "All other events work normally.");
+            LogManager.Warn("Install the dependencies listed above to run the disabled mini-games. " + "All other events work normally.");
     }
 }

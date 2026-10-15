@@ -11,20 +11,7 @@ namespace AutoEvent.Games.Deathmatch;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("sl_waterworld", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Shipment", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Shipment_Xmas2025", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
-        AvailableMaps.Add(new MapChance("Shipment_Halloween2024", new Vector3(0, 40f, 0f),
-            season: SeasonFlags.Halloween));
-    }
-
-    [Description(
-        "How many total kills a team needs to win. Determined per-person at the start of the round. [Default: 3]")]
+    [Description("How many total kills a team needs to win. Determined per-person at the start of the round. [Default: 3]")]
     public int KillsPerPerson { get; set; } = 3;
 
     [Description("A list of loadouts for team Chaos Insurgency")]
@@ -69,4 +56,15 @@ public class Config : EventConfig
         ItemType.GunFSP9,
         ItemType.GunE11SR
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("sl_waterworld", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Shipment", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Shipment_Xmas2025", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance("Shipment_Halloween2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Halloween));
+    }
 }

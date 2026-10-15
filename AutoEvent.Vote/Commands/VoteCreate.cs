@@ -12,8 +12,12 @@ namespace AutoEvent.Vote.Commands;
 public class VoteCreate : ICommand, IUsageProvider
 {
     public string Command => "Create";
+
     public string Description => "Creates a vote for minigames";
+
     public string[] Aliases => [];
+
+    public string[] Usage { get; } = ["duration", "eventnames..."];
 
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
@@ -22,7 +26,13 @@ public class VoteCreate : ICommand, IUsageProvider
             response = "AutoEvent is not loaded. Check console for errors.";
             return false;
         }
-        
+
+        if (AutoEventVote.Singleton is null)
+        {
+            response = "AutoEvent.Vote is not loaded. Check console for errors.";
+            return false;
+        }
+
         if (!sender.HasPermissions("ev.vote"))
         {
             response = "<color=red>You do not have permission to use this command!</color>";
@@ -41,13 +51,13 @@ public class VoteCreate : ICommand, IUsageProvider
             return false;
         }
 
-        if (arguments.Count < 2 || arguments.Array == null)
+        if (arguments.Count < 2)
         {
             response = "Usage: vote create [duration] [eventnames...]";
             return false;
         }
 
-        if (!int.TryParse(arguments.Array[arguments.Offset], out var duration))
+        if (!int.TryParse(arguments.First(), out int duration) || duration <= 0)
         {
             response = "The first argument must be the duration of the vote in seconds.";
             return false;
@@ -55,8 +65,8 @@ public class VoteCreate : ICommand, IUsageProvider
 
         List<Event> validEvents = [];
 
-        foreach (var argument in arguments.Skip(1))
-            if (EventManager.TryGetEvent(argument, out var @event))
+        foreach (string argument in arguments.Skip(1))
+            if (EventManager.TryGetEvent(argument, out Event @event) && !validEvents.Contains(@event))
                 validEvents.Add(@event);
 
         if (validEvents.Count == 0)
@@ -65,11 +75,13 @@ public class VoteCreate : ICommand, IUsageProvider
             return false;
         }
 
-        VoteManager.StartVote(validEvents, duration);
+        if (!VoteManager.StartVote(validEvents, duration))
+        {
+            response = "The vote could not be started. Check console for errors.";
+            return false;
+        }
 
         response = $"Vote started with {validEvents.Count} events.";
         return true;
     }
-
-    public string[] Usage { get; } = ["duration", "eventnames..."];
 }

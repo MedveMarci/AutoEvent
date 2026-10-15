@@ -73,6 +73,7 @@ Among Us:
   accept_divert_power: 'Accept Divert Power'
   download_data: 'Download Data'
   upload_data: 'Upload Data'
+  submit_scan: 'Submit Scan'
   skip: 'Skip'
   vote: 'vote'
   no_one_voted_out: 'No one was voted out.'
@@ -146,7 +147,11 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>WINNERS: <color=red>SCIENTISTS</color></color>
-  max_round_reached: 'You reached the max number of rounds!'
+  max_round_reached: |-
+    <color=yellow>You played the maximum of {max} rounds in a row!</color>
+    You can enter the arena again after the next round.
+  rounds_remaining: 'You can play <color=yellow>{rounds}</color> more round(s) in a row.'
+  resting: '<color=red>You have to sit out one round before entering the arena again.</color>'
   name: 'Cock Fights'
   description: 'Duel of players on the 35hp map from cs 1.6'
   command_name: 'versus'
@@ -501,7 +506,6 @@ The floor is LAVA:
     Player - {winner}</b></color>
   all_dead: '<color=red><b>No one survived to the end.</b></color>'
   died: '<color=red>You fell into lava</color>'
-  reload: 'Reload your weapon!'
   name: 'The floor is LAVA'
   description: 'Survival, in which you need to avoid lava and shoot at others'
   command_name: 'lava'

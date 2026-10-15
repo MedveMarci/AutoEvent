@@ -17,10 +17,15 @@ namespace AutoEvent.Games.Battle;
 public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
 {
     public override string Name { get; set; } = "Battle";
+
     public override string Description { get; set; } = "MTF fight against CI in an arena";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "battle";
+
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreDroppingItem;
+
     protected override float FrameDelayInSeconds { get; set; } = 1f;
 
     public MapInfo MapInfo { get; set; } = new()
@@ -39,15 +44,15 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
     {
         List<GameObject> ntfSpawns = [];
         List<GameObject> chaosSpawns = [];
-        foreach (var gameObject in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject gameObject in MapInfo.Map.AttachedBlocks)
             switch (gameObject.name)
             {
                 case "Spawnpoint": ntfSpawns.Add(gameObject); break;
                 case "Spawnpoint1": chaosSpawns.Add(gameObject); break;
             }
 
-        var count = 0;
-        foreach (var player in Player.ReadyList)
+        int count = 0;
+        foreach (Player player in Player.ReadyList)
         {
             if (count % 2 == 0)
             {
@@ -63,13 +68,13 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
             count++;
 
             player.GiveLoadout(Config.Loadouts, LoadoutFlags.IgnoreRole);
-            player.CurrentItem = player.Items.FirstOrDefault(r => nameof(r.Type).Contains("Gun"));
+            player.CurrentItem = player.Items.FirstOrDefault(r => r.Type.ToString().Contains("Gun"));
         }
     }
 
     protected override IEnumerator<float> BroadcastStartCountdown()
     {
-        for (var time = 20; time > 0; time--)
+        for (int time = 20; time > 0; time--)
         {
             Extensions.ServerBroadcast(Translation.TimeLeft.Replace("{time}", $"{time}"), 5);
             yield return Timing.WaitForSeconds(1f);
@@ -78,7 +83,7 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
 
     protected override void CountdownFinished()
     {
-        foreach (var gameObject in MapInfo.Map.AttachedBlocks)
+        foreach (GameObject gameObject in MapInfo.Map.AttachedBlocks)
             switch (gameObject.name)
             {
                 case "Wall":
@@ -92,17 +97,15 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
     protected override bool IsRoundDone()
     {
         // Round finishes when either team has no more players.
-        return Player.ReadyList.Count(x => x.RoleBase.Team == Team.FoundationForces) == 0 ||
-               Player.ReadyList.Count(x => x.RoleBase.Team == Team.ChaosInsurgency) == 0;
+        return Player.ReadyList.Count(x => x.RoleBase.Team == Team.FoundationForces) == 0 || Player.ReadyList.Count(x => x.RoleBase.Team == Team.ChaosInsurgency) == 0;
     }
 
     protected override void ProcessFrame()
     {
         // While the round isn't done, this will be called once a second. You can make the call duration faster / slower by changing FrameDelayInSeconds.
         // While the round is still going, broadcast the current round stats.
-        var text = Translation.Counter;
-        text = text.Replace("{FoundationForces}",
-            $"{Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces)}");
+        string text = Translation.Counter;
+        text = text.Replace("{FoundationForces}", $"{Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces)}");
         text = text.Replace("{ChaosForces}", $"{Player.ReadyList.Count(r => r.RoleBase.Team == Team.ChaosInsurgency)}");
         text = text.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}");
 
@@ -114,12 +117,8 @@ public class Plugin : Event<Configs.Config, Translation>, IEventMap, IEventSound
         // Once the round is finished, broadcast the winning team (either mtf or chaos in this case.)
         // If the round is stopped, this won't be called. Instead, use OnStop to broadcast either winners, or that nobody wins because the round was stopped.
         if (Player.ReadyList.Count(r => r.RoleBase.Team == Team.FoundationForces) == 0)
-            Extensions.ServerBroadcast(
-                Translation.CiWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"),
-                3);
+            Extensions.ServerBroadcast(Translation.CiWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"), 10);
         else // if (Player.GetPlayers().Count(r => r.Team == Team.ChaosInsurgency) == 0)
-            Extensions.ServerBroadcast(
-                Translation.MtfWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"),
-                10);
+            Extensions.ServerBroadcast(Translation.MtfWin.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"), 10);
     }
 }

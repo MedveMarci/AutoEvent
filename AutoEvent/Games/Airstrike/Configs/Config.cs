@@ -12,17 +12,6 @@ namespace AutoEvent.Games.Airstrike.Configs;
 [Description("Be aware that this plugin can cause lag if not carefully balanaced.")]
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("DeathParty", new Vector3(0f, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("DeathParty_PresidentFinny", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("DeathParty_Xmas2024", new Vector3(0f, 40f, 0f),
-            season: SeasonFlags.Christmas));
-    }
-
     [Description("Should grenades spawn on top of randomly chosen players. This will not apply on the last round.")]
     public bool TargetPlayers { get; set; } = false;
 
@@ -32,8 +21,7 @@ public class Config : EventConfig
     [Description("The amount of rounds that this gamemode lasts. The last round is always a super big grenade.")]
     public int Rounds { get; set; } = 5;
 
-    [Description(
-        "If enabled the minigame will end when there is only one player left. Otherwise it will end when everyone dies, or the rounds (configurable) are over.")]
+    [Description("If enabled the minigame will end when there is only one player left. Otherwise it will end when everyone dies, or the rounds (configurable) are over.")]
     public bool LastPlayerAliveWins { get; set; } = true;
 
     [Description("A list of loadouts.")]
@@ -61,4 +49,14 @@ public class Config : EventConfig
             Effects = [new EffectData { Type = nameof(FogControl), Intensity = 1, Duration = 0 }]
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("DeathParty", new Vector3(0f, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("DeathParty_PresidentFinny", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("DeathParty_Xmas2024", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
+    }
 }

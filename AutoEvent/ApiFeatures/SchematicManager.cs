@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text.Json;
 
 namespace AutoEvent.ApiFeatures;
+
 internal static class SchematicManager
 {
     private const string ApiBase = "https://bearmanapi.hu";
@@ -26,25 +27,25 @@ internal static class SchematicManager
         {
             TryAutoMigrate();
 
-            var manifest = FetchManifest();
+            List<SchematicEntry> manifest = FetchManifest();
             if (manifest == null)
                 return;
 
-            var localVersions = LoadLocalVersions();
+            Dictionary<string, string> localVersions = LoadLocalVersions();
 
-            var behind = new List<(string Name, string Local, string Remote, string Changelog)>();
-            var ahead = new List<(string Name, string Local, string Remote)>();
+            List<(string Name, string Local, string Remote, string Changelog)> behind = [];
+            List<(string Name, string Local, string Remote)> ahead = [];
 
-            foreach (var entry in manifest)
+            foreach (SchematicEntry entry in manifest)
             {
-                var local = localVersions.TryGetValue(entry.Name, out var v) ? v : null;
+                string local = localVersions.TryGetValue(entry.Name, out string v) ? v : null;
                 if (local == null)
                 {
                     behind.Add((entry.Name, "not installed", entry.Version, entry.Changelog ?? ""));
                     continue;
                 }
 
-                var cmp = CompareVersions(local, entry.Version);
+                int cmp = CompareVersions(local, entry.Version);
                 if (cmp < 0)
                     behind.Add((entry.Name, local, entry.Version, entry.Changelog ?? ""));
                 else if (cmp > 0)
@@ -54,9 +55,9 @@ internal static class SchematicManager
             if (behind.Count > 0)
             {
                 LogManager.Info($"{behind.Count} schematic(s) need updating:", ConsoleColor.Yellow);
-                foreach (var (name, local, remote, changelog) in behind)
+                foreach ((string name, string local, string remote, string changelog) in behind)
                 {
-                    var line = $"  - {name}: {local} -> {remote}";
+                    string line = $"  - {name}: {local} -> {remote}";
                     if (!string.IsNullOrEmpty(changelog))
                         line += $"  |  {changelog}";
                     LogManager.Info(line, ConsoleColor.Yellow);
@@ -65,14 +66,9 @@ internal static class SchematicManager
 
             if (ahead.Count > 0)
             {
-                LogManager.Info(
-                    $"{ahead.Count} schematic(s) have a higher version than the latest available:",
-                    ConsoleColor.Magenta);
-                foreach (var (name, local, remote) in ahead)
-                    LogManager.Info(
-                        $"  - {name}: v{local} is newer than the latest (v{remote}). " +
-                        "Use 'ev update' to download the latest version.",
-                        ConsoleColor.Magenta);
+                LogManager.Info($"{ahead.Count} schematic(s) have a higher version than the latest available:", ConsoleColor.Magenta);
+                foreach ((string name, string local, string remote) in ahead)
+                    LogManager.Info($"  - {name}: v{local} is newer than the latest (v{remote}). " + "Use 'ev update' to download the latest version.", ConsoleColor.Magenta);
             }
 
             if (behind.Count > 0 || ahead.Count > 0)
@@ -89,11 +85,11 @@ internal static class SchematicManager
         if (File.Exists(VersionsFilePath))
             return;
 
-        var oldRoot = Path.GetDirectoryName(SchematicsPath);
+        string oldRoot = Path.GetDirectoryName(SchematicsPath);
         if (oldRoot == null || !Directory.Exists(oldRoot))
             return;
 
-        var manifest = FetchManifest();
+        List<SchematicEntry> manifest = FetchManifest();
         if (manifest == null)
         {
             LogManager.Warn("[SchematicManager] Could not reach API; migration will be retried on 'ev update'.");
@@ -105,20 +101,20 @@ internal static class SchematicManager
 
     internal static List<(string Name, string LocalVersion, string RemoteVersion, string Changelog)> GetPendingUpdates()
     {
-        var result = new List<(string, string, string, string)>();
+        List<(string, string, string, string)> result = [];
 
         if (!File.Exists(VersionsFilePath))
             return result;
 
-        var manifest = FetchManifest();
+        List<SchematicEntry> manifest = FetchManifest();
         if (manifest == null)
             return result;
 
-        var localVersions = LoadLocalVersions();
+        Dictionary<string, string> localVersions = LoadLocalVersions();
 
-        foreach (var entry in manifest)
+        foreach (SchematicEntry entry in manifest)
         {
-            var localVersion = localVersions.TryGetValue(entry.Name, out var v) ? v : null;
+            string localVersion = localVersions.TryGetValue(entry.Name, out string v) ? v : null;
             if (localVersion == null || !IsVersionCurrent(localVersion, entry.Version))
                 result.Add((entry.Name, localVersion ?? "not installed", entry.Version, entry.Changelog ?? ""));
         }
@@ -128,24 +124,21 @@ internal static class SchematicManager
 
     internal static (int Updated, int Failed, int Total) Update()
     {
-        var manifest = FetchManifest();
+        List<SchematicEntry> manifest = FetchManifest();
         if (manifest == null)
             throw new Exception("Failed to fetch schematic manifest from server.");
 
         RunMigrationIfNeeded(manifest);
 
-        var localVersions = LoadLocalVersions();
+        Dictionary<string, string> localVersions = LoadLocalVersions();
 
-        var toUpdate = manifest
-            .Where(entry => !localVersions.TryGetValue(entry.Name, out var local) || CompareVersions(local, entry.Version) != 0)
-            .ToList();
+        List<SchematicEntry> toUpdate = [.. manifest.Where(entry => !localVersions.TryGetValue(entry.Name, out string local) || CompareVersions(local, entry.Version) != 0)];
 
         if (toUpdate.Count == 0)
             return (0, 0, 0);
 
         int updated = 0, failed = 0;
-        foreach (var entry in toUpdate)
-        {
+        foreach (SchematicEntry entry in toUpdate)
             try
             {
                 DownloadAndExtract(entry);
@@ -159,7 +152,6 @@ internal static class SchematicManager
                 failed++;
                 LogManager.Error($"[SchematicManager] Failed to update '{entry.Name}': {ex.Message}");
             }
-        }
 
         return (updated, failed, toUpdate.Count);
     }
@@ -169,25 +161,25 @@ internal static class SchematicManager
         if (File.Exists(VersionsFilePath))
             return;
 
-        var oldRoot = Path.GetDirectoryName(SchematicsPath);
+        string oldRoot = Path.GetDirectoryName(SchematicsPath);
         if (oldRoot == null || !Directory.Exists(oldRoot))
             return;
 
-        var apiNames = new HashSet<string>(manifest.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
+        HashSet<string> apiNames = new(manifest.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
 
         if (!Directory.Exists(SchematicsPath))
             Directory.CreateDirectory(SchematicsPath);
 
-        var versions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, string> versions = new(StringComparer.OrdinalIgnoreCase);
         int movedApi = 0, movedCustom = 0, failed = 0;
 
-        foreach (var dir in Directory.GetDirectories(oldRoot))
+        foreach (string dir in Directory.GetDirectories(oldRoot))
         {
-            var name = Path.GetFileName(dir);
+            string name = Path.GetFileName(dir);
             if (name.Equals("ProjectMER", StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            var dest = Path.Combine(SchematicsPath, name);
+            string dest = Path.Combine(SchematicsPath, name);
             try
             {
                 Directory.Move(dir, dest);
@@ -210,43 +202,34 @@ internal static class SchematicManager
 
         SaveLocalVersions(versions);
 
-        LogManager.Info(
-            "[SchematicManager] Migration complete.\n" +
-            $"Moved {movedApi + movedCustom} schematic(s) to Schematics/ProjectMER/.\n" +
-            $"{movedApi} API schematic(s) will now be updated,\n" +
-            $"{movedCustom} custom schematic(s) were preserved as-is." +
-            (failed > 0 ? $"\n{failed} failed to move (see above)." : ""));
+        LogManager.Info("[SchematicManager] Migration complete.\n" + $"Moved {movedApi + movedCustom} schematic(s) to Schematics/ProjectMER/.\n" + $"{movedApi} API schematic(s) will now be updated,\n" + $"{movedCustom} custom schematic(s) were preserved as-is." + (failed > 0 ? $"\n{failed} failed to move (see above)." : ""));
     }
 
     private static List<SchematicEntry> FetchManifest()
     {
         try
         {
-            var resp = HttpQuery.Get($"{ApiBase}/api/v1/schematics");
-            using var doc = JsonDocument.Parse(resp);
-            var root = doc.RootElement;
+            string resp = HttpQuery.Get($"{ApiBase}/api/v1/schematics");
+            using JsonDocument doc = JsonDocument.Parse(resp);
+            JsonElement root = doc.RootElement;
 
-            if (!root.TryGetProperty("schematics", out var arrayProp) || arrayProp.ValueKind != JsonValueKind.Array)
+            if (!root.TryGetProperty("schematics", out JsonElement arrayProp) || arrayProp.ValueKind != JsonValueKind.Array)
                 return null;
 
-            var list = new List<SchematicEntry>();
-            foreach (var item in arrayProp.EnumerateArray())
+            List<SchematicEntry> list = [];
+            foreach (JsonElement item in arrayProp.EnumerateArray())
             {
-                if (!item.TryGetProperty("name", out var nameProp) ||
-                    !item.TryGetProperty("version", out var versionProp) ||
-                    !item.TryGetProperty("download_url", out var urlProp))
+                if (!item.TryGetProperty("name", out JsonElement nameProp) || !item.TryGetProperty("version", out JsonElement versionProp) || !item.TryGetProperty("download_url", out JsonElement urlProp))
                     continue;
 
-                var name = nameProp.GetString();
-                var version = versionProp.GetString();
-                var url = urlProp.GetString();
+                string name = nameProp.GetString();
+                string version = versionProp.GetString();
+                string url = urlProp.GetString();
 
                 if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(version) || string.IsNullOrEmpty(url))
                     continue;
 
-                var changelog = item.TryGetProperty("changelog", out var clProp) && clProp.ValueKind == JsonValueKind.String
-                    ? clProp.GetString()
-                    : null;
+                string changelog = item.TryGetProperty("changelog", out JsonElement clProp) && clProp.ValueKind == JsonValueKind.String ? clProp.GetString() : null;
 
                 list.Add(new SchematicEntry
                 {
@@ -273,11 +256,9 @@ internal static class SchematicManager
             if (!File.Exists(VersionsFilePath))
                 return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            var json = File.ReadAllText(VersionsFilePath);
-            var raw = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-            return raw == null
-                ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                : new Dictionary<string, string>(raw, StringComparer.OrdinalIgnoreCase);
+            string json = File.ReadAllText(VersionsFilePath);
+            Dictionary<string, string> raw = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+            return raw == null ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) : new Dictionary<string, string>(raw, StringComparer.OrdinalIgnoreCase);
         }
         catch
         {
@@ -287,16 +268,18 @@ internal static class SchematicManager
 
     private static void SaveLocalVersions(Dictionary<string, string> versions)
     {
-        var json = JsonSerializer.Serialize(versions, new JsonSerializerOptions { WriteIndented = true });
+        string json = JsonSerializer.Serialize(versions, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(VersionsFilePath, json);
     }
 
     private static bool IsVersionCurrent(string localVersion, string remoteVersion)
-        => CompareVersions(localVersion, remoteVersion) >= 0;
+    {
+        return CompareVersions(localVersion, remoteVersion) >= 0;
+    }
 
     private static int CompareVersions(string localVersion, string remoteVersion)
     {
-        if (Version.TryParse(localVersion, out var local) && Version.TryParse(remoteVersion, out var remote))
+        if (Version.TryParse(localVersion, out Version local) && Version.TryParse(remoteVersion, out Version remote))
             return local.CompareTo(remote);
 
         return string.Equals(localVersion, remoteVersion, StringComparison.OrdinalIgnoreCase) ? 0 : -1;
@@ -304,32 +287,32 @@ internal static class SchematicManager
 
     private static void DownloadAndExtract(SchematicEntry entry)
     {
-        var response = HttpClient.GetAsync(entry.DownloadUrl).GetAwaiter().GetResult();
+        HttpResponseMessage response = HttpClient.GetAsync(entry.DownloadUrl).GetAwaiter().GetResult();
         response.EnsureSuccessStatusCode();
-        var zipData = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+        byte[] zipData = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
 
         DeleteSchematic(entry.Name);
 
-        var schematicDir = Path.Combine(SchematicsPath, entry.Name);
+        string schematicDir = Path.Combine(SchematicsPath, entry.Name);
         if (!Directory.Exists(schematicDir))
             Directory.CreateDirectory(schematicDir);
 
-        var targetRoot = Path.GetFullPath(schematicDir);
+        string targetRoot = Path.GetFullPath(schematicDir);
 
-        using var ms = new MemoryStream(zipData);
-        using var archive = new ZipArchive(ms, ZipArchiveMode.Read);
+        using MemoryStream ms = new(zipData);
+        using ZipArchive archive = new(ms, ZipArchiveMode.Read);
 
-        foreach (var archiveEntry in archive.Entries)
+        foreach (ZipArchiveEntry archiveEntry in archive.Entries)
         {
             if (string.IsNullOrEmpty(archiveEntry.Name))
                 continue;
 
-            var destPath = Path.GetFullPath(Path.Combine(schematicDir, archiveEntry.FullName));
+            string destPath = Path.GetFullPath(Path.Combine(schematicDir, archiveEntry.FullName));
 
             if (!destPath.StartsWith(targetRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException($"Path traversal detected in zip entry: {archiveEntry.FullName}");
 
-            var destDir = Path.GetDirectoryName(destPath);
+            string destDir = Path.GetDirectoryName(destPath);
             if (destDir != null && !Directory.Exists(destDir))
                 Directory.CreateDirectory(destDir);
 
@@ -339,11 +322,11 @@ internal static class SchematicManager
 
     private static void DeleteSchematic(string name)
     {
-        var jsonPath = Path.Combine(SchematicsPath, $"{name}.json");
+        string jsonPath = Path.Combine(SchematicsPath, $"{name}.json");
         if (File.Exists(jsonPath))
             File.Delete(jsonPath);
 
-        var folderPath = Path.Combine(SchematicsPath, name);
+        string folderPath = Path.Combine(SchematicsPath, name);
         if (Directory.Exists(folderPath))
             Directory.Delete(folderPath, true);
     }
@@ -351,8 +334,11 @@ internal static class SchematicManager
     private sealed class SchematicEntry
     {
         public string Name { get; init; }
+
         public string Version { get; init; }
+
         public string DownloadUrl { get; init; }
+
         public string Changelog { get; init; }
     }
 }

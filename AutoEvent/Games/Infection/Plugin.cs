@@ -5,6 +5,7 @@ using AutoEvent.API;
 using AutoEvent.API.Enums;
 using AutoEvent.Interfaces;
 using InventorySystem;
+using InventorySystem.Items;
 using InventorySystem.Items.MarshmallowMan;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
@@ -18,12 +19,19 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 {
     private int _overtime = 30;
     internal List<GameObject> SpawnList;
+
     public override string Name { get; set; } = "Zombie Infection";
+
     public override string Description { get; set; } = "Zombie mode, the purpose of which is to infect all players";
+
     public override string Author { get; set; } = "RisottoMan";
+
     public override string CommandName { get; set; } = "zombie";
+
     private EventHandler EventHandler { get; set; }
+
     public bool IsChristmasUpdate { get; set; }
+
     public bool IsHalloweenUpdate { get; set; }
 
     public override EventFlags EventHandlerSettings { get; set; } = EventFlags.IgnoreRagdoll;
@@ -62,7 +70,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
         // Halloween update -> check that the marshmallow item exists and not null
         if (Enum.TryParse("Marshmallow", out ItemType marshmallowItemType))
         {
-            InventoryItemLoader.AvailableItems.TryGetValue(marshmallowItemType, out var itemBase);
+            InventoryItemLoader.AvailableItems.TryGetValue(marshmallowItemType, out ItemBase itemBase);
             if (itemBase != null)
             {
                 IsHalloweenUpdate = true;
@@ -75,8 +83,8 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
             if (PlayerRoleLoader.AllRoles.Keys.Contains(flamingoRoleType)) IsChristmasUpdate = true;
         }
 
-        SpawnList = MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint").ToList();
-        foreach (var player in Player.ReadyList)
+        SpawnList = [.. MapInfo.Map.AttachedBlocks.Where(r => r.name == "Spawnpoint")];
+        foreach (Player player in Player.ReadyList)
         {
             if (IsChristmasUpdate && Enum.TryParse("Flamingo", out RoleTypeId roleTypeId))
                 player.SetRole(roleTypeId, flags: RoleSpawnFlags.None);
@@ -91,15 +99,14 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     {
         for (float time = 15; time > 0; time--)
         {
-            Extensions.ServerBroadcast(Translation.Start.Replace("{name}", Name).Replace("{time}", time.ToString("00")),
-                1);
+            Extensions.ServerBroadcast(Translation.Start.Replace("{name}", Name).Replace("{time}", time.ToString("00")), 1);
             yield return Timing.WaitForSeconds(1f);
         }
     }
 
     protected override void CountdownFinished()
     {
-        var player = Player.ReadyList.ToList().RandomItem();
+        Player player = Player.ReadyList.ToList().RandomItem();
 
         if (IsHalloweenUpdate)
         {
@@ -121,7 +128,7 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override bool IsRoundDone()
     {
-        var roleType = RoleTypeId.ClassD;
+        RoleTypeId roleType = RoleTypeId.ClassD;
         if (IsChristmasUpdate && Enum.TryParse("Flamingo", out roleType))
         {
             //nothing
@@ -132,42 +139,34 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
 
     protected override void ProcessFrame()
     {
-        var roleType = RoleTypeId.ClassD;
-        var time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
+        RoleTypeId roleType = RoleTypeId.ClassD;
+        string time = $"{EventTime.Minutes:00}:{EventTime.Seconds:00}";
 
         if (IsChristmasUpdate && Enum.TryParse("Flamingo", out roleType))
         {
             //nothing
         }
 
-        var count = Player.ReadyList.Count(r => r.Role == roleType);
+        int count = Player.ReadyList.Count(r => r.Role == roleType);
         if (count > 1)
         {
-            Extensions.ServerBroadcast(
-                Translation.Cycle.Replace("{name}", Name).Replace("{count}", count.ToString()).Replace("{time}", time),
-                1);
+            Extensions.ServerBroadcast(Translation.Cycle.Replace("{name}", Name).Replace("{count}", count.ToString()).Replace("{time}", time), 1);
         }
         else if (count == 1)
         {
             _overtime--;
-            Extensions.ServerBroadcast(Translation.ExtraTime
-                .Replace("{extratime}", _overtime.ToString("00"))
-                .Replace("{time}", $"{time}"), 1);
+            Extensions.ServerBroadcast(Translation.ExtraTime.Replace("{extratime}", _overtime.ToString("00")).Replace("{time}", $"{time}"), 1);
         }
     }
 
     protected override void OnFinished()
     {
-        var roleType = RoleTypeId.ClassD;
+        RoleTypeId roleType = RoleTypeId.ClassD;
         if (IsChristmasUpdate && Enum.TryParse("Flamingo", out roleType))
         {
             //nothing
         }
 
-        Extensions.ServerBroadcast(
-            Player.ReadyList.Count(r => r.Role == roleType) == 0
-                ? Translation.Win.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}")
-                : Translation.Lose.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"),
-            10);
+        Extensions.ServerBroadcast(Player.ReadyList.Count(r => r.Role == roleType) == 0 ? Translation.Win.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}") : Translation.Lose.Replace("{time}", $"{EventTime.Minutes:00}:{EventTime.Seconds:00}"), 10);
     }
 }

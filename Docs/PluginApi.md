@@ -405,16 +405,17 @@ public override EventFlags EventHandlerSettings { get; set; } =
     EventFlags.IgnoreRagdoll | EventFlags.IgnoreBulletHole;
 ```
 
-| Flag                  | Description                           |
-|-----------------------|---------------------------------------|
-| `Default`             | No suppression                        |
-| `IgnoreBulletHole`    | Suppress bullet-hole decals           |
-| `IgnoreRagdoll`       | Prevent ragdoll spawning              |
-| `IgnoreDroppingAmmo`  | Prevent ammo drops on death           |
-| `IgnoreDroppingItem`  | Prevent item drops on death           |
-| `IgnoreHandcuffing`   | Disable handcuffing                   |
-| `IgnoreBloodDecal`    | Suppress blood decals                 |
-| `IgnorePickingUpItem` | Prevent players from picking up items |
+| Flag                  | Description                                                   |
+|-----------------------|---------------------------------------------------------------|
+| `Default`             | No suppression                                                |
+| `IgnoreBulletHole`    | Suppress bullet-hole decals                                   |
+| `IgnoreRagdoll`       | Prevent ragdoll spawning                                      |
+| `IgnoreDroppingAmmo`  | Prevent ammo drops on death                                   |
+| `IgnoreDroppingItem`  | Prevent item drops on death                                   |
+| `IgnoreHandcuffing`   | Disable handcuffing                                           |
+| `IgnoreBloodDecal`    | Suppress blood decals                                         |
+| `IgnorePickingUpItem` | Prevent players from picking up items                         |
+| `AllowDroppingItem`   | Let players drop items (blocked by default during mini-games) |
 
 ---
 
@@ -569,7 +570,9 @@ public class HotPotatoTranslation : EventTranslation { }
 
 - Verify YAML syntax in `configs.yml`
 - Run `ev reload` after editing the file
-- Config file path: `LabApi/configs/global/AutoEvent/configs.yml`
+- Config file path:
+    - Windows: `%AppData%\SCP Secret Laboratory\LabAPI\configs\AutoEvent\configs.yml`
+    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/configs/AutoEvent/configs.yml`
 
 ---
 

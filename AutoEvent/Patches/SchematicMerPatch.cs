@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using HarmonyLib;
 
@@ -9,13 +10,20 @@ public class SchematicMerPatch
 {
     public static bool Prefix(ref string __result)
     {
-        var stackTrace = new StackTrace();
-        foreach (var frame in stackTrace.GetFrames())
-        {
-            var declaringType = frame.GetMethod().DeclaringType;
-            var assemblyName = declaringType.Assembly.GetName().Name;
+        if (AutoEvent.Singleton is null)
+            return true;
 
-            if (!assemblyName.Contains("AutoEvent") || declaringType.Name == "SchematicMerPatch")
+        StackFrame[] frames = new StackTrace().GetFrames();
+        if (frames is null)
+            return true;
+
+        foreach (StackFrame frame in frames)
+        {
+            Type declaringType = frame.GetMethod()?.DeclaringType;
+            if (declaringType is null || declaringType == typeof(SchematicMerPatch))
+                continue;
+
+            if (!declaringType.Assembly.GetName().Name.Contains("AutoEvent"))
                 continue;
             __result = Path.Combine(AutoEvent.Singleton.Config.SchematicsDirectoryPath, "ProjectMER");
             return false;

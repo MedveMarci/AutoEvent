@@ -1,4 +1,4 @@
-using System.Linq;
+using AdminToys;
 using AutoEvent.API;
 using AutoEvent.ApiFeatures;
 using LabApi.Features.Wrappers;
@@ -24,33 +24,32 @@ internal static class ProjectMerIntegration
     {
         MeroIntegration.TrySetIsDynamiclyDisabled(true);
 
-        if (!ObjectSpawner.TrySpawnSchematic(schematicName, pos, rot, scale, out var schematicObject))
+        if (!ObjectSpawner.TrySpawnSchematic(schematicName, pos, rot, scale, out SchematicObject schematicObject))
         {
+            MeroIntegration.TrySetIsDynamiclyDisabled(false);
             AutoEvent.InternalEventManager.CurrentEvent?.StopEvent();
-            foreach (var pl in Player.ReadyList)
+            foreach (Player pl in Player.ReadyList)
                 pl.SetRole(RoleTypeId.Spectator);
-            LogManager.Error(
-                $"The map {schematicName} could not be loaded because it was not found. " +
-                $"Delete and re-download the schematics.");
+            LogManager.Error($"The map {schematicName} could not be loaded because it was not found. " + $"Delete and re-download the schematics.");
             return null;
         }
 
-        foreach (var toyBase in schematicObject.AdminToyBases)
+        foreach (AdminToyBase toyBase in schematicObject.AdminToyBases)
             toyBase.syncInterval = 0;
 
         MeroIntegration.TrySetIsDynamiclyDisabled(false);
         return new MapObject
         {
-            AttachedBlocks = schematicObject.AttachedBlocks.ToList(),
-            AdminToyBases = schematicObject.AdminToyBases.ToList(),
+            AttachedBlocks = [.. schematicObject.AttachedBlocks],
+            AdminToyBases = [.. schematicObject.AdminToyBases],
             GameObject = schematicObject.gameObject
         };
     }
 
     public static GameObject CreatePlatformByParent(GameObject parent, Vector3 position)
     {
-        var prim = parent.GetComponent<PrimitiveObjectToy>();
-        var obj = ObjectSpawner.SpawnPrimitive(new SerializablePrimitive
+        PrimitiveObjectToy prim = parent.GetComponent<PrimitiveObjectToy>();
+        PrimitiveObjectToy obj = ObjectSpawner.SpawnPrimitive(new SerializablePrimitive
         {
             PrimitiveType = prim.PrimitiveType,
             Position = position,
@@ -66,17 +65,16 @@ internal static class ProjectMerIntegration
     {
         MeroIntegration.TrySetIsDynamiclyDisabled(true);
 
-        if (!ObjectSpawner.TrySpawnSchematic(serializableSchematic, out var schematicObject))
+        if (!ObjectSpawner.TrySpawnSchematic(serializableSchematic, out SchematicObject schematicObject))
         {
             AutoEvent.InternalEventManager.CurrentEvent?.StopEvent();
-            foreach (var pl in Player.ReadyList)
+            foreach (Player pl in Player.ReadyList)
                 pl.SetRole(RoleTypeId.Spectator);
-            LogManager.Error(
-                $"The schematic {serializableSchematic.SchematicName} could not be loaded. Delete and re-download the schematics.");
+            LogManager.Error($"The schematic {serializableSchematic.SchematicName} could not be loaded. Delete and re-download the schematics.");
             return null;
         }
 
-        foreach (var toyBase in schematicObject.AdminToyBases)
+        foreach (AdminToyBase toyBase in schematicObject.AdminToyBases)
             toyBase.syncInterval = 0;
 
         MeroIntegration.TrySetIsDynamiclyDisabled(false);

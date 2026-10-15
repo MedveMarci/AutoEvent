@@ -11,19 +11,6 @@ namespace AutoEvent.Games.Deathrun;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        if (AvailableMaps is null) AvailableMaps = [];
-
-        if (AvailableMaps.Count < 1)
-        {
-            AvailableMaps.Add(new MapChance("TempleMap", new Vector3(0f, 30f, 30f)));
-            AvailableMaps.Add(new MapChance("TempleMap_Xmas2025", new Vector3(0f, 30f, 30f),
-                season: SeasonFlags.Christmas));
-            AvailableMaps.Add(new MapChance("sl_egypt", new Vector3(100f, 0f, 0f)));
-        }
-    }
-
     [Description("How long the round should last in minutes.")]
     public int RoundDurationInSeconds { get; set; } = 530;
 
@@ -73,4 +60,16 @@ public class Config : EventConfig
             InfiniteAmmo = AmmoMode.InfiniteAmmo
         }
     ];
+
+    public Config()
+    {
+        if (AvailableMaps is null) AvailableMaps = [];
+
+        if (AvailableMaps.Count < 1)
+        {
+            AvailableMaps.Add(new MapChance("TempleMap", new Vector3(0f, 30f, 30f)));
+            AvailableMaps.Add(new MapChance("TempleMap_Xmas2025", new Vector3(0f, 30f, 30f), season: SeasonFlags.Christmas));
+            AvailableMaps.Add(new MapChance("sl_egypt", new Vector3(100f, 0f, 0f)));
+        }
+    }
 }

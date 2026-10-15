@@ -7,18 +7,6 @@ namespace AutoEvent.Interfaces;
 
 public class MapInfo
 {
-    public MapInfo()
-    {
-    }
-
-    public MapInfo(string mapName, Vector3 position, Vector3? rotation = null, Vector3? scale = null)
-    {
-        MapName = mapName;
-        Position = position;
-        Scale = scale ?? Vector3.one;
-        Rotation = rotation ?? Vector3.zero;
-    }
-
     [Description("The name of the map schematic.")]
     public string MapName { get; set; }
 
@@ -38,5 +26,17 @@ public class MapInfo
     [Description("The scale of the map.")] public Vector3 Scale { get; set; } = Vector3.one;
 
     [YamlIgnore] public MapObject Map { get; set; }
+
     [YamlIgnore] public bool SpawnAutomatically { get; set; } = true;
+
+    public MapInfo()
+    { }
+
+    public MapInfo(string mapName, Vector3 position, Vector3? rotation = null, Vector3? scale = null)
+    {
+        MapName = mapName;
+        Position = position;
+        Scale = scale ?? Vector3.one;
+        Rotation = rotation ?? Vector3.zero;
+    }
 }

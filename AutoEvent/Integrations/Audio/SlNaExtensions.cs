@@ -1,18 +1,21 @@
+using System.IO;
 using AutoEvent.API;
 using LabApi.Features.Wrappers;
 using SecretLabNAudio.Core;
 using SecretLabNAudio.Core.Extensions;
+using SecretLabNAudio.Core.Extensions.Processors;
+using SecretLabNAudio.Core.FileReading;
 using SecretLabNAudio.Core.Pools;
+using SecretLabNAudio.Core.Processors;
 using UnityEngine;
 
 namespace AutoEvent.Integrations.Audio;
 
 internal static class SlNaExtensions
 {
-    public static IAudioHandle PlayAudio(string filePath, bool isLoop, bool isSpatial,
-        float minDistance, float maxDistance, Vector3 speakerPosition)
+    public static IAudioHandle PlayAudio(string fileName, string filePath, bool isLoop, bool isSpatial, float minDistance, float maxDistance, Vector3 speakerPosition)
     {
-        var settings = new SpeakerSettings
+        SpeakerSettings settings = new()
         {
             Volume = AutoEvent.MusicVolume / 100f,
             IsSpatial = isSpatial,
@@ -20,29 +23,32 @@ internal static class SlNaExtensions
             MaxDistance = maxDistance
         };
 
-        var player = AudioPlayerPool.Rent(settings, position: speakerPosition)
-            .UseFile(filePath, isLoop)
-            .DestroyOnEnd()
-            .PoolOnEnd();
+        AudioPlayer player = UseSource(AudioPlayerPool.Rent(settings, position: speakerPosition), fileName, filePath, isLoop).DestroyOnEnd().PoolOnEnd();
 
         return new SlnaHandle(player);
     }
 
-    public static IAudioHandle PlayPlayerAudio(Player labPlayer, string filePath, bool isLoop)
+    public static IAudioHandle PlayPlayerAudio(Player labPlayer, string fileName, string filePath, bool isLoop)
     {
-        var settings = new SpeakerSettings
+        SpeakerSettings settings = new()
         {
             Volume = AutoEvent.MusicVolume / 100f,
             IsSpatial = false,
             MaxDistance = 5000f
         };
 
-        var player = AudioPlayerPool.Rent(settings, position: labPlayer.Position)
-            .WithFilteredSendEngine(p => p.NetworkId == labPlayer.NetworkId)
-            .UseFile(filePath, isLoop)
-            .DestroyOnEnd();
+        AudioPlayer player = UseSource(AudioPlayerPool.Rent(settings, position: labPlayer.Position).WithFilteredSendEngine(p => p.NetworkId == labPlayer.NetworkId), fileName, filePath, isLoop).DestroyOnEnd();
 
         return new SlnaHandle(player);
+    }
+
+    private static AudioPlayer UseSource(AudioPlayer player, string fileName, string filePath, bool isLoop)
+    {
+        if (File.Exists(filePath))
+            return player.UseFile(filePath, isLoop);
+
+        StreamAudioProcessor processor = CreateAudioProcessor.FromStream(MusicManager.OpenEmbedded(fileName), Path.GetExtension(fileName)).WithLoop(isLoop);
+        return player.Use(processor);
     }
 
     private sealed class SlnaHandle(AudioPlayer player) : IAudioHandle

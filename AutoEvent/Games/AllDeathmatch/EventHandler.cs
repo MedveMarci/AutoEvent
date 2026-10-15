@@ -4,6 +4,7 @@ using CustomPlayerEffects;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Features.Wrappers;
 using MEC;
+using UnityEngine;
 
 namespace AutoEvent.Games.AllDeathmatch;
 
@@ -36,11 +37,10 @@ public class EventHandler(Plugin plugin)
         player.Health = player.MaxHealth;
         player.ClearItems();
         if (!player.IsAlive)
-            player.GiveLoadout(plugin.Config.NtfLoadouts,
-                LoadoutFlags.ForceInfiniteAmmo | LoadoutFlags.IgnoreGodMode | LoadoutFlags.IgnoreWeapons);
+            player.GiveLoadout(plugin.Config.NtfLoadouts, LoadoutFlags.ForceInfiniteAmmo | LoadoutFlags.IgnoreGodMode | LoadoutFlags.IgnoreWeapons);
 
         player.CurrentItem ??= player.AddItem(plugin.Config.AvailableWeapons.RandomItem());
-        var pos = plugin.SpawnList.RandomItem().transform.position;
+        Vector3 pos = plugin.SpawnList.RandomItem().transform.position;
         Timing.CallDelayed(0.1f, () => player.Position = pos);
     }
 

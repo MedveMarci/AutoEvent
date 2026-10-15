@@ -21,7 +21,7 @@ internal abstract class RandomClass
             return Vector3.zero;
         }
 
-        var spawnpoint = gameMap.AttachedBlocks.Where(x => x.name == "Spawnpoint").ToList().RandomItem();
+        GameObject spawnpoint = gameMap.AttachedBlocks.Where(x => x.name == "Spawnpoint").ToList().RandomItem();
         if (spawnpoint is not null) return spawnpoint.transform.position;
         LogManager.Debug("Spawnpoint is null");
         return Vector3.zero;

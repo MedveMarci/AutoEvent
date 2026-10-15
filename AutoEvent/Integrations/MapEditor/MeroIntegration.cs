@@ -25,8 +25,7 @@ internal static class MeroIntegration
 
         try
         {
-            var field = OptimizerType!.GetField("isDynamiclyDisabled",
-                BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+            FieldInfo field = OptimizerType!.GetField("isDynamiclyDisabled", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
             if (field is not null && field.FieldType == typeof(bool))
             {
                 field.SetValue(null, value);
@@ -34,8 +33,7 @@ internal static class MeroIntegration
                 return;
             }
 
-            var prop = OptimizerType.GetProperty("isDynamiclyDisabled",
-                BindingFlags.Public | BindingFlags.Static | BindingFlags.IgnoreCase);
+            PropertyInfo prop = OptimizerType.GetProperty("isDynamiclyDisabled", BindingFlags.Public | BindingFlags.Static | BindingFlags.IgnoreCase);
             if (prop is not null && prop.PropertyType == typeof(bool) && prop.CanWrite)
             {
                 prop.SetValue(null, value);

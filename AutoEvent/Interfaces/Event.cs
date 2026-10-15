@@ -14,83 +14,83 @@ namespace AutoEvent.Interfaces
 {
     public abstract class Event : IEvent
     {
-        #region Abstract Implementations
+        public delegate void EventStoppedHandler(string eventName);
 
-        #region Event Information
+        public delegate void CleanupFinishedHandler(string eventName);
+
+        public delegate void EventStartedHandler(string eventName);
+
+        private CoroutineHandle _timingCoroutine;
+        private CoroutineHandle _cleanupHandle;
+
+        private bool _cleanupRun;
+        private bool _stopped;
 
         public abstract string Name { get; set; }
+
         internal string InternalName { get; set; }
+
         public int Id { get; internal set; }
+
         public bool IsInternal { get; internal set; }
+
         public abstract string Description { get; set; }
+
         public abstract string Author { get; set; }
+
         public abstract string CommandName { get; set; }
 
-        #endregion
-
-        #region Event Settings
-
         public virtual float PostRoundDelay { get; set; } = 10f;
+
         public virtual bool AutoLoad { get; protected set; } = true;
+
         protected virtual bool KillLoop { get; set; }
+
         protected virtual float FrameDelayInSeconds { get; set; } = 1f;
+
         protected virtual FriendlyFireSettings ForceEnableFriendlyFire { get; set; } = FriendlyFireSettings.Default;
 
-        protected virtual FriendlyFireSettings ForceEnableFriendlyFireAutoban { get; set; } =
-            FriendlyFireSettings.Default;
+        protected virtual FriendlyFireSettings ForceEnableFriendlyFireAutoban { get; set; } = FriendlyFireSettings.Default;
 
         private FriendlyFireSettings ResolvedFriendlyFire =>
-            ForceEnableFriendlyFire != FriendlyFireSettings.Default
-                ? ForceEnableFriendlyFire
-                : InternalConfig?.EnableFriendlyFire ?? FriendlyFireSettings.Default;
+            ForceEnableFriendlyFire != FriendlyFireSettings.Default ? ForceEnableFriendlyFire : InternalConfig?.EnableFriendlyFire ?? FriendlyFireSettings.Default;
 
         private FriendlyFireSettings ResolvedFriendlyFireAutoban =>
-            ForceEnableFriendlyFireAutoban != FriendlyFireSettings.Default
-                ? ForceEnableFriendlyFireAutoban
-                : InternalConfig?.EnableFriendlyFireAutoban ?? FriendlyFireSettings.Default;
+            ForceEnableFriendlyFireAutoban != FriendlyFireSettings.Default ? ForceEnableFriendlyFireAutoban : InternalConfig?.EnableFriendlyFireAutoban ?? FriendlyFireSettings.Default;
 
         public virtual EventFlags EventHandlerSettings { get; set; } = EventFlags.Default;
 
-        #endregion
-
-        #region Event Variables
-
         protected virtual CoroutineHandle GameCoroutine { get; set; }
+
         protected virtual CoroutineHandle BroadcastCoroutine { get; set; }
-        private CoroutineHandle _timingCoroutine;
-        private CoroutineHandle _cleanupHandle;
+
         public virtual DateTime StartTime { get; protected set; }
+
         public virtual TimeSpan EventTime { get; protected set; }
 
-        #endregion
-
-        #region Event Configs
-
         public EventConfig InternalConfig { get; set; }
+
         public EventTranslation InternalTranslation { get; set; }
 
-        #endregion
-
-        #region Event API Methods
+        public Event()
+        {
+            InternalName = Name;
+        }
 
         protected void StartAudio(bool checkIfAutomatic = false)
         {
-            LogManager.Debug($"Starting Audio: " +
-                             $"{(this is IEventSound s ? "true, " +
-                                                         $"{(!string.IsNullOrEmpty(s.SoundInfo.SoundName) ? "true" : "false")}, " +
-                                                         $"{(!checkIfAutomatic ? "true" : "false")}, " +
-                                                         $"{(s.SoundInfo.StartAutomatically ? "true" : "false")}" : "false")}");
-            if (this is IEventSound sound && !string.IsNullOrEmpty(sound.SoundInfo.SoundName) &&
-                (!checkIfAutomatic || sound.SoundInfo.StartAutomatically))
+            LogManager.Debug($"Starting Audio: " + $"{(this is IEventSound s ? "true, " +
+                                                                               $"{(!string.IsNullOrEmpty(s.SoundInfo.SoundName) ? "true" : "false")}, " +
+                                                                               $"{(!checkIfAutomatic ? "true" : "false")}, " +
+                                                                               $"{(s.SoundInfo.StartAutomatically ? "true" : "false")}" : "false")}");
+            if (this is IEventSound sound && !string.IsNullOrEmpty(sound.SoundInfo.SoundName) && (!checkIfAutomatic || sound.SoundInfo.StartAutomatically))
                 sound.SoundInfo.AudioPlayer = Extensions.PlayAudio(sound.SoundInfo.SoundName, sound.SoundInfo.Loop);
         }
 
         protected void StopAudio()
         {
             LogManager.Debug("Stopping Audio");
-            if (this is IEventSound sound &&
-                !string.IsNullOrEmpty(sound.SoundInfo.SoundName) &&
-                sound.SoundInfo.AudioPlayer != null)
+            if (this is IEventSound sound && !string.IsNullOrEmpty(sound.SoundInfo.SoundName) && sound.SoundInfo.AudioPlayer != null)
                 sound.SoundInfo.AudioPlayer.StopAudio();
         }
 
@@ -98,21 +98,17 @@ namespace AutoEvent.Interfaces
         {
             try
             {
-                LogManager.Debug($"Spawning Map: " +
-                                 $"{(this is IEventMap m ? "true, " +
-                                                           $"{(!string.IsNullOrEmpty(m.MapInfo.MapName) ? "true" : "false")}, " +
-                                                           $"{(!checkIfAutomatic ? "true" : "false")}, " +
-                                                           $"{(m.MapInfo.SpawnAutomatically ? "true" : "false")}" : "false")}");
-                if (this is IEventMap map && !string.IsNullOrEmpty(map.MapInfo.MapName) &&
-                    (!checkIfAutomatic || map.MapInfo.SpawnAutomatically))
-                    map.MapInfo.Map = Extensions.LoadMap(map.MapInfo.MapName, map.MapInfo.Position,
-                        map.MapInfo.MapRotation,
-                        map.MapInfo.Scale);
+                LogManager.Debug($"Spawning Map: " + $"{(this is IEventMap m ? "true, " +
+                                                                               $"{(!string.IsNullOrEmpty(m.MapInfo.MapName) ? "true" : "false")}, " +
+                                                                               $"{(!checkIfAutomatic ? "true" : "false")}, " +
+                                                                               $"{(m.MapInfo.SpawnAutomatically ? "true" : "false")}" : "false")}");
+                if (this is IEventMap map && !string.IsNullOrEmpty(map.MapInfo.MapName) && (!checkIfAutomatic || map.MapInfo.SpawnAutomatically))
+                    map.MapInfo.Map = Extensions.LoadMap(map.MapInfo.MapName, map.MapInfo.Position, map.MapInfo.MapRotation, map.MapInfo.Scale);
             }
             catch (Exception e)
             {
                 LogManager.Error($"Could not spawn map for event {Name}.\n{e}");
-                AutoEvent.InternalEventManager.CurrentEvent.StopEvent();
+                StopEvent();
             }
         }
 
@@ -134,20 +130,10 @@ namespace AutoEvent.Interfaces
             OnInternalStop();
         }
 
-        #endregion
-
-        #region Event Methods
-
-        public Event()
-        {
-            InternalName = Name;
-        }
-
         protected abstract void OnStart();
 
         protected virtual void RegisterEvents()
-        {
-        }
+        { }
 
         protected virtual IEnumerator<float> BroadcastStartCountdown()
         {
@@ -155,32 +141,23 @@ namespace AutoEvent.Interfaces
         }
 
         protected virtual void CountdownFinished()
-        {
-        }
+        { }
 
         protected abstract bool IsRoundDone();
 
         protected virtual void ProcessFrame()
-        {
-        }
+        { }
 
         protected abstract void OnFinished();
 
         protected virtual void OnStop()
-        {
-        }
+        { }
 
         protected virtual void UnregisterEvents()
-        {
-        }
+        { }
 
         protected virtual void OnCleanup()
-        {
-        }
-
-        #endregion
-
-        #region Internal Event Methods
+        { }
 
         private void SetMap(string mapName = "")
         {
@@ -188,19 +165,16 @@ namespace AutoEvent.Interfaces
             if (InternalConfig?.AvailableMaps is null || InternalConfig.AvailableMaps.Count == 0)
                 return;
 
-            var seasonFlags = SeasonMethod.GetSeasonStyle().SeasonFlag;
+            SeasonFlags seasonFlags = SeasonMethod.GetSeasonStyle().SeasonFlag;
 
-            // If no map is tagged for the current season, fall back to the season-less pool.
             if (InternalConfig.AvailableMaps.All(r => r.Season != seasonFlags))
                 seasonFlags = SeasonFlags.None;
 
-            var maps = InternalConfig.AvailableMaps.Where(map =>
-                map.Season == seasonFlags || map.Season == SeasonFlags.None).ToList();
+            List<MapChance> maps = [.. InternalConfig.AvailableMaps.Where(map => map.Season == seasonFlags || map.Season == SeasonFlags.None)];
 
             if (!string.IsNullOrEmpty(mapName))
             {
-                var requested = InternalConfig.AvailableMaps.FirstOrDefault(x =>
-                    x.MapName.Contains(mapName, StringComparison.OrdinalIgnoreCase));
+                MapChance requested = InternalConfig.AvailableMaps.FirstOrDefault(x => x.MapName.Contains(mapName, StringComparison.OrdinalIgnoreCase));
                 if (requested is null)
                     LogManager.Warn($"[{Name}] Map '{mapName}' was not found, choosing a random one instead.");
                 else
@@ -210,13 +184,13 @@ namespace AutoEvent.Interfaces
             if (maps.Count == 0)
             {
                 LogManager.Warn($"[{Name}] No maps are available for the current season; using the full map list.");
-                maps = InternalConfig.AvailableMaps.ToList();
+                maps = [.. InternalConfig.AvailableMaps];
             }
 
-            foreach (var mapItem in maps.Where(x => x.Weight <= 0))
+            foreach (MapChance mapItem in maps.Where(x => x.Weight <= 0))
                 mapItem.Weight = 1;
 
-            var spawnAutomatically = eventMap.MapInfo.SpawnAutomatically;
+            bool spawnAutomatically = eventMap.MapInfo.SpawnAutomatically;
             eventMap.MapInfo = Extensions.PickWeightedRandom(maps, x => x.Weight).ToMapInfo();
             eventMap.MapInfo.SpawnAutomatically = spawnAutomatically;
 
@@ -273,7 +247,7 @@ namespace AutoEvent.Interfaces
 
             try
             {
-                var friendlyFire = ResolvedFriendlyFire;
+                FriendlyFireSettings friendlyFire = ResolvedFriendlyFire;
                 switch (friendlyFire)
                 {
                     case FriendlyFireSettings.Enable:
@@ -373,18 +347,11 @@ namespace AutoEvent.Interfaces
             }
         }
 
-        private bool _cleanupRun;
-        private bool _stopped;
-
         private void OnInternalCleanup()
         {
             if (_cleanupRun) return;
 
-            // If a different event has already taken over, this is a stale cleanup (e.g. a delayed
-            // post-round callback firing after the operator stopped and started another event).
-            // Mark it done but do nothing destructive - the active event owns the players now.
-            if (AutoEvent.InternalEventManager.CurrentEvent != null &&
-                AutoEvent.InternalEventManager.CurrentEvent != this)
+            if (AutoEvent.InternalEventManager.CurrentEvent != null && AutoEvent.InternalEventManager.CurrentEvent != this)
             {
                 _cleanupRun = true;
                 return;
@@ -406,8 +373,7 @@ namespace AutoEvent.Interfaces
             }
             catch (Exception e)
             {
-                LogManager.Error(
-                    $"Friendly Fire was not able to be restored. Please ensure it is disabled. PLAYERS MAY BE AUTO-BANNED ACCIDENTALLY OR MAY NOT BE BANNED FOR FF.\n{e}");
+                LogManager.Error($"Friendly Fire was not able to be restored. Please ensure it is disabled. PLAYERS MAY BE AUTO-BANNED ACCIDENTALLY OR MAY NOT BE BANNED FOR FF.\n{e}");
             }
 
             try
@@ -429,7 +395,7 @@ namespace AutoEvent.Interfaces
                     RespawnWaves.PrimaryChaosWave.IsForcefullyPaused = false;
                 if (RespawnWaves.PrimaryMtfWave != null)
                     RespawnWaves.PrimaryMtfWave.IsForcefullyPaused = false;
-                
+
                 DeSpawnMap();
                 StopAudio();
                 Extensions.CleanUpAll();
@@ -461,36 +427,23 @@ namespace AutoEvent.Interfaces
             AutoEvent.InternalEventManager.CurrentEvent = null;
         }
 
-        #endregion
-
-        #region Event Events
-
-        public delegate void EventStoppedHandler(string eventName);
-
-        public delegate void CleanupFinishedHandler(string eventName);
-
-        public delegate void EventStartedHandler(string eventName);
-
         public virtual event EventStartedHandler EventStarted;
+
         public virtual event CleanupFinishedHandler CleanupFinished;
+
         public virtual event EventStoppedHandler EventStopped;
-
-        #endregion
-
-        #endregion
     }
 }
 
-public abstract class Event<TConfig, TTranslation> : Event
-    where TConfig : EventConfig, new()
-    where TTranslation : EventTranslation, new()
+public abstract class Event<TConfig, TTranslation> : Event where TConfig : EventConfig, new() where TTranslation : EventTranslation, new()
 {
+    public TConfig Config => (TConfig)InternalConfig;
+
+    public TTranslation Translation => (TTranslation)InternalTranslation;
+
     public Event()
     {
         InternalConfig = new TConfig();
         InternalTranslation = new TTranslation();
     }
-
-    public TConfig Config => (TConfig)InternalConfig;
-    public TTranslation Translation => (TTranslation)InternalTranslation;
 }

@@ -73,6 +73,7 @@ Among Us:
   accept_divert_power: 'Подтвердите перенаправку'
   download_data: 'Скачайте данные'
   upload_data: 'Выгрузи данные'
+  submit_scan: 'Пройти сканирование'
   skip: 'Skip'
   vote: 'Голосование'
   no_one_voted_out: 'Ни за кого не проголосовали.'
@@ -106,7 +107,7 @@ Nuke Run:
     До взрыва: <color=red>{time}</color>
   end: |-
     {name}
-    <color=red> SCP победили </color>
+    <color=red>Сбежало игроков: {players}</color>
   name: 'Атомный побег'
   description: 'Escape the facility before it explodes!'
   command_name: 'escape'
@@ -146,7 +147,11 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>Победители: <color=red>Ученые</color></color>
-  max_round_reached: 'Вы выиграли большинство раундов!'
+  max_round_reached: |-
+    <color=yellow>Вы сыграли максимум — {max} раунд(ов) подряд!</color>
+    Вернуться на арену можно после следующего раунда.
+  rounds_remaining: 'Вы можете сыграть ещё <color=yellow>{rounds}</color> раунд(ов) подряд.'
+  resting: '<color=red>Пропустите один раунд, прежде чем снова выйти на арену.</color>'
   name: 'Петушиные бои'
   description: 'Дуэль на карте 35hp из CS 1.6'
   command_name: 'versus'
@@ -365,7 +370,7 @@ Puzzle:
     Конец игры.
   some_survived: |-
     <b>{name}</b>
-    <color=red>Несколько выживших игроков</color>
+    <color=green>Выжило игроков: {count}</color>
     Конец игры.
   winner: |-
     <b>{name}</b>
@@ -504,7 +509,6 @@ The floor is LAVA:
     {winner}</b></color>
   all_dead: '<color=red><b>Никто не выжил.</b></color>'
   died: '<color=red>Сгорел в лаве</color>'
-  reload: 'Перезарядите оружие!'
   name: 'Пол - это Лава'
   description: 'Избегайте лавы и уничтожьте других игроков.'
   command_name: 'lava'

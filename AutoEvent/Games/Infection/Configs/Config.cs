@@ -10,24 +10,6 @@ namespace AutoEvent.Games.Infection;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("Zombie", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("sl_waterworld", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("ZombieRework", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Zombie_PresidentFinny", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("Zombie_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
-        AvailableMaps.Add(
-            new MapChance("ZombieRework_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
-        AvailableMaps.Add(new MapChance("Zombie_Halloween2024", new Vector3(0, 40f, 0f),
-            season: SeasonFlags.Halloween));
-        AvailableMaps.Add(new MapChance("ZombieRework_Halloween2024", new Vector3(0, 40f, 0f),
-            season: SeasonFlags.Halloween));
-    }
-
     public List<Loadout> PlayerLoadouts { get; set; } =
     [
         new()
@@ -57,4 +39,19 @@ public class Config : EventConfig
         "human_death_01.ogg",
         "human_death_02.ogg"
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("Zombie", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("sl_waterworld", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("ZombieRework", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Zombie_PresidentFinny", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("Zombie_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance("ZombieRework_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
+        AvailableMaps.Add(new MapChance("Zombie_Halloween2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Halloween));
+        AvailableMaps.Add(new MapChance("ZombieRework_Halloween2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Halloween));
+    }
 }

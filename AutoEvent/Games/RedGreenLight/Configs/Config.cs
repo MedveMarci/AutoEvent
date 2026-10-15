@@ -11,15 +11,6 @@ namespace AutoEvent.Games.Light;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        AvailableMaps ??= [];
-
-        if (AvailableMaps.Count >= 1) return;
-        AvailableMaps.Add(new MapChance("RedLight", new Vector3(0, 40f, 0f)));
-        AvailableMaps.Add(new MapChance("RedLight_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
-    }
-
     [Description("After how many seconds the round will end. [Default: 70]")]
     public int TotalTimeInSeconds { get; set; } = 70;
 
@@ -42,4 +33,13 @@ public class Config : EventConfig
             ]
         }
     ];
+
+    public Config()
+    {
+        AvailableMaps ??= [];
+
+        if (AvailableMaps.Count >= 1) return;
+        AvailableMaps.Add(new MapChance("RedLight", new Vector3(0, 40f, 0f)));
+        AvailableMaps.Add(new MapChance("RedLight_Xmas2024", new Vector3(0, 40f, 0f), season: SeasonFlags.Christmas));
+    }
 }

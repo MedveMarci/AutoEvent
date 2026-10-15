@@ -10,7 +10,7 @@ public static class InvisibleInteractableToySearchTimePrefix
 {
     private static bool Prefix(InvisibleInteractableToy __instance, ReferenceHub hub, ref float __result)
     {
-        if (!__instance.TryGetInteractableToy(hub, out var custom))
+        if (!__instance.TryGetInteractableToy(hub, out float custom))
         {
             LogManager.Debug("Using default interaction duration.");
             return true;
@@ -27,7 +27,7 @@ public static class AdminToyBaseOnDestroyPatch
 {
     private static void Postfix(AdminToyBase __instance)
     {
-        if (!__instance.TryGetComponent<InvisibleInteractableToy>(out var toy)) return;
+        if (!__instance.TryGetComponent(out InvisibleInteractableToy toy)) return;
         LogManager.Debug("Clearing interactable toy.");
         toy.ClearInteractableToy();
     }

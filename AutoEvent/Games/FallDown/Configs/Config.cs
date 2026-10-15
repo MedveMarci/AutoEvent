@@ -11,18 +11,6 @@ namespace AutoEvent.Games.FallDown;
 
 public class Config : EventConfig
 {
-    public Config()
-    {
-        if (AvailableMaps is null) AvailableMaps = [];
-
-        if (AvailableMaps.Count < 1)
-        {
-            AvailableMaps.Add(new MapChance("FallDown", new Vector3(0f, 40f, 0f)));
-            AvailableMaps.Add(new MapChance("FallDown_Xmas2024", new Vector3(0f, 40f, 0f),
-                season: SeasonFlags.Christmas));
-        }
-    }
-
     [Description("The delay between the selection of platforms that fall from 2 to 0.1. [Default: 1 - 0.3]")]
     public DifficultyItem DelayInSeconds { get; set; } = new(1, 0.3f);
 
@@ -45,4 +33,15 @@ public class Config : EventConfig
             ]
         }
     ];
+
+    public Config()
+    {
+        if (AvailableMaps is null) AvailableMaps = [];
+
+        if (AvailableMaps.Count < 1)
+        {
+            AvailableMaps.Add(new MapChance("FallDown", new Vector3(0f, 40f, 0f)));
+            AvailableMaps.Add(new MapChance("FallDown_Xmas2024", new Vector3(0f, 40f, 0f), season: SeasonFlags.Christmas));
+        }
+    }
 }

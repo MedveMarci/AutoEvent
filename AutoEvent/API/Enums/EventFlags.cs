@@ -12,5 +12,6 @@ public enum EventFlags
     IgnoreDroppingItem = 1 << 3,
     IgnoreHandcuffing = 1 << 4,
     IgnoreBloodDecal = 1 << 5,
-    IgnorePickingUpItem = 1 << 6
+    IgnorePickingUpItem = 1 << 6,
+    AllowDroppingItem = 1 << 7
 }

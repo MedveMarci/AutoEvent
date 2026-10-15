@@ -15,36 +15,15 @@ public class EventConfig
     [Description("A list of sounds that can be used for this event.")]
     public List<SoundChance> AvailableSounds { get; set; } = [];
 
-    [Description(
-        "Controls the friendly-fire autoban (vanilla detector + CedMod) during this event. " +
-        "Enable = keep it active, Disable/Default = pause it so players are not banned for minigame combat. " +
-        "Some games force a specific value out of necessity, which overrides this setting.")]
+    [Description("Controls the friendly-fire autoban (vanilla detector + CedMod) during this event. " + "Enable = keep it active, Disable/Default = pause it so players are not banned for minigame combat. " + "Some games force a specific value out of necessity, which overrides this setting.")]
     public FriendlyFireSettings EnableFriendlyFireAutoban { get; set; } = FriendlyFireSettings.Default;
 
-    [Description(
-        "Controls friendly fire (teammate damage) during this event. " +
-        "Default = keep the server's setting. " +
-        "Some games force a specific value out of necessity, which overrides this setting.")]
+    [Description("Controls friendly fire (teammate damage) during this event. " + "Default = keep the server's setting. " + "Some games force a specific value out of necessity, which overrides this setting.")]
     public FriendlyFireSettings EnableFriendlyFire { get; set; } = FriendlyFireSettings.Default;
 }
 
 public class MapChance
 {
-    public MapChance()
-    {
-    }
-
-    public MapChance(string mapName, Vector3 position, float weight = 1f,
-        SeasonFlags season = SeasonFlags.None, Vector3? rotation = null, Vector3? scale = null)
-    {
-        MapName = mapName;
-        Position = position;
-        Weight = weight;
-        Season = season;
-        Rotation = rotation ?? Vector3.zero;
-        Scale = scale ?? Vector3.one;
-    }
-
     [Description("Name of the schematic file to load (without extension).")]
     public string MapName { get; set; }
 
@@ -57,8 +36,7 @@ public class MapChance
     [Description("Scale of the map. Use (1, 1, 1) for normal size.")]
     public Vector3 Scale { get; set; } = Vector3.one;
 
-    [Description(
-        "Selection weight — higher values make this map more likely to be chosen. All maps with equal weight are equally likely.")]
+    [Description("Selection weight — higher values make this map more likely to be chosen. All maps with equal weight are equally likely.")]
     public float Weight { get; set; } = 1f;
 
     [Description("Season this map appears in. Use 'None' to make it available year-round.")]
@@ -88,6 +66,19 @@ public class MapChance
 
     [YamlIgnore] internal MapObject LoadedMap { get; set; }
 
+    public MapChance()
+    { }
+
+    public MapChance(string mapName, Vector3 position, float weight = 1f, SeasonFlags season = SeasonFlags.None, Vector3? rotation = null, Vector3? scale = null)
+    {
+        MapName = mapName;
+        Position = position;
+        Weight = weight;
+        Season = season;
+        Rotation = rotation ?? Vector3.zero;
+        Scale = scale ?? Vector3.one;
+    }
+
     internal MapInfo ToMapInfo()
     {
         return new MapInfo(MapName, Position, Rotation, Scale);
@@ -96,19 +87,18 @@ public class MapChance
 
 public abstract class SoundChance
 {
+    [Description("The chance of getting this sound.")]
+    public float Chance { get; set; } = 1f;
+
+    [Description("The sound and sound information.")]
+    public SoundInfo Sound { get; set; }
+
     public SoundChance()
-    {
-    }
+    { }
 
     public SoundChance(float chance, SoundInfo sound)
     {
         Chance = chance;
         Sound = sound;
     }
-
-    [Description("The chance of getting this sound.")]
-    public float Chance { get; set; } = 1f;
-
-    [Description("The sound and sound information.")]
-    public SoundInfo Sound { get; set; }
 }

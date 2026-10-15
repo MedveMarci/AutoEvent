@@ -24,8 +24,7 @@ public class LineComponent : MonoBehaviour
             if (Player.Get(other.gameObject) is { } player)
             {
                 player.GiveLoadout(_plugin.Config.FailureLoadouts);
-                player.Position = map.MapInfo.Map.AttachedBlocks.First(x => x.name == "SpawnPoint_spec").transform
-                    .position;
+                player.Position = map.MapInfo.Map.AttachedBlocks.First(x => x.name == "SpawnPoint_spec").transform.position;
             }
     }
 

@@ -8,12 +8,13 @@ namespace AutoEvent.Vote.Commands;
 public class VoteMainCommand : ParentCommand
 {
     public override string Command => "Vote";
+
     public override string Description => "Vote commands for AutoEvent";
+
     public override string[] Aliases => [];
 
     public sealed override void LoadGeneratedCommands()
-    {
-    }
+    { }
 
     protected override bool ExecuteParent(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
@@ -22,21 +23,8 @@ public class VoteMainCommand : ParentCommand
             response = "AutoEvent is not loaded. Check console for errors.";
             return false;
         }
-        
-        response = "Please enter a valid subcommand: \n";
-        foreach (var x in Commands)
-        {
-            var args = string.Empty;
-            if (x.Value is IUsageProvider usage)
-                foreach (var arg in usage.Usage)
-                    args += $"[{arg}] ";
 
-            if (sender is not ServerConsoleSender)
-                response += $"<color=yellow> {x.Key} {args}<color=white>-> {x.Value.Description}. \n";
-            else
-                response += $" {x.Key} {args} -> {x.Value.Description}. \n";
-        }
-
-        return false;
+        response = CommandHelp.BuildGroup(this, "ev vote", sender);
+        return true;
     }
 }

@@ -8,7 +8,9 @@ namespace AutoEvent.Commands;
 public class MainCommand : ParentCommand
 {
     public override string Command => "ev";
+
     public override string Description => "Main command for AutoEvent";
+
     public override string[] Aliases => [];
 
     protected override bool ExecuteParent(ArraySegment<string> arguments, ICommandSender sender, out string response)
@@ -18,25 +20,11 @@ public class MainCommand : ParentCommand
             response = "AutoEvent is not loaded. Check console for errors.";
             return false;
         }
-        
-        response = "Please enter a valid subcommand: \n";
-        foreach (var x in Commands)
-        {
-            var args = "";
-            if (x.Value is IUsageProvider usage)
-                foreach (var arg in usage.Usage)
-                    args += $"[{arg}] ";
 
-            if (sender is not ServerConsoleSender)
-                response += $"<color=yellow> {x.Key} {args}<color=white>-> {x.Value.Description}. \n";
-            else
-                response += $" {x.Key} {args} -> {x.Value.Description}. \n";
-        }
-
-        return false;
+        response = CommandHelp.Build(this, sender);
+        return true;
     }
 
     public override void LoadGeneratedCommands()
-    {
-    }
+    { }
 }
