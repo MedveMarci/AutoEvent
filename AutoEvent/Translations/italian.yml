@@ -147,6 +147,12 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>VINCITORI: <color=red>SCIENZIATI</color></color>
+  player_win: |-
+    <color=#D71868><b><i>{name}</i></b></color>
+    <color=yellow>WINNER: <color=red>{winner}</color></color>
+  team_split: |-
+    <color=yellow>Your team won!</color>
+    The <color=red>{count}</color> survivors are split into two new teams. Fight until only one is left!
   max_round_reached: |-
     <color=yellow>Hai giocato il massimo di {max} round di fila!</color>
     Potrai rientrare nell'arena dopo il prossimo round.

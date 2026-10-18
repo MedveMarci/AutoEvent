@@ -147,6 +147,12 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>KAZANANLAR: <color=red>BİLİM İNSANLARI</color></color>
+  player_win: |-
+    <color=#D71868><b><i>{name}</i></b></color>
+    <color=yellow>WINNER: <color=red>{winner}</color></color>
+  team_split: |-
+    <color=yellow>Your team won!</color>
+    The <color=red>{count}</color> survivors are split into two new teams. Fight until only one is left!
   max_round_reached: |-
     <color=yellow>Üst üste en fazla {max} tur oynadın!</color>
     Bir sonraki turdan sonra arenaya tekrar girebilirsin.

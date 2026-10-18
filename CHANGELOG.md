@@ -1,5 +1,17 @@
 # Changelog
 
+## [10.3.0]
+
+### Added
+
+- Cock Fights (Versus): when a team wins, its alive players are split into two new teams at random, and they keep
+  fighting. This repeats until only one player is left alive, who is announced as the winner. It can be turned off
+  with the new `SplitWinningTeam` config option (on by default). New translations: `PlayerWin`, `TeamSplit`.
+
+### Changed
+
+- Russian, German and Chinese translation updates.
+
 ## [10.2.0]
 
 ### Added

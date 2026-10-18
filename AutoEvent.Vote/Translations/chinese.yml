@@ -1,12 +1,12 @@
-menu_title: 'Vote for a minigame!'
+menu_title: '小游戏投票'
 broadcast_text: |-
-  <b>Vote for the next minigame with your radio!</b>
-  <size=25>Change your choice with Left Mouse Click. {duration} seconds remaining.</size>
-ended_with_no_vote: '<b>The vote has ended with no votes cast.</b>'
+  <b>请使用对讲机为下一场小游戏投票！</b>
+  <size=25>鼠标左键可切换选项。剩余时间：{duration} 秒。</size>
+ended_with_no_vote: '<b>投票已结束，本轮无人投票。</b>'
 ended_with_tie: |-
-  <b>The vote has ended in a tie between:</b>
+  <b>投票结束，以下项目票数持平：</b>
   {events}
 ended_with_winner: |-
-  <b>The vote has ended!</b>
-  The winner is <color=yellow>{event}</color> with {votes} vote(s).
-ended_by_staff: '<b>The vote was ended by a staff member.</b>'
+  <b>投票已结束！</b>
+  最终获胜的是 <color=yellow>{event}</color>（共计 {votes} 票）。
+ended_by_staff: '<b>本次投票已被管理员提前终止。</b>'
