@@ -73,7 +73,7 @@ Among Us:
   accept_divert_power: '接收转移的电力'
   download_data: '下载数据'
   upload_data: '上传数据'
-  submit_scan: 'Submit Scan'
+  submit_scan: '提交扫描'
   skip: '跳过'
   vote: '投票'
   no_one_voted_out: '没有人被投票出局'
@@ -147,11 +147,17 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>胜者 <color=red>科学家</color></color>
+  player_win: |-
+    <color=#D71868><b><i>{name}</i></b></color>
+    <color=yellow>WINNER: <color=red>{winner}</color></color>
+  team_split: |-
+    <color=yellow>Your team won!</color>
+    The <color=red>{count}</color> survivors are split into two new teams. Fight until only one is left!
   max_round_reached: |-
-    <color=yellow>You played the maximum of {max} rounds in a row!</color>
-    You can enter the arena again after the next round.
-  rounds_remaining: 'You can play <color=yellow>{rounds}</color> more round(s) in a row.'
-  resting: '<color=red>You have to sit out one round before entering the arena again.</color>'
+    <color=yellow>你的连续对局已达上限（{max} 轮）！</color>
+    下一轮结束后即可重新进入竞技场。
+  rounds_remaining: '你还可连续进行 <color=yellow>{rounds}</color> 轮对局。'
+  resting: '<color=red>你需轮空休息一轮后，方可重新进入竞技场。</color>'
   name: '囚鸟对决'
   description: '在 cs 1.6 的 35hp 地图上进行的玩家决斗'
   command_name: 'versus'

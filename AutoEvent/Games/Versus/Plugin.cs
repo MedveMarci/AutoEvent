@@ -122,7 +122,44 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override bool IsRoundDone()
     {
         _countdown = _countdown.TotalSeconds > 0 ? _countdown.Subtract(new TimeSpan(0, 0, 1)) : TimeSpan.Zero;
-        return !(Player.ReadyList.Any(ply => Config.Team1Loadouts.Any(loadout => loadout.Roles.Any(role => ply.Role == role.Key))) && Player.ReadyList.Any(ply => Config.Team2Loadouts.Any(loadout => loadout.Roles.Any(role => ply.Role == role.Key))));
+
+        List<Player> team1 = [.. Player.ReadyList.Where(ply => IsInTeam(ply, Config.Team1Loadouts))];
+        List<Player> team2 = [.. Player.ReadyList.Where(ply => IsInTeam(ply, Config.Team2Loadouts))];
+        if (team1.Count > 0 && team2.Count > 0)
+            return false;
+
+        List<Player> winners = team1.Count > 0 ? team1 : team2;
+        if (!Config.SplitWinningTeam || winners.Count < 2)
+            return true;
+
+        SplitTeam(winners);
+        return false;
+    }
+
+    private static bool IsInTeam(Player player, List<Loadout> loadouts)
+    {
+        return loadouts.Any(loadout => loadout.Roles.Any(role => player.Role == role.Key));
+    }
+
+    private void SplitTeam(List<Player> winners)
+    {
+        Scientist = null;
+        ClassD = null;
+        ScientistLifespan = 0;
+        ClassDLifespan = 0;
+        _restUntil.Clear();
+        _eventState = EventState.Waiting;
+        _countdown = new TimeSpan(0, 0, Config.AutoSelectDelayInSeconds);
+
+        List<Player> shuffled = [.. winners.OrderBy(_ => UnityEngine.Random.value)];
+        for (int i = 0; i < shuffled.Count; i++)
+        {
+            Player player = shuffled[i];
+            bool isTeam1 = i % 2 == 0;
+            player.GiveLoadout(isTeam1 ? Config.Team1Loadouts : Config.Team2Loadouts);
+            player.Position = _spawnpoints.ElementAt(isTeam1 ? 0 : 1).transform.position;
+            player.SendHint(Translation.TeamSplit.Replace("{count}", winners.Count.ToString()), 8);
+        }
     }
 
     protected override void ProcessFrame()
@@ -321,8 +358,11 @@ public class Plugin : Event<Config, Translation>, IEventSound, IEventMap
     protected override void OnFinished()
     {
         string text = string.Empty;
+        List<Player> alive = [.. Player.ReadyList.Where(ply => IsInTeam(ply, Config.Team1Loadouts) || IsInTeam(ply, Config.Team2Loadouts))];
 
-        if (Player.ReadyList.Count(r => r.Role == RoleTypeId.Scientist) == 0)
+        if (Config.SplitWinningTeam && alive.Count == 1)
+            text = Translation.PlayerWin.Replace("{name}", Name).Replace("{winner}", alive[0].Nickname);
+        else if (Player.ReadyList.Count(r => r.Role == RoleTypeId.Scientist) == 0)
             text = Translation.ClassDWin.Replace("{name}", Name);
         else if (Player.ReadyList.Count(r => r.Role == RoleTypeId.ClassD) == 0)
             text = Translation.ScientistWin.Replace("{name}", Name);

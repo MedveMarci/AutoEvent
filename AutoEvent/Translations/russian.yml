@@ -23,9 +23,9 @@ All Deathmatch:
     <size=30><i><b>{name}</b>
     <color=red>Ты - {kills}/{needKills} убийств</color>
     Время раунда: {time}</i></size>
-  hint_cycle: <color=#ff0000>Ты - {kills}/{needKills} убийств</color></size>
-  leaderboard: Leaderboard
-  leaderboard_content: <color={color}>{num}. {playerName} / {kills} убийств</color>
+  hint_cycle: <color=#ff0000>Вы - {kills}/{needKills} убийств</color></size>
+  leaderboard: Таблица лидеров
+  leaderboard_content: <color={color}>{num}. {playerName} / {kills} Убийств</color>
   no_players: |-
     <color=red>Игра окончена
     Твои убийства {count}</color>
@@ -73,7 +73,7 @@ Among Us:
   accept_divert_power: 'Подтвердите перенаправку'
   download_data: 'Скачайте данные'
   upload_data: 'Выгрузи данные'
-  submit_scan: 'Пройти сканирование'
+  submit_scan: 'Отправить скан'
   skip: 'Skip'
   vote: 'Голосование'
   no_one_voted_out: 'Ни за кого не проголосовали.'
@@ -147,11 +147,17 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>Победители: <color=red>Ученые</color></color>
+  player_win: |-
+    <color=#D71868><b><i>{name}</i></b></color>
+    <color=yellow>WINNER: <color=red>{winner}</color></color>
+  team_split: |-
+    <color=yellow>Your team won!</color>
+    The <color=red>{count}</color> survivors are split into two new teams. Fight until only one is left!
   max_round_reached: |-
-    <color=yellow>Вы сыграли максимум — {max} раунд(ов) подряд!</color>
-    Вернуться на арену можно после следующего раунда.
-  rounds_remaining: 'Вы можете сыграть ещё <color=yellow>{rounds}</color> раунд(ов) подряд.'
-  resting: '<color=red>Пропустите один раунд, прежде чем снова выйти на арену.</color>'
+    <color=yellow>Вы сыграли максимальное количество — {max} раундов — подряд!</color>
+    Вы сможете снова выйти на арену после следующего раунда.
+  rounds_remaining: 'Вы можете сыграть <color=yellow>{rounds}</color> раунд(-ов) подряд.'
+  resting: '<color=red>Вам нужно пропустить один раунд, прежде чем снова выйти на арену.</color>'
   name: 'Петушиные бои'
   description: 'Дуэль на карте 35hp из CS 1.6'
   command_name: 'versus'

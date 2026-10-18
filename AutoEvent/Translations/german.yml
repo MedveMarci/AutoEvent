@@ -23,7 +23,7 @@ All Deathmatch:
     <size=30><i><b>{name}</b>
     <color=red>Du - {kills}/{needKills} Kills</color>
     Rundenzeit: {time}</i></size>
-  hint_cycle: <color=#ff0000>You - {kills}/{needKills} kills</color></size>
+  hint_cycle: <color=#ff0000>Du - {kills}/{needKills} kills</color></size>
   leaderboard: Leaderboard
   leaderboard_content: <color={color}>{num}. {playerName} / {kills} kills</color>
   no_players: |-
@@ -73,7 +73,7 @@ Among Us:
   accept_divert_power: 'Umleitungsstrom akzeptieren'
   download_data: 'Datein Runterladen'
   upload_data: 'Datein Hochladen'
-  submit_scan: 'Submit Scan'
+  submit_scan: 'Scan einreichen'
   skip: 'Skip'
   vote: 'abstimmung'
   no_one_voted_out: 'Niemand wurde rausgewählt.'
@@ -147,11 +147,17 @@ Cock Fights:
   scientist_win: |-
     <color=#D71868><b><i>{name}</i></b></color>
     <color=yellow>GEWINNER: <color=red>WISSENSCHAFTLER</color></color>
+  player_win: |-
+    <color=#D71868><b><i>{name}</i></b></color>
+    <color=yellow>WINNER: <color=red>{winner}</color></color>
+  team_split: |-
+    <color=yellow>Your team won!</color>
+    The <color=red>{count}</color> survivors are split into two new teams. Fight until only one is left!
   max_round_reached: |-
-    <color=yellow>You played the maximum of {max} rounds in a row!</color>
-    You can enter the arena again after the next round.
-  rounds_remaining: 'You can play <color=yellow>{rounds}</color> more round(s) in a row.'
-  resting: '<color=red>You have to sit out one round before entering the arena again.</color>'
+    <color=yellow>Du hast die maximale Anzahl an {max} Runden hintereinander gespielt!</color>
+    Du kannst in der nächsten Runde wieder die Arena betreten.
+  rounds_remaining: 'Du kannst <color=yellow>{rounds}</color> Runde(n) mehr hintereinander spielen.'
+  resting: '<color=red>Du musst eine Runde aussetzen bevor du wieder in die Arena kannst.</color>'
   name: 'Box kämpfe'
   description: 'Duell der Spieler auf der 35hp-Map aus CS 1.6'
   command_name: 'versus'
