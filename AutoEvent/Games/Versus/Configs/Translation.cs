@@ -16,6 +16,10 @@ public class Translation : EventTranslation
 
     public string ScientistWin { get; set; } = "<color=#D71868><b><i>{name}</i></b></color>\n<color=yellow>WINNERS: <color=red>SCIENTISTS</color></color>";
 
+    public string PlayerWin { get; set; } = "<color=#D71868><b><i>{name}</i></b></color>\n<color=yellow>WINNER: <color=red>{winner}</color></color>";
+
+    public string TeamSplit { get; set; } = "<color=yellow>Your team won!</color>\nThe <color=red>{count}</color> survivors are split into two new teams. Fight until only one is left!";
+
     public string MaxRoundReached { get; set; } = "<color=yellow>You played the maximum of {max} rounds in a row!</color>\nYou can enter the arena again after the next round.";
 
     public string RoundsRemaining { get; set; } = "You can play <color=yellow>{rounds}</color> more round(s) in a row.";

@@ -17,6 +17,9 @@ public class Config : EventConfig
     [Description("How many rounds a player can play in a row. After that they are taken out of the arena and have to sit out one round. Set to 0 for infinite rounds.")]
     public int JailbirdLifespan { get; set; } = 0;
 
+    [Description("When a team wins, its alive players are split into two new teams, again and again, until only one player is left alive.")]
+    public bool SplitWinningTeam { get; set; } = true;
+
     [Description("How long to wait before forcefully selecting a random player. Set to -1 to disable.")]
     public int AutoSelectDelayInSeconds { get; set; } = 10;
 
